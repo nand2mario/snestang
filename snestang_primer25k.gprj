@@ -1,0 +1,75 @@
+<?xml version="1" encoding="UTF-8"?>
+<!DOCTYPE gowin-fpga-project>
+<Project>
+    <Template>FPGA</Template>
+    <Version>5</Version>
+    <Device name="GW5A-25A" pn="GW5A-LV25MG121NC1/I0">gw5a25a-002</Device>
+    <FileList>
+        <File path="src/65C816/ALU.v" type="file.verilog" enable="1"/>
+        <File path="src/65C816/AddSubBCD.v" type="file.verilog" enable="1"/>
+        <File path="src/65C816/AddrGen.v" type="file.verilog" enable="1"/>
+        <File path="src/65C816/BCDAdder.v" type="file.verilog" enable="1"/>
+        <File path="src/65C816/P65C816.v" type="file.verilog" enable="1"/>
+        <File path="src/65C816/adder4.v" type="file.verilog" enable="1"/>
+        <File path="src/65C816/bit_adder.v" type="file.verilog" enable="1"/>
+        <File path="src/65C816/common.sv" type="file.verilog" enable="1"/>
+        <File path="src/65C816/mcode.sv" type="file.verilog" enable="1"/>
+        <File path="src/CEGen.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/DSP/DSP_LHRomMap.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/DSP/OBC1.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/DSP/SRTC.v" type="file.verilog" enable="1"/>
+        <File path="src/cpu.v" type="file.verilog" enable="1"/>
+        <File path="src/ds2snes.sv" type="file.verilog" enable="1"/>
+        <File path="src/dsp.v" type="file.verilog" enable="1"/>
+        <File path="src/dual_clk_fifo.v" type="file.verilog" enable="1"/>
+        <File path="src/dualshock_controller.v" type="file.verilog" enable="1"/>
+        <File path="src/gowin_dpb_cgram.v" type="file.verilog" enable="1"/>
+        <File path="src/gowin_dpb_hoam.v" type="file.verilog" enable="1"/>
+        <File path="src/gowin_dpb_menu.v" type="file.verilog" enable="1"/>
+        <File path="src/gowin_dpb_oam.v" type="file.verilog" enable="1"/>
+        <File path="src/gowin_dpb_spr_buf.v" type="file.verilog" enable="1"/>
+        <File path="src/hdmi2/audio_clock_regeneration_packet.sv" type="file.verilog" enable="1"/>
+        <File path="src/hdmi2/audio_info_frame.sv" type="file.verilog" enable="1"/>
+        <File path="src/hdmi2/audio_sample_packet.sv" type="file.verilog" enable="1"/>
+        <File path="src/hdmi2/auxiliary_video_information_info_frame.sv" type="file.verilog" enable="1"/>
+        <File path="src/hdmi2/hdmi.sv" type="file.verilog" enable="1"/>
+        <File path="src/hdmi2/packet_assembler.sv" type="file.verilog" enable="1"/>
+        <File path="src/hdmi2/packet_picker.sv" type="file.verilog" enable="1"/>
+        <File path="src/hdmi2/serializer.sv" type="file.verilog" enable="1"/>
+        <File path="src/hdmi2/source_product_description_info_frame.sv" type="file.verilog" enable="1"/>
+        <File path="src/hdmi2/tmds_channel.sv" type="file.verilog" enable="1"/>
+        <File path="src/loader.sv" type="file.verilog" enable="0"/>
+        <File path="src/loader_serial.sv" type="file.verilog" enable="1"/>
+        <File path="src/loader_with_menu.sv" type="file.verilog" enable="1"/>
+        <File path="src/main.v" type="file.verilog" enable="1"/>
+        <File path="src/ppu.v" type="file.verilog" enable="1"/>
+        <File path="src/ppucgram.v" type="file.verilog" enable="1"/>
+        <File path="src/ppuhoam.v" type="file.verilog" enable="1"/>
+        <File path="src/ppuoam.v" type="file.verilog" enable="1"/>
+        <File path="src/ppusprbuf.v" type="file.verilog" enable="1"/>
+        <File path="src/primer25k/gowin_pll_27.v" type="file.verilog" enable="1"/>
+        <File path="src/primer25k/gowin_pll_hdmi.v" type="file.verilog" enable="1"/>
+        <File path="src/primer25k/gowin_pll_snes.v" type="file.verilog" enable="1"/>
+        <File path="src/sd_file_list_reader.v" type="file.verilog" enable="1"/>
+        <File path="src/sd_reader.sv" type="file.verilog" enable="1"/>
+        <File path="src/sdcmd_ctrl.sv" type="file.verilog" enable="1"/>
+        <File path="src/sdram_snes.v" type="file.verilog" enable="1"/>
+        <File path="src/smp.v" type="file.verilog" enable="1"/>
+        <File path="src/snes.v" type="file.verilog" enable="1"/>
+        <File path="src/snes2hdmi.v" type="file.verilog" enable="1"/>
+        <File path="src/snestang_top.v" type="file.verilog" enable="1"/>
+        <File path="src/spc700/_spc700_package.v" type="file.verilog" enable="1"/>
+        <File path="src/spc700/addrgen.v" type="file.verilog" enable="1"/>
+        <File path="src/spc700/addsub.v" type="file.verilog" enable="1"/>
+        <File path="src/spc700/alu.v" type="file.verilog" enable="1"/>
+        <File path="src/spc700/bcdadj.v" type="file.verilog" enable="1"/>
+        <File path="src/spc700/mcode.v" type="file.verilog" enable="1"/>
+        <File path="src/spc700/muldiv.v" type="file.verilog" enable="1"/>
+        <File path="src/spc700/spc700.v" type="file.verilog" enable="1"/>
+        <File path="src/swram.v" type="file.verilog" enable="1"/>
+        <File path="src/uart_tx_V2.v" type="file.verilog" enable="1"/>
+        <File path="src/vram.v" type="file.verilog" enable="1"/>
+        <File path="src/primer25k/snestang.cst" type="file.cst" enable="1"/>
+        <File path="src/snestang.sdc" type="file.sdc" enable="1"/>
+    </FileList>
+</Project>
