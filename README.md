@@ -13,7 +13,7 @@ SNESTang is an open source project to recreate the Super Nintendo Entertainment 
 * Get a Tang Primer 25K with 4 modules: Tang sdram, DVI, Dualshock2, SD and a pair of dualshock controllers. Currently these should cost ~$60 in total. Plug in the modules as follows. Make sure you plug in pmods exactly as shown and the sdram module in the right direction (The side labeled "this side faces outwards" should face away from the board). <br><img src="doc/images/primer25k_setup.jpg" width=400 />.
 * Download a [SNESTang release](https://github.com/nand2mario/nestang/releases), and program the board with Gowin programmer.
 * Format a MicroSD card in FAT32. Then put the .sfc or .smc roms in the root dir.
-  * Windows does not allow FAT32 on cards >32GB, here's a [work-around](https://answers.microsoft.com/en-us/windows/forum/all/format-a-sandisk-extreme-64gb-micro-sd-card-to/ff51be64-75b9-435f-9d39-92299b9d006e). 
+  * Windows does not allow FAT32 on cards >32GB, you can use [Parition Assistant](https://www.diskpart.com/free-partition-manager.html) to force it to FAT32 instead of exFAT.
   * The roms may appear out of order. If you want them to show in alpabetical or other specific order, you can use [DriveSort](http://www.anerty.net/software/file/DriveSort/?lang=en).
 * Connect one or two DualShock2 controllers to the DS2 pmod.
 * Insert the MicroSD card, connect an HDMI monitor or TV, and enjoy your games.
