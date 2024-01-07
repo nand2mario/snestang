@@ -24,6 +24,8 @@ The project is still in early stages and some games do not work. Here are a few 
 
 You can build the code with Gowin IDE 1.9.9 Beta-4 Education version. The education version does not require a license. Just open the project file snestang_primer25k.gprj.
 
+Read the [design notes](doc/design.md) to understand the code or to add features.
+
 You can also simulate the code with [our verilator harness](verilator). `src/test_loader.v` specifies which rom is used by the simulation. Then `make sim` will start a SDL-based graphical simulation.
 
 ## Special Thanks
