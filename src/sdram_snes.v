@@ -70,11 +70,11 @@ module sdram_snes
 	input      [23:1] cpu_addr,     // 16MB SNES memory space 
 	input             cpu_rd /* synthesis syn_keep=1 */,
 	input             cpu_wr /* synthesis syn_keep=1 */,
-	input       [1:0] cpu_ds,       // byte enable
+	input       [1:0] cpu_ds,       // which bytes to enable
 
-    input      [19:0] bsram_addr,
+    input      [19:0] bsram_addr,   // byte access
     input       [7:0] bsram_din,
-    output reg [15:0] bsram_dout,
+    output reg  [7:0] bsram_dout,
     input             bsram_rd,
     input             bsram_wr,
 
@@ -236,7 +236,7 @@ always @(posedge clk) begin
                 ba_next <= 2'b01;
                 a_next[10] <= 1'b1;                     // set auto precharge
                 a_next[8:0] <= bsram_addr[9:1];         // column address
-                SDRAM_DQM <= ~cpu_ds;
+                SDRAM_DQM <= {~bsram_addr[0], bsram_addr[0]};
                 if (bsram_wr) begin
                     dq_oen_next <= 0;
                     dq_out_next <= {bsram_din, bsram_din};
@@ -285,8 +285,8 @@ always @(posedge clk) begin
                     if (cpu_ds[1]) cpu_port0[15:8] <= dq_in[15:8];
                 end
             end else if (bsram_rd) begin
-                if (cpu_ds[0]) bsram_dout[7:0] <= dq_in[7:0];
-                if (cpu_ds[1]) bsram_dout[15:8] <= dq_in[15:8];
+                if (bsram_addr[0]) bsram_dout <= dq_in[15:8];
+                else               bsram_dout <= dq_in[7:0];
             end
         end
         endcase

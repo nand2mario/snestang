@@ -127,8 +127,7 @@ wire        BSRAM_CE_N;
 wire        BSRAM_OE_N;
 wire        BSRAM_WE_N;
 wire        BSRAM_RD_N;
-wire  [7:0] BSRAM_SD_Q = BSRAM_ADDR[0] ? bsram_dout[15:8] : bsram_dout[7:0];
-wire  [7:0] BSRAM_Q;
+wire  [7:0] BSRAM_Q = bsram_dout;
 wire  [7:0] BSRAM_D;
 
 wire [15:0] VRAM1_ADDR;
@@ -211,7 +210,7 @@ main main (
 	.ROM_CE_N(ROM_CE_N), .ROM_OE_N(ROM_OE_N), .ROM_WE_N(ROM_WE_N),
 	.ROM_WORD(ROM_WORD),
 
-	.BSRAM_ADDR(BSRAM_ADDR), .BSRAM_D(BSRAM_D),	.BSRAM_Q(BSRAM_SD_Q),
+	.BSRAM_ADDR(BSRAM_ADDR), .BSRAM_D(BSRAM_D),	.BSRAM_Q(BSRAM_Q),
 	.BSRAM_CE_N(BSRAM_CE_N), .BSRAM_OE_N(BSRAM_OE_N), .BSRAM_WE_N(BSRAM_WE_N),
 	.BSRAM_RD_N(BSRAM_RD_N),
 
@@ -270,8 +269,7 @@ always @(posedge wclk) if (aram_rd) aram_lsb <= ARAM_ADDR[0];
 reg bsram_rd, bsram_wr;
 reg [19:0] bsram_addr;
 reg [7:0] bsram_din;
-wire [15:0] bsram_dout;
-assign BSRAM_Q = BSRAM_ADDR[0] ? bsram_dout[15:8] : bsram_dout[7:0];
+wire [7:0] bsram_dout;
 
 // Generate SDRAM signals
 always @(posedge wclk) begin
@@ -306,7 +304,7 @@ always @(posedge wclk) begin
     bsram_addr <= BSRAM_ADDR;
     bsram_din <= BSRAM_D;
     bsram_rd <= ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC) & f2;
-    bsram_wr <= ~BSRAM_CE_N & ~BSRAM_WE_N & r2; // sysclkf_ce;
+    bsram_wr <= ~BSRAM_CE_N & ~BSRAM_WE_N & r2;
 end
 
 `ifndef VERILATOR
@@ -324,7 +322,7 @@ sdram_snes sdram(
     .cpu_port0(cpu_port0), .cpu_port1(cpu_port1), .cpu_rd(cpu_rd), 
     .cpu_wr(cpu_wr), .cpu_ds(cpu_ds),
 
-    // BSRAM accesses           // TODO: fix BSRAM timing
+    // BSRAM accesses
     .bsram_addr(bsram_addr), .bsram_dout(bsram_dout), .bsram_din(bsram_din),
     .bsram_rd(bsram_rd), .bsram_wr(bsram_wr),
 
@@ -343,6 +341,9 @@ sdram_sim sdram(
     .cpu_addr(cpu_addr[23:1]), .cpu_din(cpu_din), .cpu_port(cpu_port), 
     .cpu_port0(cpu_port0), .cpu_port1(cpu_port1), .cpu_rd(cpu_rd), 
     .cpu_wr(cpu_wr), .cpu_ds(cpu_ds),
+    // BSRAM accesses
+    .bsram_addr(bsram_addr), .bsram_dout(bsram_dout), .bsram_din(bsram_din),
+    .bsram_rd(bsram_rd), .bsram_wr(bsram_wr),
     // ARAM accesses
     .aram_16(aram_16), .aram_addr(ARAM_ADDR), .aram_din({ARAM_D, ARAM_D}), 
     .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd)

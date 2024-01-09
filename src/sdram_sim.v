@@ -15,6 +15,12 @@ module sdram_sim
 	input             cpu_wr,
 	input       [1:0] cpu_ds,       // byte enable
 
+    input      [19:0] bsram_addr,
+    input       [7:0] bsram_din,
+    output reg  [7:0] bsram_dout,
+    input             bsram_rd,
+    input             bsram_wr,
+
     // ARAM access uses bank 2
 	input             aram_16,      // 16-bit access
 	input      [15:0] aram_addr,
@@ -26,8 +32,9 @@ module sdram_sim
     output reg        busy
 );
 
-reg [15:0] mem_cpu [8*1024*1024];
-reg [15:0] mem_aram [32*1024];
+reg [15:0] mem_cpu [8*1024*1024];       // max 16MB
+reg [15:0] mem_aram [32*1024];          // 64KB
+reg [15:0] mem_bsram[64*1024];           // max 128KB
 
 initial $readmemh("random_8m_words.hex", mem_cpu);
 
@@ -51,7 +58,18 @@ always @(posedge clkref) begin
             cpu_port1 <= mem_cpu[cpu_addr]; 
         else
             cpu_port0 <= mem_cpu[cpu_addr]; 
-    end 
+    end
+end
+
+always @(posedge clkref) begin
+    if (bsram_wr) begin
+        if (bsram_addr[0])
+            mem_bsram[bsram_addr[16:1]][15:8] <= bsram_din;
+        else
+            mem_bsram[bsram_addr[16:1]][7:0] <= bsram_din;
+    end else if (bsram_rd) begin
+        bsram_dout <= bsram_addr[0] ? mem_bsram[bsram_addr[16:1]][15:8] : mem_bsram[bsram_addr[16:1]][7:0]; 
+    end
 end
 
 always @(posedge clkref) begin
