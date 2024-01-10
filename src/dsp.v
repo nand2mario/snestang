@@ -61,7 +61,7 @@ wire LRCK, BCK, SDAT;       // obsolete audio output interface
 
 wire EN = ENABLE & READY;
 
-reg [7:0] REGRAM[0:127]     /* xxxxsynthesis syn_ramstyle = "distributed_ram" */;
+reg [7:0] REGRAM[0:127]     /* synthesis syn_ramstyle = "distributed_ram" */;
 reg [7:0] RI;               // register value from SMP
 reg [6:0] REGN_RD, REGN_WR; // current register for read/write
 wire [6:0] REGS_ADDR_WR, REGS_ADDR_RD;
@@ -216,7 +216,7 @@ assign REGS_DO = REGRAM[REGS_ADDR_RD];
 
 always @(posedge CLK) begin : register_access
     if(RST_N == 1'b0) begin
-      REGRAM <= '{128{8'b0}};
+      // REGRAM <= '{128{8'b0}};
     end else begin
       if(REGS_WE == 1'b1) begin
         REGRAM[REGS_ADDR_WR] <= REGS_DI;
