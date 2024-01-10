@@ -372,7 +372,7 @@ reg  [7:0]  fnamelen;
 assign list_namelen = fnamelen;
 assign list_file_size = fsize;
 reg active;                             // current file name buffer written to
-reg  [ 7:0] file_name [0:1][0:31] /* synthesis syn_ramstyle="distributed_ram" */;      // double buffer for file_name
+reg  [ 7:0] file_name [64] /* synthesis syn_ramstyle="distributed_ram" */;      // double buffer for 32-char file_name
 reg         isshort=1'b0, islongok=1'b0, islong=1'b0, longvalid=1'b0;
 reg  [ 5:0] longno = 6'h0;
 reg  [ 7:0] lastchar = 8'h0;
@@ -541,7 +541,7 @@ always @ (posedge clk) begin
             end
 
             if (name_wr)
-                file_name[active][name_idx] <= name_char;
+                file_name[{active, name_idx[4:0]}] <= name_char;
         end
 
         {isshort, islongok, islong, longvalid} <= {isshort_t, islongok_t, islong_t, longvalid_t};
@@ -566,10 +566,10 @@ always @(posedge clk) begin
         if (fready) begin
             sendcnt <= 1;
             list_char_en <= 1;
-            list_char <= file_name[~active][0];
+            list_char <= file_name[{~active, 5'b0}];
         end else if (sendcnt != 0 && ~sendcnt[5]) begin        // send 32 chars
             list_char_en <= 1;
-            list_char <= sendcnt < fnamelen ? file_name[~active][sendcnt] : 0;
+            list_char <= sendcnt < fnamelen ? file_name[{~active, sendcnt[4:0]}] : 0;
             sendcnt <= sendcnt + 6'd1;
         end
     end
