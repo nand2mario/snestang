@@ -372,7 +372,7 @@ reg  [7:0]  fnamelen;
 assign list_namelen = fnamelen;
 assign list_file_size = fsize;
 reg active;                             // current file name buffer written to
-reg  [ 7:0] file_name [0:1][0:31];      // double buffer for file_name
+reg  [ 7:0] file_name [0:1][0:31] /* synthesis syn_ramstyle="distributed_ram" */;      // double buffer for file_name
 reg         isshort=1'b0, islongok=1'b0, islong=1'b0, longvalid=1'b0;
 reg  [ 5:0] longno = 6'h0;
 reg  [ 7:0] lastchar = 8'h0;
@@ -421,6 +421,10 @@ always @ (posedge clk) begin
         if (filesystem_state == SEARCH_MBR) list_file_num <= 0;     // reset file number on start of search
 
         if (rvalid && filesystem_state==LS_ROOT_FAT32 && ~search_fat) begin
+            reg name_wr = 0;
+            reg [4:0] name_idx;
+            reg [7:0] name_char;
+
             // valid byte from root dir FAT
             // Root dir: https://www.p-dd.com/chapter3-page26.html
             // FAT32 tables: https://www.p-dd.com/chapter3-page23.html
@@ -499,7 +503,10 @@ always @ (posedge clk) begin
                         if ({rdata,lastchar} == 16'h0000)
                             file_namelen <= index_t;
                         if (index_t < 32 && {rdata,lastchar} != 16'hFFFF)
-                            file_name[active][index_t] <= lastchar;       // assuming ASCII: only take lower 8-bit
+                            name_wr = 1;
+                            name_idx = index_t;
+                            name_char = lastchar;
+                            // file_name[active][index_t] <= lastchar;       // assuming ASCII: only take lower 8-bit
                     end
                 end
             end
@@ -507,24 +514,34 @@ always @ (posedge clk) begin
             if (isshort_t) begin
                 if(raddr[4:0]<5'h8) begin
                     if(rdata!=8'h20) begin
-                        file_name[active][sdtnamelen_t] <= rdata;
+                        name_idx = sdtnamelen_t;
+                        name_char = rdata;
+                        // file_name[active][sdtnamelen_t] <= rdata;
                         sdtnamelen_t = sdtnamelen_t + 8'd1;
                     end
                 end else if(raddr[4:0]<5'hB) begin
                     if(raddr[4:0]==5'h8) begin
-                        file_name[active][sdtnamelen_t] <= 8'h2E;   // dot
+                        name_idx = sdtnamelen_t;
+                        name_char = 8'h2E;
+                        // file_name[active][sdtnamelen_t] <= 8'h2E;   // dot
                         sdtnamelen_t = sdtnamelen_t + 8'd1;
                     end
                     if(rdata!=8'h20) begin
-                        file_name[active][sdtnamelen_t] <= rdata;
+                        name_idx = sdtnamelen_t;
+                        name_char = rdata;
+                        // file_name[active][sdtnamelen_t] <= rdata;
                         sdtnamelen_t = sdtnamelen_t + 8'd1;
                     end
                 end else if(raddr[4:0]==5'hB) begin
-                    file_name[active][sdtnamelen_t] <= 0;
+                    name_idx = sdtnamelen_t;
+                    name_char = 0;
+                    // file_name[active][sdtnamelen_t] <= 0;
                     file_namelen <= sdtnamelen_t;
                 end
             end
 
+            if (name_wr)
+                file_name[active][name_idx] <= name_char;
         end
 
         {isshort, islongok, islong, longvalid} <= {isshort_t, islongok_t, islong_t, longvalid_t};
@@ -550,8 +567,7 @@ always @(posedge clk) begin
             sendcnt <= 1;
             list_char_en <= 1;
             list_char <= file_name[~active][0];
-        end
-        if (sendcnt != 0 && ~sendcnt[5]) begin        // send 32 chars
+        end else if (sendcnt != 0 && ~sendcnt[5]) begin        // send 32 chars
             list_char_en <= 1;
             list_char <= sendcnt < fnamelen ? file_name[~active][sendcnt] : 0;
             sendcnt <= sendcnt + 6'd1;
