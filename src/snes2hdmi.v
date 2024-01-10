@@ -16,8 +16,8 @@ module snes2hdmi (
     input [8:0] ys, // {field,y}
 
     input overlay,
-    output [7:0] overlay_x,
-    output [7:0] overlay_y,
+    output [10:0] overlay_x,
+    output [9:0] overlay_y,
     input [14:0] overlay_color,
 
     input [15:0] audio_l,
@@ -221,8 +221,8 @@ module snes2hdmi (
     assign mem_portB_addr = {y[BUF_WIDTH-1:0], x};
     reg [23:0] rgb;
 
-    assign overlay_x = x;
-    assign overlay_y = y;
+    assign overlay_x = cx;
+    assign overlay_y = cy;
 
     // calc rgb value to hdmi
     always @(posedge clk_pixel) r_active <= active;

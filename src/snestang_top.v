@@ -376,9 +376,10 @@ ds2snes joy2 (
 assign joy1_di[1] = 0;  // P3
 assign joy2_di[1] = 0;  // P4
 
-wire menu_overlay;
-wire [14:0] menu_color;
-wire [7:0] menu_x, menu_y;
+wire overlay;
+wire [14:0] overlay_color;
+wire [10:0] overlay_x;
+wire [9:0] overlay_y;
 
 wire [7:0] dbg_dat_out_loader;
 
@@ -387,8 +388,8 @@ snes2hdmi s2h(
     .pause_snes_for_frame_sync(pause_snes_for_frame_sync),
     .dotclk(dotclk), .hblank(hblank),.vblank(vblank),.rgb5(rgb_out),
     .xs(x_out), .ys(y_out), 
-    .overlay(menu_overlay), .overlay_x(menu_x), .overlay_y(menu_y),
-    .overlay_color(menu_color),
+    .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
+    .overlay_color(overlay_color), 
     .audio_l(audio_l), .audio_r(audio_r), .audio_ready(audio_ready), .audio_en(audio_en),
     .clk_pixel(hclk),.clk_5x_pixel(hclk5),.locked(1'b1),
 	.tmds_clk_n(tmds_clk_n), .tmds_clk_p(tmds_clk_p),
@@ -407,8 +408,8 @@ wire debug_serial_en;
 loader loader (
     .wclk(wclk), .resetn(resetn),
     .hclk(hclk),
-    .overlay(menu_overlay), .overlay_x(menu_x), .overlay_y(menu_y),
-    .overlay_color(menu_color),
+    .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
+    .overlay_color(overlay_color),
     .btns(joy1_btns),
     .dout(loader_do), .dout_valid(loader_do_valid),
 

@@ -11,9 +11,9 @@ module loader #(
     input hclk,                         // overlay here is driven by the display in pixel clock
                                         // input overlay_x and overlay_y, and next cycle 
                                         // overlay_color will be available
-    output [14:0] overlay_color,
-    input [7:0] overlay_y /* XX synthesis syn_keep=1 */,
-    input [7:0] overlay_x /* XX synthesis syn_keep=1 */,
+    output reg [14:0] overlay_color,
+    input [10:0] overlay_x,             // hdmi 720p x
+    input [9:0] overlay_y,              // hdmi 720p y
 
     input [11:0] btns,                  // press A (btns[8]) or B (btns[0]) to start rom
 
@@ -56,9 +56,9 @@ module loader #(
 
 // BGR
 localparam [14:0] COLOR_BACK    = 15'b00000_00000_00000;
-// localparam [14:0] COLOR_BACK    = 15'b01000_01000_01000;
-localparam [14:0] COLOR_CURSOR  = 15'b10000_11000_11111;
-localparam [14:0] COLOR_TEXT    = 15'b10000_11111_11111;
+localparam [14:0] COLOR_TEXT    = 15'b10000_11111_11111;    // yellow
+localparam [14:0] COLOR_CURSOR  = 15'b10000_11000_11111;    // orange
+localparam [14:0] COLOR_LOGO    = 15'b00000_10101_00000;    // green
 reg [4:0] menu_x, menu_y;           // menu X (0~31) and Y (0~27) to 
 reg [6:0] menu_char;                // char to write to menu
 reg menu_wr;                        // menu text write strobe
@@ -325,68 +325,128 @@ always @(posedge wclk) begin
     end
 end
 
-wire [9:0] menu_addr_b  /* XX synthesis syn_keep=1 */;
-assign menu_addr_b = {overlay_y[7:3], overlay_x[7:3]};
-reg [6:0] menu_do_b /* XX synthesis syn_keep=1 */;
-
-// 32*28 character buffer backed by Dual-port BRAM
-// gowin_dpb_menu menu(
-//     .clka(wclk), .reseta(1'b0), .ocea(), .cea(1'b1), 
-//     .ada({menu_y, menu_x}), .wrea(menu_wr),
-//     .dina(menu_char), .douta(), 
-
-//     .clkb(hclk), .resetb(1'b0), .oceb(), .ceb(1'b1), 
-//     .adb(menu_addr_b), .wreb(1'b0), 
-//     .dinb(), .doutb(menu_do_b)
-// );
-
-reg [6:0] menu_mem [32*28];
-
-always @(posedge wclk) begin
-    if (menu_wr)
-        menu_mem[{menu_y, menu_x}] <= menu_char; 
-end
-
-always @(posedge hclk) begin
-    menu_do_b <= menu_mem[{overlay_y[7:3], overlay_x[7:3]}];
-end
-
-reg [2:0] xoff, yoff;
+//
+// Pixel output logic for characters and logo:
+// 1. To improve timing, output logic is broken into 3 cycles.
+// 2. Char buffer, font rom, logo rom are all stored in the same bram 
+//    block to save LUTs.
+//
+reg [10:0] mem_addr_b;
+reg [7:0] mem_do_b;
+reg [1:0] mem_cnt;
 reg is_cursor;
-reg [14:0] color;
+reg [2:0] xoff, yoff;
+reg [14:0] overlay_color_buf;
 
-always @(posedge hclk) 
-        color <= FONT[menu_do_b][yoff][xoff] ?
-            (is_cursor ? COLOR_CURSOR : COLOR_TEXT) :
-            COLOR_BACK;
+// Char buffer, font and logo rom backed by Dual-port BRAM (total 2KB)
+// this is initialized with font.mi (font.vh + logo.vh)
+// $000-$37F: Character buffer RAM (32*28)
+// $380-$3FF: Logo ROM (14*9 bytes)
+// $400-$800: Font ROM
+gowin_dpb_menu menu_mem (
+    .clka(wclk), .reseta(1'b0), .ocea(), .cea(1'b1), 
+    .ada({1'b0, menu_y, menu_x}), .wrea(menu_wr),
+    .dina({1'b0, menu_char}), .douta(), 
 
-always @(posedge hclk) begin
-    xoff <= overlay_x[2:0];
-    yoff <= overlay_y[2:0];    
-    is_cursor <= overlay_x[7:4] == 0;
-end
+    .clkb(hclk), .resetb(1'b0), .oceb(), .ceb(1'b1), 
+    .adb(mem_addr_b), .wreb(1'b0), 
+    .dinb(), .doutb(mem_do_b)
+);
 
-reg [14:0] color_logo;
+localparam overlay_x_start = 256 - 3;
+reg [7:0] px;   // = (overlay_x - overlay_x_start) / 3;
+reg [7:0] py;   // = (overlay_y - 24) / 3;
+reg [9:0] overlay_y_r;
+reg [1:0] y_cnt;
 
-`include "logo.vh"
-
-// 71x14
-localparam LOGO_X = 128-35;
+// 72x14 pixels 1bpp logo
+// `include "logo.vh"
+localparam LOGO_X = 128-36;
 localparam LOGO_Y = 201;
-always @(posedge hclk) begin
-    color_logo <= 0;
-    if (overlay_x >= LOGO_X && overlay_x < LOGO_X+71 && overlay_y >= LOGO_Y && overlay_y < LOGO_Y + 14) begin
-        if (LOGO[overlay_y-LOGO_Y][LOGO_X+70-overlay_x])
-            color_logo <= LOGO_COLOR;
-    end
+
+reg [6:0] logo_addr;
+reg [2:0] logo_xoff;
+reg logo_active;
+
+always @* begin
+    case (mem_cnt)
+    2'd0: mem_addr_b <= {1'b0, py[7:3], px[7:3]};       // fetch next character
+    2'd1: mem_addr_b <= logo_active ? 
+                        {4'b0111, logo_addr} :          // fetch logo byte
+                        {1'b1, mem_do_b[6:0], yoff};    // fetch font byte
+    default: mem_addr_b <= 0;
+    endcase
 end
 
-assign overlay_color = color_logo | (
-            // color;
-            FONT[menu_do_b][yoff][xoff] ?
-            // COLOR_TEXT :
-            (is_cursor ? COLOR_CURSOR : COLOR_TEXT) :
-            COLOR_BACK
-        );
+always @(posedge hclk) begin
 
+    // mem_cnt: cycle counter (0,1,2)
+    mem_cnt <= mem_cnt + 2'd1;
+    if (mem_cnt == 2'd2) begin
+        mem_cnt <= 0;
+        px <= px + 8'd1;
+    end
+    if (overlay_x == overlay_x_start-1) begin
+        mem_cnt <= 0;
+        px <= 0;
+    end
+    overlay_y_r <= overlay_y;
+    if (overlay_y != overlay_y_r) begin
+        if (overlay_y == 10'd24) begin
+            py <= 0;
+            y_cnt <= 0;
+        end else begin
+            y_cnt <= y_cnt + 2'd1;
+            if (y_cnt == 2'd2) begin
+                py <= py + 10'd1;
+                y_cnt <= 0;
+            end
+        end
+    end
+
+    // address generation
+    case (mem_cnt)
+    2'd0: begin
+        reg [6:0] logo_x;
+        reg [3:0] logo_y;
+
+        // output color from last cycle
+        overlay_color <= overlay_color_buf;
+
+        // for next character
+        is_cursor <= px[7:4] == 0;
+        xoff <= px[2:0];
+        yoff <= py[2:0];
+
+        if (px >= LOGO_X && px < LOGO_X+71 && py >= LOGO_Y && py < LOGO_Y + 14)
+            logo_active <= 1;
+        else
+            logo_active <= 0;
+        logo_x = px - LOGO_X;
+        logo_y = py - LOGO_Y;
+        logo_addr <= logo_y * 9 + logo_x[6:3];
+        logo_xoff <= logo_x[2:0];
+
+        // mem_do_b is character after cycle 0
+    end
+    2'd1: begin
+        // bram fetches font or logo byte to mem_do_b 
+    end  
+    2'd2: begin
+        // compute output color
+        overlay_color_buf <= COLOR_BACK;
+        if (logo_active) begin
+            if (mem_do_b[logo_xoff])
+                overlay_color_buf <= COLOR_LOGO;
+            else
+                overlay_color_buf <= COLOR_BACK;
+        end else if (mem_do_b[xoff]) begin
+            if (is_cursor)
+                overlay_color_buf <= COLOR_CURSOR;
+            else
+                overlay_color_buf <= COLOR_TEXT;
+        end
+    end
+    endcase
+end
 endmodule
