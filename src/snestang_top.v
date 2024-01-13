@@ -467,7 +467,7 @@ reg test_halt_snes, test_sync_done;
 reg [3:0] test_halt_cnt = 0;
 assign pause_snes_for_frame_sync = test_halt_snes;
 
-always @(posedge wclk) begin    // halt 13 cycles at the beginning of frame
+always @(posedge wclk) begin    // halt SNES during snes dram refresh on line 2
     if (~resetn) begin
         test_halt_cnt <= 0;
         test_halt_snes <= 0;
@@ -475,7 +475,7 @@ always @(posedge wclk) begin    // halt 13 cycles at the beginning of frame
     end else begin
         if (~test_sync_done) begin
             if (~test_halt_snes) begin
-                if (y_out[7:0] == 0 && x_out[8:1] == 8'd16) begin
+                if (y_out[7:0] == 2 && refresh) begin
                     test_halt_snes <= 1;
                     test_halt_cnt <= 4'd12;        // halt snes for 13 cycles
                 end
