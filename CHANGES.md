@@ -1,6 +1,6 @@
 
 Current
-* Donkey Kong Country and Earthbound now work.
+* More games are now playable: Donkey Kong Country, Earthbound, Mortal Kombat II, Donkey Kong Country 2, Fatal Fury 2, and more.
 * Fixes image glitches from upscaling bugs.
 * SD module area optimization for adding enhancement chips later.
 
