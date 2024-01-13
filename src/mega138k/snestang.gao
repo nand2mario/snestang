@@ -1,0 +1,784 @@
+<?xml version="1" encoding="UTF-8"?>
+<GAO_CONFIG>
+    <Version>3.0</Version>
+    <Mode>Standard</Mode>
+    <AoCore index="0" sample_clock="wclk" trig_type="0" storage_depth="2048" window_num="1" capture_amount="2048" implementation="0" trigger_pos="0" module_name="tinysnes_top" force_trigger_by_falling_edge="false">
+        <SignalList>
+            <Signal capture_enable="true">wclk</Signal>
+            <Signal capture_enable="true">sysclkf_ce</Signal>
+            <Signal capture_enable="true">sysclkr_ce</Signal>
+            <Signal capture_enable="true">loader_do_valid</Signal>
+            <Bus capture_enable="true" name="cpu_addr[19:0]">
+                <Signal>cpu_addr[19]</Signal>
+                <Signal>cpu_addr[18]</Signal>
+                <Signal>cpu_addr[17]</Signal>
+                <Signal>cpu_addr[16]</Signal>
+                <Signal>cpu_addr[15]</Signal>
+                <Signal>cpu_addr[14]</Signal>
+                <Signal>cpu_addr[13]</Signal>
+                <Signal>cpu_addr[12]</Signal>
+                <Signal>cpu_addr[11]</Signal>
+                <Signal>cpu_addr[10]</Signal>
+                <Signal>cpu_addr[9]</Signal>
+                <Signal>cpu_addr[8]</Signal>
+                <Signal>cpu_addr[7]</Signal>
+                <Signal>cpu_addr[6]</Signal>
+                <Signal>cpu_addr[5]</Signal>
+                <Signal>cpu_addr[4]</Signal>
+                <Signal>cpu_addr[3]</Signal>
+                <Signal>cpu_addr[2]</Signal>
+                <Signal>cpu_addr[1]</Signal>
+                <Signal>cpu_addr[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">cpu_rd</Signal>
+            <Bus capture_enable="true" name="cpu_port0_Z[15:0]">
+                <Signal>cpu_port0_Z[15]</Signal>
+                <Signal>cpu_port0_Z[14]</Signal>
+                <Signal>cpu_port0_Z[13]</Signal>
+                <Signal>cpu_port0_Z[12]</Signal>
+                <Signal>cpu_port0_Z[11]</Signal>
+                <Signal>cpu_port0_Z[10]</Signal>
+                <Signal>cpu_port0_Z[9]</Signal>
+                <Signal>cpu_port0_Z[8]</Signal>
+                <Signal>cpu_port0_Z[7]</Signal>
+                <Signal>cpu_port0_Z[6]</Signal>
+                <Signal>cpu_port0_Z[5]</Signal>
+                <Signal>cpu_port0_Z[4]</Signal>
+                <Signal>cpu_port0_Z[3]</Signal>
+                <Signal>cpu_port0_Z[2]</Signal>
+                <Signal>cpu_port0_Z[1]</Signal>
+                <Signal>cpu_port0_Z[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="cpu_port1_Z[15:0]">
+                <Signal>cpu_port1_Z[15]</Signal>
+                <Signal>cpu_port1_Z[14]</Signal>
+                <Signal>cpu_port1_Z[13]</Signal>
+                <Signal>cpu_port1_Z[12]</Signal>
+                <Signal>cpu_port1_Z[11]</Signal>
+                <Signal>cpu_port1_Z[10]</Signal>
+                <Signal>cpu_port1_Z[9]</Signal>
+                <Signal>cpu_port1_Z[8]</Signal>
+                <Signal>cpu_port1_Z[7]</Signal>
+                <Signal>cpu_port1_Z[6]</Signal>
+                <Signal>cpu_port1_Z[5]</Signal>
+                <Signal>cpu_port1_Z[4]</Signal>
+                <Signal>cpu_port1_Z[3]</Signal>
+                <Signal>cpu_port1_Z[2]</Signal>
+                <Signal>cpu_port1_Z[1]</Signal>
+                <Signal>cpu_port1_Z[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">cpu_wr</Signal>
+            <Bus capture_enable="true" name="cpu_din[7:0]">
+                <Signal>cpu_din[7]</Signal>
+                <Signal>cpu_din[6]</Signal>
+                <Signal>cpu_din[5]</Signal>
+                <Signal>cpu_din[4]</Signal>
+                <Signal>cpu_din[3]</Signal>
+                <Signal>cpu_din[2]</Signal>
+                <Signal>cpu_din[1]</Signal>
+                <Signal>cpu_din[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/H_CNT[8:0]">
+                <Signal>main/SNES/PPU/H_CNT[8]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[7]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[6]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[5]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[4]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[3]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[2]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[1]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/V_CNT[8:0]">
+                <Signal>main/SNES/PPU/V_CNT[8]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[7]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[6]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[5]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[4]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[3]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[2]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[1]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/SPR_PIX_DATA[8:0]">
+                <Signal>main/SNES/PPU/SPR_PIX_DATA[8]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIX_DATA[7]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIX_DATA[6]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIX_DATA[5]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIX_DATA[4]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIX_DATA[3]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIX_DATA[2]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIX_DATA[1]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIX_DATA[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/CRAM_MAIN_ADDR[7:0]">
+                <Signal>main/SNES/PPU/CRAM_MAIN_ADDR[7]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_ADDR[6]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_ADDR[5]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_ADDR[4]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_ADDR[3]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_ADDR[2]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_ADDR[1]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_ADDR[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/CRAM_MAIN_DATA[14:0]">
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[14]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[13]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[12]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[11]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[10]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[9]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[8]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[7]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[6]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[5]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[4]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[3]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[2]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[1]</Signal>
+                <Signal>main/SNES/PPU/CRAM_MAIN_DATA[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/SPR_TILES[0].X[8:0]">
+                <Signal>main/SNES/PPU/SPR_TILES[0].X[8]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[0].X[7]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[0].X[6]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[0].X[5]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[0].X[4]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[0].X[3]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[0].X[2]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[0].X[1]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[0].X[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/SPR_TILES[1].X[8:0]">
+                <Signal>main/SNES/PPU/SPR_TILES[1].X[8]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[1].X[7]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[1].X[6]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[1].X[5]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[1].X[4]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[1].X[3]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[1].X[2]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[1].X[1]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[1].X[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/SPR_TILES[2].X[8:0]">
+                <Signal>main/SNES/PPU/SPR_TILES[2].X[8]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[2].X[7]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[2].X[6]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[2].X[5]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[2].X[4]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[2].X[3]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[2].X[2]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[2].X[1]</Signal>
+                <Signal>main/SNES/PPU/SPR_TILES[2].X[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/SPR_PIXEL_X[7:0]">
+                <Signal>main/SNES/PPU/SPR_PIXEL_X[7]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIXEL_X[6]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIXEL_X[5]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIXEL_X[4]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIXEL_X[3]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIXEL_X[2]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIXEL_X[1]</Signal>
+                <Signal>main/SNES/PPU/SPR_PIXEL_X[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">main/SNES/PPU/SPR_TILES[0].VALID</Signal>
+            <Signal capture_enable="true">main/SNES/PPU/SPR_TILES[1].VALID</Signal>
+            <Signal capture_enable="true">main/SNES/PPU/SPR_TILES[2].VALID</Signal>
+            <Bus capture_enable="true" name="main/SNES/PPU/RANGE_CNT_RD[5:0]">
+                <Signal>main/SNES/PPU/RANGE_CNT_RD[5]</Signal>
+                <Signal>main/SNES/PPU/RANGE_CNT_RD[4]</Signal>
+                <Signal>main/SNES/PPU/RANGE_CNT_RD[3]</Signal>
+                <Signal>main/SNES/PPU/RANGE_CNT_RD[2]</Signal>
+                <Signal>main/SNES/PPU/RANGE_CNT_RD[1]</Signal>
+                <Signal>main/SNES/PPU/RANGE_CNT_RD[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/SCAN_OAM_ADDR[7:1]">
+                <Signal>main/SNES/PPU/SCAN_OAM_ADDR[7]</Signal>
+                <Signal>main/SNES/PPU/SCAN_OAM_ADDR[6]</Signal>
+                <Signal>main/SNES/PPU/SCAN_OAM_ADDR[5]</Signal>
+                <Signal>main/SNES/PPU/SCAN_OAM_ADDR[4]</Signal>
+                <Signal>main/SNES/PPU/SCAN_OAM_ADDR[3]</Signal>
+                <Signal>main/SNES/PPU/SCAN_OAM_ADDR[2]</Signal>
+                <Signal>main/SNES/PPU/SCAN_OAM_ADDR[1]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/OAM_OBJ.X[8:0]">
+                <Signal>main/SNES/PPU/OAM_OBJ.X[8]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.X[7]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.X[6]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.X[5]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.X[4]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.X[3]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.X[2]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.X[1]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.X[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/OAM_OBJ.Y[7:0]">
+                <Signal>main/SNES/PPU/OAM_OBJ.Y[7]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.Y[6]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.Y[5]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.Y[4]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.Y[3]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.Y[2]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.Y[1]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.Y[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/OAM_OBJ.TILE[7:0]">
+                <Signal>main/SNES/PPU/OAM_OBJ.TILE[7]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.TILE[6]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.TILE[5]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.TILE[4]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.TILE[3]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.TILE[2]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.TILE[1]</Signal>
+                <Signal>main/SNES/PPU/OAM_OBJ.TILE[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">main/SNES/PPU/OAM_WE</Signal>
+            <Bus capture_enable="true" name="main/SNES/PPU/OAM/OAM_ADDR[8:1]">
+                <Signal>main/SNES/PPU/OAM/OAM_ADDR[8]</Signal>
+                <Signal>main/SNES/PPU/OAM/OAM_ADDR[7]</Signal>
+                <Signal>main/SNES/PPU/OAM/OAM_ADDR[6]</Signal>
+                <Signal>main/SNES/PPU/OAM/OAM_ADDR[5]</Signal>
+                <Signal>main/SNES/PPU/OAM/OAM_ADDR[4]</Signal>
+                <Signal>main/SNES/PPU/OAM/OAM_ADDR[3]</Signal>
+                <Signal>main/SNES/PPU/OAM/OAM_ADDR[2]</Signal>
+                <Signal>main/SNES/PPU/OAM/OAM_ADDR[1]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/OAM_latch[7:0]">
+                <Signal>main/SNES/PPU/OAM_latch[7]</Signal>
+                <Signal>main/SNES/PPU/OAM_latch[6]</Signal>
+                <Signal>main/SNES/PPU/OAM_latch[5]</Signal>
+                <Signal>main/SNES/PPU/OAM_latch[4]</Signal>
+                <Signal>main/SNES/PPU/OAM_latch[3]</Signal>
+                <Signal>main/SNES/PPU/OAM_latch[2]</Signal>
+                <Signal>main/SNES/PPU/OAM_latch[1]</Signal>
+                <Signal>main/SNES/PPU/OAM_latch[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/DI[7:0]">
+                <Signal>main/SNES/PPU/DI[7]</Signal>
+                <Signal>main/SNES/PPU/DI[6]</Signal>
+                <Signal>main/SNES/PPU/DI[5]</Signal>
+                <Signal>main/SNES/PPU/DI[4]</Signal>
+                <Signal>main/SNES/PPU/DI[3]</Signal>
+                <Signal>main/SNES/PPU/DI[2]</Signal>
+                <Signal>main/SNES/PPU/DI[1]</Signal>
+                <Signal>main/SNES/PPU/DI[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">main/SNES/CPU/DMA_ACTIVEr</Signal>
+            <Bus capture_enable="true" name="main/SNES/CPU/INT_PA[7:0]">
+                <Signal>main/SNES/CPU/INT_PA[7]</Signal>
+                <Signal>main/SNES/CPU/INT_PA[6]</Signal>
+                <Signal>main/SNES/CPU/INT_PA[5]</Signal>
+                <Signal>main/SNES/CPU/INT_PA[4]</Signal>
+                <Signal>main/SNES/CPU/INT_PA[3]</Signal>
+                <Signal>main/SNES/CPU/INT_PA[2]</Signal>
+                <Signal>main/SNES/CPU/INT_PA[1]</Signal>
+                <Signal>main/SNES/CPU/INT_PA[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="DAS[0]" restorename="group_0[15:0]">
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_1_G[7]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_1_G[6]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_1_G[5]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_1_G[4]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_1_G[3]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_1_G[2]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_1_G[1]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_1_G[0]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_0_G[7]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_0_G[6]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_0_G[5]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_0_G[4]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_0_G[3]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_0_G[2]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_0_G[1]_2</Signal>
+                <Signal>main/SNES/CPU/DAS_DAS_RAMREG_0_G[0]_2</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="cpu_addr_r[23:0]">
+                <Signal>cpu_addr_r[23]</Signal>
+                <Signal>cpu_addr_r[22]</Signal>
+                <Signal>cpu_addr_r[21]</Signal>
+                <Signal>cpu_addr_r[20]</Signal>
+                <Signal>cpu_addr_r[19]</Signal>
+                <Signal>cpu_addr_r[18]</Signal>
+                <Signal>cpu_addr_r[17]</Signal>
+                <Signal>cpu_addr_r[16]</Signal>
+                <Signal>cpu_addr_r[15]</Signal>
+                <Signal>cpu_addr_r[14]</Signal>
+                <Signal>cpu_addr_r[13]</Signal>
+                <Signal>cpu_addr_r[12]</Signal>
+                <Signal>cpu_addr_r[11]</Signal>
+                <Signal>cpu_addr_r[10]</Signal>
+                <Signal>cpu_addr_r[9]</Signal>
+                <Signal>cpu_addr_r[8]</Signal>
+                <Signal>cpu_addr_r[7]</Signal>
+                <Signal>cpu_addr_r[6]</Signal>
+                <Signal>cpu_addr_r[5]</Signal>
+                <Signal>cpu_addr_r[4]</Signal>
+                <Signal>cpu_addr_r[3]</Signal>
+                <Signal>cpu_addr_r[2]</Signal>
+                <Signal>cpu_addr_r[1]</Signal>
+                <Signal>cpu_addr_r[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="SPC700_PC" restorename="group_0[15:0]">
+                <Signal>main/SNES/smp/SPC700/PC[15]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC[14]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC[13]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC[12]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC[11]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC[10]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC[9]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC[8]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC[7]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC[6]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC[5]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC[4]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC_0[3]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC_0[2]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC_0[1]</Signal>
+                <Signal>main/SNES/smp/SPC700/PC_0[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="A_OUT[15:1]">
+                <Signal>A_OUT[15]</Signal>
+                <Signal>A_OUT[14]</Signal>
+                <Signal>A_OUT[13]</Signal>
+                <Signal>A_OUT[12]</Signal>
+                <Signal>A_OUT[11]</Signal>
+                <Signal>A_OUT[10]</Signal>
+                <Signal>A_OUT[9]</Signal>
+                <Signal>A_OUT[8]</Signal>
+                <Signal>A_OUT[7]</Signal>
+                <Signal>A_OUT[6]</Signal>
+                <Signal>A_OUT[5]</Signal>
+                <Signal>A_OUT[4]</Signal>
+                <Signal>A_OUT[3]</Signal>
+                <Signal>A_OUT[2]</Signal>
+                <Signal>A_OUT[1]</Signal>
+            </Bus>
+            <Signal capture_enable="false">audio_full</Signal>
+            <Bus capture_enable="false" name="cpu_port0[15:0]">
+                <Signal>cpu_port0[15]</Signal>
+                <Signal>cpu_port0[14]</Signal>
+                <Signal>cpu_port0[13]</Signal>
+                <Signal>cpu_port0[12]</Signal>
+                <Signal>cpu_port0[11]</Signal>
+                <Signal>cpu_port0[10]</Signal>
+                <Signal>cpu_port0[9]</Signal>
+                <Signal>cpu_port0[8]</Signal>
+                <Signal>cpu_port0[7]</Signal>
+                <Signal>cpu_port0[6]</Signal>
+                <Signal>cpu_port0[5]</Signal>
+                <Signal>cpu_port0[4]</Signal>
+                <Signal>cpu_port0[3]</Signal>
+                <Signal>cpu_port0[2]</Signal>
+                <Signal>cpu_port0[1]</Signal>
+                <Signal>cpu_port0[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="cpu_port1[15:0]">
+                <Signal>cpu_port1[15]</Signal>
+                <Signal>cpu_port1[14]</Signal>
+                <Signal>cpu_port1[13]</Signal>
+                <Signal>cpu_port1[12]</Signal>
+                <Signal>cpu_port1[11]</Signal>
+                <Signal>cpu_port1[10]</Signal>
+                <Signal>cpu_port1[9]</Signal>
+                <Signal>cpu_port1[8]</Signal>
+                <Signal>cpu_port1[7]</Signal>
+                <Signal>cpu_port1[6]</Signal>
+                <Signal>cpu_port1[5]</Signal>
+                <Signal>cpu_port1[4]</Signal>
+                <Signal>cpu_port1[3]</Signal>
+                <Signal>cpu_port1[2]</Signal>
+                <Signal>cpu_port1[1]</Signal>
+                <Signal>cpu_port1[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="main/SNES/smp/CPUO[2][7:0]">
+                <Signal>main/SNES/smp/CPUO[2][7]</Signal>
+                <Signal>main/SNES/smp/CPUO[2][6]</Signal>
+                <Signal>main/SNES/smp/CPUO[2][5]</Signal>
+                <Signal>main/SNES/smp/CPUO[2][4]</Signal>
+                <Signal>main/SNES/smp/CPUO[2][3]</Signal>
+                <Signal>main/SNES/smp/CPUO[2][2]</Signal>
+                <Signal>main/SNES/smp/CPUO[2][1]</Signal>
+                <Signal>main/SNES/smp/CPUO[2][0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="main/SNES/smp/CPUO[3][7:0]">
+                <Signal>main/SNES/smp/CPUO[3][7]</Signal>
+                <Signal>main/SNES/smp/CPUO[3][6]</Signal>
+                <Signal>main/SNES/smp/CPUO[3][5]</Signal>
+                <Signal>main/SNES/smp/CPUO[3][4]</Signal>
+                <Signal>main/SNES/smp/CPUO[3][3]</Signal>
+                <Signal>main/SNES/smp/CPUO[3][2]</Signal>
+                <Signal>main/SNES/smp/CPUO[3][1]</Signal>
+                <Signal>main/SNES/smp/CPUO[3][0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="main/SNES/smp/CPUI[2][7:0]">
+                <Signal>main/SNES/smp/CPUI[2][7]</Signal>
+                <Signal>main/SNES/smp/CPUI[2][6]</Signal>
+                <Signal>main/SNES/smp/CPUI[2][5]</Signal>
+                <Signal>main/SNES/smp/CPUI[2][4]</Signal>
+                <Signal>main/SNES/smp/CPUI[2][3]</Signal>
+                <Signal>main/SNES/smp/CPUI[2][2]</Signal>
+                <Signal>main/SNES/smp/CPUI[2][1]</Signal>
+                <Signal>main/SNES/smp/CPUI[2][0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="main/SNES/smp/CPUI[3][7:0]">
+                <Signal>main/SNES/smp/CPUI[3][7]</Signal>
+                <Signal>main/SNES/smp/CPUI[3][6]</Signal>
+                <Signal>main/SNES/smp/CPUI[3][5]</Signal>
+                <Signal>main/SNES/smp/CPUI[3][4]</Signal>
+                <Signal>main/SNES/smp/CPUI[3][3]</Signal>
+                <Signal>main/SNES/smp/CPUI[3][2]</Signal>
+                <Signal>main/SNES/smp/CPUI[3][1]</Signal>
+                <Signal>main/SNES/smp/CPUI[3][0]</Signal>
+            </Bus>
+            <Signal capture_enable="false">loader_done</Signal>
+            <Signal capture_enable="false">main/SNES/smp/SPC700/STPExec</Signal>
+            <Signal capture_enable="false">s2h/audio_fifo/audio_full</Signal>
+            <Signal capture_enable="false">audio_ready</Signal>
+            <Signal capture_enable="false">main/SNES/dsp/APU_ACTIVE</Signal>
+            <Bus capture_enable="false" name="main/SNES/dsp/SUBSTEP_CNT[1:0]">
+                <Signal>main/SNES/dsp/SUBSTEP_CNT[1]</Signal>
+                <Signal>main/SNES/dsp/SUBSTEP_CNT[0]</Signal>
+            </Bus>
+            <Signal capture_enable="false">main/SNES/smp/SPC700/EN</Signal>
+            <Bus capture_enable="false" name="main/SNES/smp/SPC700/A_OUT[15:0]">
+                <Signal>main/SNES/smp/SPC700/A_OUT[15]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[14]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[13]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[12]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[11]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[10]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[9]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[8]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[7]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[6]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[5]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[4]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[3]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[2]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[1]</Signal>
+                <Signal>main/SNES/smp/SPC700/A_OUT[0]</Signal>
+            </Bus>
+            <Signal capture_enable="false">SMP_WE_N</Signal>
+            <Bus capture_enable="false" name="main/SNES/smp/SPC700_D_IN[7:0]">
+                <Signal>main/SNES/smp/SPC700_D_IN[7]</Signal>
+                <Signal>main/SNES/smp/SPC700_D_IN[6]</Signal>
+                <Signal>main/SNES/smp/SPC700_D_IN[5]</Signal>
+                <Signal>main/SNES/smp/SPC700_D_IN[4]</Signal>
+                <Signal>main/SNES/smp/SPC700_D_IN[3]</Signal>
+                <Signal>main/SNES/smp/SPC700_D_IN[2]</Signal>
+                <Signal>main/SNES/smp/SPC700_D_IN[1]</Signal>
+                <Signal>main/SNES/smp/SPC700_D_IN[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="SMP_DO_buf[7:0]">
+                <Signal>SMP_DO_buf[7]</Signal>
+                <Signal>SMP_DO_buf[6]</Signal>
+                <Signal>SMP_DO_buf[5]</Signal>
+                <Signal>SMP_DO_buf[4]</Signal>
+                <Signal>SMP_DO_buf[3]</Signal>
+                <Signal>SMP_DO_buf[2]</Signal>
+                <Signal>SMP_DO_buf[1]</Signal>
+                <Signal>SMP_DO_buf[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="main/SNES/smp/CPUI[0][7:0]">
+                <Signal>main/SNES/smp/CPUI[0][7]</Signal>
+                <Signal>main/SNES/smp/CPUI[0][6]</Signal>
+                <Signal>main/SNES/smp/CPUI[0][5]</Signal>
+                <Signal>main/SNES/smp/CPUI[0][4]</Signal>
+                <Signal>main/SNES/smp/CPUI[0][3]</Signal>
+                <Signal>main/SNES/smp/CPUI[0][2]</Signal>
+                <Signal>main/SNES/smp/CPUI[0][1]</Signal>
+                <Signal>main/SNES/smp/CPUI[0][0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="main/SNES/smp/CPUI[1][7:0]">
+                <Signal>main/SNES/smp/CPUI[1][7]</Signal>
+                <Signal>main/SNES/smp/CPUI[1][6]</Signal>
+                <Signal>main/SNES/smp/CPUI[1][5]</Signal>
+                <Signal>main/SNES/smp/CPUI[1][4]</Signal>
+                <Signal>main/SNES/smp/CPUI[1][3]</Signal>
+                <Signal>main/SNES/smp/CPUI[1][2]</Signal>
+                <Signal>main/SNES/smp/CPUI[1][1]</Signal>
+                <Signal>main/SNES/smp/CPUI[1][0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="main/SNES/smp/CPUO[0][7:0]">
+                <Signal>main/SNES/smp/CPUO[0][7]</Signal>
+                <Signal>main/SNES/smp/CPUO[0][6]</Signal>
+                <Signal>main/SNES/smp/CPUO[0][5]</Signal>
+                <Signal>main/SNES/smp/CPUO[0][4]</Signal>
+                <Signal>main/SNES/smp/CPUO[0][3]</Signal>
+                <Signal>main/SNES/smp/CPUO[0][2]</Signal>
+                <Signal>main/SNES/smp/CPUO[0][1]</Signal>
+                <Signal>main/SNES/smp/CPUO[0][0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="main/SNES/smp/CPUO[1][7:0]">
+                <Signal>main/SNES/smp/CPUO[1][7]</Signal>
+                <Signal>main/SNES/smp/CPUO[1][6]</Signal>
+                <Signal>main/SNES/smp/CPUO[1][5]</Signal>
+                <Signal>main/SNES/smp/CPUO[1][4]</Signal>
+                <Signal>main/SNES/smp/CPUO[1][3]</Signal>
+                <Signal>main/SNES/smp/CPUO[1][2]</Signal>
+                <Signal>main/SNES/smp/CPUO[1][1]</Signal>
+                <Signal>main/SNES/smp/CPUO[1][0]</Signal>
+            </Bus>
+            <Signal capture_enable="false">main/SNES/smp/SPC700/GotInterrupt</Signal>
+            <Bus capture_enable="false" name="sdram/cycle[3:0]">
+                <Signal>sdram/cycle[3]</Signal>
+                <Signal>sdram/cycle[2]</Signal>
+                <Signal>sdram/cycle[1]</Signal>
+                <Signal>sdram/cycle[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="SDRAM_CMD" restorename="group_0[3:0]">
+                <Signal>O_sdram_cs_n</Signal>
+                <Signal>O_sdram_ras_n</Signal>
+                <Signal>O_sdram_cas_n</Signal>
+                <Signal>O_sdram_wen_n</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="O_sdram_addr[12:0]">
+                <Signal>O_sdram_addr[12]</Signal>
+                <Signal>O_sdram_addr[11]</Signal>
+                <Signal>O_sdram_addr[10]</Signal>
+                <Signal>O_sdram_addr[9]</Signal>
+                <Signal>O_sdram_addr[8]</Signal>
+                <Signal>O_sdram_addr[7]</Signal>
+                <Signal>O_sdram_addr[6]</Signal>
+                <Signal>O_sdram_addr[5]</Signal>
+                <Signal>O_sdram_addr[4]</Signal>
+                <Signal>O_sdram_addr[3]</Signal>
+                <Signal>O_sdram_addr[2]</Signal>
+                <Signal>O_sdram_addr[1]</Signal>
+                <Signal>O_sdram_addr[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="O_sdram_ba[1:0]">
+                <Signal>O_sdram_ba[1]</Signal>
+                <Signal>O_sdram_ba[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="IO_sdram_dq[15:0]">
+                <Signal>IO_sdram_dq[15]</Signal>
+                <Signal>IO_sdram_dq[14]</Signal>
+                <Signal>IO_sdram_dq[13]</Signal>
+                <Signal>IO_sdram_dq[12]</Signal>
+                <Signal>IO_sdram_dq[11]</Signal>
+                <Signal>IO_sdram_dq[10]</Signal>
+                <Signal>IO_sdram_dq[9]</Signal>
+                <Signal>IO_sdram_dq[8]</Signal>
+                <Signal>IO_sdram_dq[7]</Signal>
+                <Signal>IO_sdram_dq[6]</Signal>
+                <Signal>IO_sdram_dq[5]</Signal>
+                <Signal>IO_sdram_dq[4]</Signal>
+                <Signal>IO_sdram_dq[3]</Signal>
+                <Signal>IO_sdram_dq[2]</Signal>
+                <Signal>IO_sdram_dq[1]</Signal>
+                <Signal>IO_sdram_dq[0]</Signal>
+            </Bus>
+            <Signal capture_enable="false" text="ROM_CE_N_buf (cpu_rd_n)">ROM_CE_N_buf</Signal>
+            <Signal capture_enable="false">main/SNES/CPU/enable</Signal>
+            <Signal capture_enable="false">main/SNES/CPU/REFRESHED</Signal>
+            <Bus capture_enable="false" name="main/SNES/CPU/DCH[2:0]">
+                <Signal>main/SNES/CPU/DCH[2]</Signal>
+                <Signal>main/SNES/CPU/DCH[1]</Signal>
+                <Signal>main/SNES/CPU/DCH[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="main/SNES/CPU/DS[1:0]">
+                <Signal>main/SNES/CPU/DS[1]</Signal>
+                <Signal>main/SNES/CPU/DS[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="A[15:0]">
+                <Signal>A[15]</Signal>
+                <Signal>A[14]</Signal>
+                <Signal>A[13]</Signal>
+                <Signal>A[12]</Signal>
+                <Signal>A[11]</Signal>
+                <Signal>A[10]</Signal>
+                <Signal>A[9]</Signal>
+                <Signal>A[8]</Signal>
+                <Signal>A[7]</Signal>
+                <Signal>A[6]</Signal>
+                <Signal>A[5]</Signal>
+                <Signal>A[4]</Signal>
+                <Signal>A[3]</Signal>
+                <Signal>A[2]</Signal>
+                <Signal>A[1]</Signal>
+                <Signal>A[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="X[15:0]">
+                <Signal>X[15]</Signal>
+                <Signal>X[14]</Signal>
+                <Signal>X[13]</Signal>
+                <Signal>X[12]</Signal>
+                <Signal>X[11]</Signal>
+                <Signal>X[10]</Signal>
+                <Signal>X[9]</Signal>
+                <Signal>X[8]</Signal>
+                <Signal>X[7]</Signal>
+                <Signal>X[6]</Signal>
+                <Signal>X[5]</Signal>
+                <Signal>X[4]</Signal>
+                <Signal>X[3]</Signal>
+                <Signal>X[2]</Signal>
+                <Signal>X[1]</Signal>
+                <Signal>X[0]</Signal>
+            </Bus>
+            <Signal capture_enable="false">INT_PAWR_N</Signal>
+            <Bus capture_enable="false" name="main/SNES/CPU/DMA_TRMODE_STEP[1:0]">
+                <Signal>main/SNES/CPU/DMA_TRMODE_STEP[1]</Signal>
+                <Signal>main/SNES/CPU/DMA_TRMODE_STEP[0]</Signal>
+            </Bus>
+        </SignalList>
+        <Triggers>
+            <Trigger index="0">
+                <SignalList>
+                    <Signal>main/SNES/CPU/DMA_ACTIVEr</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="1">
+                <SignalList>
+                    <Signal>loader/loader_done</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="2">
+                <SignalList>
+                    <Bus restorename="cpu_addr_r[23:0]">
+                        <Signal>cpu_addr_r[23]</Signal>
+                        <Signal>cpu_addr_r[22]</Signal>
+                        <Signal>cpu_addr_r[21]</Signal>
+                        <Signal>cpu_addr_r[20]</Signal>
+                        <Signal>cpu_addr_r[19]</Signal>
+                        <Signal>cpu_addr_r[18]</Signal>
+                        <Signal>cpu_addr_r[17]</Signal>
+                        <Signal>cpu_addr_r[16]</Signal>
+                        <Signal>cpu_addr_r[15]</Signal>
+                        <Signal>cpu_addr_r[14]</Signal>
+                        <Signal>cpu_addr_r[13]</Signal>
+                        <Signal>cpu_addr_r[12]</Signal>
+                        <Signal>cpu_addr_r[11]</Signal>
+                        <Signal>cpu_addr_r[10]</Signal>
+                        <Signal>cpu_addr_r[9]</Signal>
+                        <Signal>cpu_addr_r[8]</Signal>
+                        <Signal>cpu_addr_r[7]</Signal>
+                        <Signal>cpu_addr_r[6]</Signal>
+                        <Signal>cpu_addr_r[5]</Signal>
+                        <Signal>cpu_addr_r[4]</Signal>
+                        <Signal>cpu_addr_r[3]</Signal>
+                        <Signal>cpu_addr_r[2]</Signal>
+                        <Signal>cpu_addr_r[1]</Signal>
+                        <Signal>cpu_addr_r[0]</Signal>
+                    </Bus>
+                </SignalList>
+            </Trigger>
+            <Trigger index="3">
+                <SignalList>
+                    <Bus restorename="X[15:0]">
+                        <Signal>X[15]</Signal>
+                        <Signal>X[14]</Signal>
+                        <Signal>X[13]</Signal>
+                        <Signal>X[12]</Signal>
+                        <Signal>X[11]</Signal>
+                        <Signal>X[10]</Signal>
+                        <Signal>X[9]</Signal>
+                        <Signal>X[8]</Signal>
+                        <Signal>X[7]</Signal>
+                        <Signal>X[6]</Signal>
+                        <Signal>X[5]</Signal>
+                        <Signal>X[4]</Signal>
+                        <Signal>X[3]</Signal>
+                        <Signal>X[2]</Signal>
+                        <Signal>X[1]</Signal>
+                        <Signal>X[0]</Signal>
+                    </Bus>
+                </SignalList>
+            </Trigger>
+            <Trigger index="4">
+                <SignalList>
+                    <Bus restorename="A[15:0]">
+                        <Signal>A[15]</Signal>
+                        <Signal>A[14]</Signal>
+                        <Signal>A[13]</Signal>
+                        <Signal>A[12]</Signal>
+                        <Signal>A[11]</Signal>
+                        <Signal>A[10]</Signal>
+                        <Signal>A[9]</Signal>
+                        <Signal>A[8]</Signal>
+                        <Signal>A[7]</Signal>
+                        <Signal>A[6]</Signal>
+                        <Signal>A[5]</Signal>
+                        <Signal>A[4]</Signal>
+                        <Signal>A[3]</Signal>
+                        <Signal>A[2]</Signal>
+                        <Signal>A[1]</Signal>
+                        <Signal>A[0]</Signal>
+                    </Bus>
+                </SignalList>
+            </Trigger>
+            <Trigger index="5">
+                <SignalList>
+                    <Bus restorename="main/SNES/PPU/SPR_PIX_DATA[8:0]">
+                        <Signal>main/SNES/PPU/SPR_PIX_DATA[8]</Signal>
+                        <Signal>main/SNES/PPU/SPR_PIX_DATA[7]</Signal>
+                        <Signal>main/SNES/PPU/SPR_PIX_DATA[6]</Signal>
+                        <Signal>main/SNES/PPU/SPR_PIX_DATA[5]</Signal>
+                        <Signal>main/SNES/PPU/SPR_PIX_DATA[4]</Signal>
+                        <Signal>main/SNES/PPU/SPR_PIX_DATA[3]</Signal>
+                        <Signal>main/SNES/PPU/SPR_PIX_DATA[2]</Signal>
+                        <Signal>main/SNES/PPU/SPR_PIX_DATA[1]</Signal>
+                        <Signal>main/SNES/PPU/SPR_PIX_DATA[0]</Signal>
+                    </Bus>
+                </SignalList>
+            </Trigger>
+            <Trigger index="6">
+                <SignalList>
+                    <Signal>main/SNES/PPU/OAM_WE</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="7">
+                <SignalList>
+                    <Bus restorename="A_OUT[15:1]">
+                        <Signal>A_OUT[15]</Signal>
+                        <Signal>A_OUT[14]</Signal>
+                        <Signal>A_OUT[13]</Signal>
+                        <Signal>A_OUT[12]</Signal>
+                        <Signal>A_OUT[11]</Signal>
+                        <Signal>A_OUT[10]</Signal>
+                        <Signal>A_OUT[9]</Signal>
+                        <Signal>A_OUT[8]</Signal>
+                        <Signal>A_OUT[7]</Signal>
+                        <Signal>A_OUT[6]</Signal>
+                        <Signal>A_OUT[5]</Signal>
+                        <Signal>A_OUT[4]</Signal>
+                        <Signal>A_OUT[3]</Signal>
+                        <Signal>A_OUT[2]</Signal>
+                        <Signal>A_OUT[1]</Signal>
+                    </Bus>
+                </SignalList>
+            </Trigger>
+            <Trigger index="8"/>
+            <Trigger index="9"/>
+            <Trigger index="10"/>
+            <Trigger index="11"/>
+            <Trigger index="12"/>
+            <Trigger index="13"/>
+            <Trigger index="14"/>
+            <Trigger index="15"/>
+        </Triggers>
+        <MatchUnits>
+            <MatchUnit index="0" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="0"/>
+            <MatchUnit index="1" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="1"/>
+            <MatchUnit index="2" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="000000000000000101011110" value1="000000000000000000000000" trigger="2"/>
+            <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="1" counter="2" countinuous="0" func="0" value0="0001011111101100" value1="0000000000000000" trigger="3"/>
+            <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0001000111101100" value1="0000000000000000" trigger="4"/>
+            <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1000000000000000" value1="0000000000000000" trigger="4"/>
+            <MatchUnit index="6" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="1" value0="000000000" value1="000000000" trigger="5"/>
+            <MatchUnit index="7" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="6"/>
+            <MatchUnit index="8" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="111111111100110" value1="000000000000000" trigger="7"/>
+            <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="10" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="11" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="12" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="13" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="14" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+        </MatchUnits>
+        <Expressions type="Static">
+            <Expression>M1&amp;M2</Expression>
+        </Expressions>
+    </AoCore>
+    <GAO_ID>0101110111100011</GAO_ID>
+</GAO_CONFIG>
