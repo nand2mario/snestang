@@ -33,22 +33,21 @@ module SPPU(
     output HIGH_RES,
     output DOTCLK,
 
-    output HBLANK,
-    output VBLANK,
+    output reg HBLANK,  
+    output reg VBLANK,
 
     output reg [14:0] COLOR_OUT,
     output [8:0] X_OUT,
     output [8:0] Y_OUT,
-    output FRAME_OUT,
+    output reg HDE,       // COLOR_OUT is valid when HDE==1 && VDE==1
+    output reg VDE,
     output V224,
 
     output FIELD_OUT,
     output INTERLACE,
-
     output reg HSYNC,
     output reg VSYNC,
-    output reg HDE,
-    output reg VDE,
+    output reg FRAME_OUT,
 
     input [4:0] BG_EN
 
@@ -64,6 +63,9 @@ module SPPU(
 `include "ppu_defines.vh"
 
 reg DOT_CLK = 1'b0;
+reg DOT_CLKF_CE;        // 1 on first cycle
+reg DOT_CLKR_CE;        // 1 on last cycle
+
 reg [1:0] CLK_CNT = 0;
 reg [7:0] MDR1, MDR2;   // Data output register for PPU1/PPU2
 reg [7:0] D_OUT;
@@ -257,29 +259,36 @@ CLK_CNT 1:
 */
 
 always @(posedge WCLK) begin : clock_gen
-    reg [1:0] DOT_CYCLES;
-
     if(RST_N == 1'b0) begin
       CLK_CNT <= 0;
       DOT_CLK <= 1'b0;
-      // IO_CLK <= 1'b0;
+      DOT_CLKR_CE <= 0;
+      DOT_CLKF_CE <= 0;
     end else if (ENABLE) begin  // nand2mario: stops every thing when ENABLE is off
+      reg [1:0] CYCLES;
       // if(ENABLE == 1'b0) 
       //   DOT_CYCLES = 2;    // dotclk: 4 mclk cycles normally
       // else 
-      if(V_CNT == 240 && BGINTERLACE == 1'b0 && FIELD == 1'b1 && PAL == 1'b0) 
-        DOT_CYCLES = 2;
-      else if(H_CNT == 323 || H_CNT == 327) 
-        DOT_CYCLES = 3;    // 6 mclk cycles for X=323 and X=327
-      else 
-        DOT_CYCLES = 2;
+      if ((H_CNT == 323 || H_CNT == 327) && 
+          !(V_CNT == 240 && BGINTERLACE == 1'b0 && FIELD == 1'b1 && PAL == 1'b0))
+        CYCLES = 2'd3;  // 2 extra mclk cycles for X=323 and 327
+      else
+        CYCLES = 2'd2;   
       CLK_CNT <= CLK_CNT + 2'd1;
-      if (CLK_CNT == 0)
+      if (CLK_CNT == 0) begin
         DOT_CLK <= 0;
-      else if(CLK_CNT == (DOT_CYCLES - 1)) begin
-        CLK_CNT <= 0;
-        DOT_CLK <= 1;      
       end
+      if (CLK_CNT == CYCLES - 2'd1) begin
+        CLK_CNT <= 0;
+        DOT_CLK <= 1;
+      end
+
+      DOT_CLKR_CE <= 0;
+      DOT_CLKF_CE <= 0;
+      if (CLK_CNT == CYCLES - 2'd1)
+        DOT_CLKF_CE <= 1;     
+      if (CLK_CNT == CYCLES - 2'd2)
+        DOT_CLKR_CE <= 1;     // 1 on last cycle
     end
 end
 
@@ -376,28 +385,28 @@ always @(posedge WCLK) begin : register_access
       CGRAM_Lsb <= 8'b0;
 
     end else if(ENABLE)/* if (IO_CLK)*/ begin
-      if (OAM_ADDR_REQ && CLK_CNT == 1) begin
+      if (OAM_ADDR_REQ && DOT_CLKR_CE) begin
         OAM_ADDR <= {OAMADD, 1'b0};
         OAM_PRIO_INDEX <= OAMADD[7:1];
         OAM_ADDR_REQ <= 0;
       end
-      if (OAM_PRIO_REQ && CLK_CNT == 1) begin
+      if (OAM_PRIO_REQ && DOT_CLKR_CE) begin
         OAM_PRIO_INDEX <= OAM_ADDR[8:2];
         OAM_PRIO_REQ <= 0;
       end
 
       if (H_CNT == LAST_DOT && (V_CNT < LAST_VIS_LINE || V_CNT == LAST_LINE) 
-        && ~FORCE_BLANK && CLK_CNT == 1) begin
+        && ~FORCE_BLANK && DOT_CLKR_CE) begin
           if (~OAM_PRIO)
             OAM_ADDR <= 0;
           else
             OAM_ADDR <= {1'b0, OAM_PRIO_INDEX, 2'b0};
       end
 
-      if (OBJ_RANGE && ~FORCE_BLANK && H_CNT[0] && CLK_CNT == 1)
+      if (OBJ_RANGE && ~FORCE_BLANK && H_CNT[0] && DOT_CLKR_CE)
         OAM_ADDR <= OAM_ADDR + 4;
       
-      if (OBJ_TIME && ~H_CNT[0] && ~FORCE_BLANK && CLK_CNT == 1)
+      if (OBJ_TIME && ~H_CNT[0] && ~FORCE_BLANK && DOT_CLKR_CE)
         OAM_ADDR <= {1'b0, OAM_TIME_INDEX, 2'b0};
       
       if (VRAMPRERD_REQ) begin
@@ -740,7 +749,7 @@ always @(posedge WCLK) begin : register_access
         end
         endcase
       end
-      if((H_CNT == LAST_DOT && V_CNT == LAST_VIS_LINE && ~FORCE_BLANK && CLK_CNT==1)) begin
+      if((H_CNT == LAST_DOT && V_CNT == LAST_VIS_LINE && ~FORCE_BLANK && DOT_CLKR_CE)) begin
         OAM_ADDR <= {OAMADD,1'b0};
         OAM_PRIO_INDEX <= OAMADD[7:1];
       end 
@@ -874,7 +883,7 @@ always @(posedge WCLK) begin : hv_counters
       IN_HBL <= 0;
       IN_VBL <= 0;
     end else begin
-      if (ENABLE && CLK_CNT == 1) begin
+      if (ENABLE && DOT_CLKR_CE) begin
         if (~PAL)
           VSYNC_LINE = LINE_VSYNC_NTSC;
         else
@@ -909,8 +918,8 @@ always @(posedge WCLK) begin : hv_counters
         else if (V_CNT == LAST_LINE && H_CNT == LAST_DOT)
           IN_VBL <= 0;
         
-        if (H_CNT == 19-1) HDE <= 1;
-        if (H_CNT == 275-1) HDE <= 0;
+        if (H_CNT == 19) HDE <= 1;
+        if (H_CNT == 275) HDE <= 0;
 
         if (H_CNT == HSYNC_START) HSYNC <= 1;
         if (H_CNT == HSYNC_START+23) HSYNC <= 0;
@@ -1222,7 +1231,7 @@ always @(posedge WCLK) begin
       M7_TILE_COL <= 3'b0;
       M7_TILE_OUTSIDE <= 1'b0;
     end else begin
-      if (ENABLE && CLK_CNT==1) begin
+      if (ENABLE && DOT_CLKR_CE) begin
         if (M7_FETCH == 1)
           M7_SCREEN_X <= M7_SCREEN_X + 1;
         else if (H_CNT == LAST_DOT)
@@ -1257,7 +1266,7 @@ always @(posedge WCLK) begin : fetch_bg_tiles
       BG_MOSAIC_Y <= 0;
       BG_FORCE_BLANK <= 1;
     end else begin
-      if (ENABLE && CLK_CNT==2'd1) begin
+      if (ENABLE && DOT_CLKR_CE) begin
         if (H_CNT == LAST_DOT && V_CNT <= LAST_VIS_LINE) begin
           BG_DATA <= '{8{16'b0}};
           BG3_OPT_DATA0 <= 0;
@@ -1471,7 +1480,7 @@ always @(posedge WCLK) begin : calc_sprite_range
       SPR_TILE_PRIO <= 0;
       SPR_TILE_DATA_TEMP <= 0;
     end else begin
-      if (ENABLE && CLK_CNT == 2'd1) begin
+      if (ENABLE && DOT_CLKR_CE) begin
         if (H_CNT == LAST_DOT && V_CNT < LAST_VIS_LINE) begin
           RANGE_CNT <= 6'b11_1111;
           if (~RANGE_CNT[5] && TILES_OAM_CNT == 34)
@@ -1624,7 +1633,7 @@ always @(posedge WCLK) begin : write_spr_buf
 		SPR_PIX_CNT <= 0;
   end else begin 
 		SPR_PIX_WE_A <= 0;
-		if (OBJ_TIME_SAVE && CLK_CNT != 3) begin    // CLK_CNT(2) = '0'
+		if (OBJ_TIME_SAVE && CLK_CNT != 2'd2) begin    // CLK_CNT(2) = '0'
 			X = SPR_TILE_X + 9'(SPR_PIX_CNT);
 			case (SPR_PIX_CNT[2:1])
 				2'd0: begin 
@@ -1678,14 +1687,14 @@ ppusprbuf spr_buf (
 // 	wren_b		=> SPR_PIX_WE_B,
 // 	q_b			=> SPR_PIX_Q
 // );
-assign SPR_PIX_WE_B = SPR_GET_PIXEL && CLK_CNT==1 ? 1 : 0;
+assign SPR_PIX_WE_B = SPR_GET_PIXEL && DOT_CLKR_CE ? 1 : 0;
 
 always @(posedge WCLK) begin
 	if (~RST_N) begin
 		SPR_PIX_DATA_BUF <= 0;
 		SPR_PIXEL_X <= 0;
   end else begin 
-		if (ENABLE && CLK_CNT == 1) begin
+		if (ENABLE && DOT_CLKR_CE) begin
 			if (H_CNT == LAST_DOT && V_CNT >= 1 && V_CNT <= LAST_VIS_LINE)
 				SPR_PIXEL_X <= 0;
 
@@ -1723,7 +1732,7 @@ always @(posedge WCLK) begin : bg_pixel_gen
       BG4_PIX_DATA <= 6'b0;
       SPR_PIX_DATA <= 9'b0;
     end else begin
-      if(ENABLE && CLK_CNT == 2'd1) begin
+      if(ENABLE && DOT_CLKR_CE) begin
         if(H_CNT == LAST_DOT && V_CNT >= 1 && V_CNT <= LAST_VIS_LINE) begin
           GET_PIXEL_X <= 8'b0;
           BG_MOSAIC_X <= 4'b0;
@@ -2297,17 +2306,17 @@ always @(posedge WCLK) begin : pixel_render
       SUB_MATH_B <= 0;       
     end else begin
       if (ENABLE == 1'b1) begin
-        if (BG_GET_PIXEL && CLK_CNT == 1) 
+        if (BG_GET_PIXEL && DOT_CLKR_CE) 
           WINDOW_X <= GET_PIXEL_X;
 
-        if (H_CNT == LAST_DOT && CLK_CNT == 1)
+        if (H_CNT == LAST_DOT && DOT_CLKR_CE)
           PREV_COLOR <= 0;
 
         if (BG_MATH == 1'b1) begin
-          if (CLK_CNT == 0)
+          if (DOT_CLKF_CE)
             SUB_BD <= BD;
 
-          if (CLK_CNT == 1) begin
+          if (DOT_CLKR_CE) begin
             MATH_EN = MATH;
             HALF = CGADSUB[6] && MAIN_EN && ~(SUB_BD && CGWSEL[1]);
             SUB_MATH_EN = CGWSEL[1] && ~SUB_BD;
@@ -2318,7 +2327,7 @@ always @(posedge WCLK) begin : pixel_render
               COLOR_MASK = 5'b11111;
           end
 
-          if (CLK_CNT==0 || CLK_CNT==1) begin
+          if (DOT_CLKF_CE || DOT_CLKR_CE) begin
             if (DCM)    // mode 3 direct color mode
               COLOR = GetDCM(BG1_PIX_DATA[10:0]);
             else 
@@ -2349,7 +2358,7 @@ always @(posedge WCLK) begin : pixel_render
               MATH_B = COLOR[14:10] & COLOR_MASK;
             end
 
-            if (CLK_CNT == 0) begin         // cycle 0
+            if (DOT_CLKF_CE) begin         // cycle 0
               // combine CGRAM_Q from last cycle 1 and SUB_MATH_R/G/B, to output MATH_R/G/B and SUB_R/G/B
               MAIN_R <= MATH_R;
               MAIN_G <= MATH_G;
@@ -2370,7 +2379,7 @@ always @(posedge WCLK) begin : pixel_render
             end
 
             
-            if (CLK_CNT == 1) begin         // cycle 1
+            if (DOT_CLKR_CE) begin         // cycle 1
               // calc SUB_MATH_R/G/B using CGRAM_Q from cycle 0
               SUB_MATH_R <= MATH_R;
               SUB_MATH_G <= MATH_G;
@@ -2397,18 +2406,24 @@ end
 
 // scan_screen: increment X, Y, and finally generate COLOR_OUT
 // always @(negedge RST_N, negedge DOT_CLK) begin : scan_screen
+reg [7:0] OUT_X_n;
 always @(posedge WCLK) begin : scan_screen
     if (RST_N == 1'b0) begin
       OUT_Y <= 8'b0;
       OUT_X <= 8'b0;
+      OUT_X_n <= 0;
     end else begin
-      if (ENABLE && CLK_CNT == 2'd1) begin
+      if (ENABLE && DOT_CLKR_CE) begin
+        // delay OUT_X by one DOT_CLK as we take one extra DOT_CLK to output
+        OUT_X <= OUT_X_n;   
+        FRAME_OUT <= BG_OUT;
+
         if (H_CNT == LAST_DOT && V_CNT >= 1 && V_CNT <= LAST_VIS_LINE) 
           OUT_Y <= OUT_Y + 1;
         if (H_CNT == LAST_DOT && V_CNT == LAST_LINE) 
           OUT_Y <= 8'b0;
         if (BG_MATH) 
-          OUT_X <= WINDOW_X;
+          OUT_X_n <= WINDOW_X;
       end
     end
 end
@@ -2420,249 +2435,12 @@ assign HBLANK = IN_HBL;
 assign VBLANK = IN_VBL;
 assign HIGH_RES = HIRES || (PSEUDOHIRES && ~BLEND);
 
-assign FRAME_OUT = BG_OUT;
+// assign FRAME_OUT = BG_OUT;
 assign X_OUT = {OUT_X, DOT_CLK};
 assign Y_OUT = {FIELD, OUT_Y};
 assign V224 =  ~OVERSCAN;
 
 assign FIELD_OUT = FIELD;
 assign INTERLACE = BGINTERLACE;
-
-//debug
-
-/*
-// always @(negedge RST_N, negedge DOT_CLK) begin
-always @(posedge WCLK) begin
-    if(RST_N == 1'b0) begin
-      DBG_BRK <= 1'b0;
-      DBG_RUN_LAST <= 1'b0;
-    end else begin
-      if(ENABLE && CLK_CNT == 2'd1) begin
-        DBG_BRK <= 1'b0;
-        if(DBG_CTRL[0] == 1'b1) begin
-          //dot step
-          DBG_BRK <= 1'b1;
-        end
-        else if(DBG_CTRL[2] == 1'b1) begin
-          //HV counters break
-          if(H_CNT == (DBG_BRK_HCNT) && V_CNT == (DBG_BRK_VCNT)) 
-            DBG_BRK <= 1'b1;
-        end
-      end
-      DBG_RUN_LAST <= DBG_CTRL[7];
-      //run
-      if(DBG_CTRL[7] == 1'b1 && DBG_RUN_LAST == 1'b0) 
-        DBG_BRK <= 1'b0;
-    end
-end
-
-// always @(negedge DOT_CLK, negedge RST_N) begin
-always @(posedge WCLK) begin
-    if(RST_N == 1'b0) begin
-      DBG_VRAM_ADDR <= 17'b0;
-      DBG_CRAM_ADDR <= 8'b0;
-      DBG_OAM_ADDR <= 8'b0;
-      DBG_DAT_WRr <= 1'b0;
-    end else if (CLK_CNT == 2'd1) begin
-      case(DBG_REG)
-      8'h00 : 
-        DBG_DAT_OUT <= {FORCE_BLANK,3'b000,MB};
-      8'h01 : 
-        DBG_DAT_OUT <= {OBJSIZE,OBJNAME,OBJADDR};
-      8'h02 : 
-        DBG_DAT_OUT <= OAMADD[7:0];
-      8'h03 : 
-        DBG_DAT_OUT <= {OAM_PRIO,6'b000000,OAMADD[8]};
-      8'h04 : 
-        DBG_DAT_OUT <= {BG_SIZE,BG3PRIO,BG_MODE};
-      8'h05 : 
-        DBG_DAT_OUT <= {MOSAIC_SIZE,BG_MOSAIC_EN};
-      8'h06 : 
-        DBG_DAT_OUT <= {BG_SC_ADDR[BG1],BG_SC_SIZE[BG1]};
-      8'h07 : 
-        DBG_DAT_OUT <= {BG_SC_ADDR[BG2],BG_SC_SIZE[BG2]};
-      8'h08 : 
-        DBG_DAT_OUT <= {BG_SC_ADDR[BG3],BG_SC_SIZE[BG3]};
-      8'h09 : 
-        DBG_DAT_OUT <= {BG_SC_ADDR[BG4],BG_SC_SIZE[BG4]};
-      8'h0A : 
-        DBG_DAT_OUT <= {BG_NBA[BG2],BG_NBA[BG1]};
-      8'h0B : 
-        DBG_DAT_OUT <= {BG_NBA[BG4],BG_NBA[BG3]};
-      8'h0C : 
-        DBG_DAT_OUT <= TM;
-      8'h0D : 
-        DBG_DAT_OUT <= TS;
-      8'h0E : 
-        DBG_DAT_OUT <= BG_HOFS[BG1][7:0];
-      8'h0F : 
-        DBG_DAT_OUT <= {6'b000000,BG_HOFS[BG1][9:8]};
-      8'h10 : 
-        DBG_DAT_OUT <= BG_VOFS[BG1][7:0];
-      8'h11 : 
-        DBG_DAT_OUT <= {6'b000000,BG_VOFS[BG1][9:8]};
-      8'h12 : 
-        DBG_DAT_OUT <= BG_HOFS[BG2][7:0];
-      8'h13 : 
-        DBG_DAT_OUT <= {6'b000000,BG_HOFS[BG2][9:8]};
-      8'h14 : 
-        DBG_DAT_OUT <= BG_VOFS[BG2][7:0];
-      8'h15 : 
-        DBG_DAT_OUT <= {6'b000000,BG_VOFS[BG2][9:8]};
-      8'h16 : 
-        DBG_DAT_OUT <= BG_HOFS[BG3][7:0];
-      8'h17 : 
-        DBG_DAT_OUT <= {6'b000000,BG_HOFS[BG3][9:8]};
-      8'h18 : 
-        DBG_DAT_OUT <= BG_VOFS[BG3][7:0];
-      8'h19 : 
-        DBG_DAT_OUT <= {6'b000000,BG_VOFS[BG3][9:8]};
-      8'h1A : 
-        DBG_DAT_OUT <= BG_HOFS[BG4][7:0];
-      8'h1B : 
-        DBG_DAT_OUT <= {6'b000000,BG_HOFS[BG4][9:8]};
-      8'h1C : 
-        DBG_DAT_OUT <= BG_VOFS[BG4][7:0];
-      8'h1D : 
-        DBG_DAT_OUT <= {6'b000000,BG_VOFS[BG4][9:8]};
-      8'h1E : 
-        DBG_DAT_OUT <= WH0;
-      8'h1F : 
-        DBG_DAT_OUT <= WH1;
-      8'h20 : 
-        DBG_DAT_OUT <= WH2;
-      8'h21 : 
-        DBG_DAT_OUT <= WH3;
-      8'h22 : 
-        DBG_DAT_OUT <= W12SEL;
-      8'h23 : 
-        DBG_DAT_OUT <= W34SEL;
-      8'h24 : 
-        DBG_DAT_OUT <= WOBJSEL;
-      8'h25 : 
-        DBG_DAT_OUT <= WBGLOG;
-      8'h26 : 
-        DBG_DAT_OUT <= WOBJLOG;
-      8'h27 : 
-        DBG_DAT_OUT <= TMW;
-      8'h28 : 
-        DBG_DAT_OUT <= TSW;
-      8'h29 : 
-        DBG_DAT_OUT <= CGWSEL;
-      8'h2A : 
-        DBG_DAT_OUT <= CGADSUB;
-      8'h2B : 
-        DBG_DAT_OUT <= {VMAIN_ADDRINC,3'b000,VMAIN_ADDRTRANS,2'b00};
-      8'h2C : 
-        DBG_DAT_OUT <= OPHCT[7:0];
-      8'h2D : 
-        DBG_DAT_OUT <= {7'b0000000,OPHCT[8]};
-      8'h2E : 
-        DBG_DAT_OUT <= OPVCT[7:0];
-      8'h2F : 
-        DBG_DAT_OUT <= {7'b0000000,OPVCT[8]};
-      8'h30 : 
-        DBG_DAT_OUT <= H_CNT[7:0];
-      8'h31 : 
-        DBG_DAT_OUT <= {7'b0000000,H_CNT[8]};
-      8'h32 : 
-        DBG_DAT_OUT <= V_CNT[7:0];
-      8'h33 : 
-        DBG_DAT_OUT <= {FIELD,6'b000000,V_CNT[8]};
-      8'h34 : 
-        DBG_DAT_OUT <= VMADD[7:0];
-      8'h35 : 
-        DBG_DAT_OUT <= {1'b0,VMADD[14:8]};
-      8'h36 : 
-        DBG_DAT_OUT <= {5'b00000,OBJ_TIME_OFL,OBJ_RANGE_OFL,1'b0};
-      8'h37 : 
-        DBG_DAT_OUT <= M7SEL;
-      8'h38 : 
-        DBG_DAT_OUT <= M7A[7:0];
-      8'h39 : 
-        DBG_DAT_OUT <= M7A[15:8];
-      8'h3A : 
-        DBG_DAT_OUT <= M7B[7:0];
-      8'h3B : 
-        DBG_DAT_OUT <= M7B[15:8];
-      8'h3C : 
-        DBG_DAT_OUT <= M7C[7:0];
-      8'h3D : 
-        DBG_DAT_OUT <= M7C[15:8];
-      8'h3E : 
-        DBG_DAT_OUT <= M7D[7:0];
-      8'h3F : 
-        DBG_DAT_OUT <= M7D[15:8];
-      8'h40 : 
-        DBG_DAT_OUT <= M7X[7:0];
-      8'h41 : 
-        DBG_DAT_OUT <= {3'b000,M7X[12:8]};
-      8'h42 : 
-        DBG_DAT_OUT <= M7Y[7:0];
-      8'h43 : 
-        DBG_DAT_OUT <= {3'b000,M7Y[12:8]};
-      8'h44 : 
-        DBG_DAT_OUT <= M7HOFS[7:0];
-      8'h45 : 
-        DBG_DAT_OUT <= {3'b000,M7HOFS[12:8]};
-      8'h46 : 
-        DBG_DAT_OUT <= M7VOFS[7:0];
-      8'h47 : 
-        DBG_DAT_OUT <= {3'b000,M7VOFS[12:8]};
-      8'h48 : 
-        DBG_DAT_OUT <= FRAME_CNT[7:0];
-      8'h49 : 
-        DBG_DAT_OUT <= FRAME_CNT[15:8];
-      8'h80 : 
-        DBG_DAT_OUT <= VRAM_DAI;
-      8'h81 : 
-        DBG_DAT_OUT <= VRAM_DBI;
-      8'h82 : 
-        DBG_DAT_OUT <= CRAM_DATA[7:0];
-      8'h83 : 
-        DBG_DAT_OUT <= {1'b0,CRAM_DATA[14:8]};
-      8'h84 : 
-        DBG_DAT_OUT <= OAM_Q_A[7:0];
-      8'h85 : 
-        DBG_DAT_OUT <= OAM_Q_A[15:8];
-      8'h86 : 
-        DBG_DAT_OUT <= HOAM_Q_A;
-      default : 
-        DBG_DAT_OUT <= 8'h00;
-      endcase
-      DBG_DAT_WRr <= DBG_DAT_WR;
-      if(DBG_DAT_WR == 1'b1 && DBG_DAT_WRr == 1'b0) begin
-        case(DBG_REG)
-        8'h80 : 
-          DBG_VRAM_ADDR[7:0] <= DBG_DAT_IN;
-        8'h81 : 
-          DBG_VRAM_ADDR[15:8] <= DBG_DAT_IN;
-        8'h82 : 
-          DBG_VRAM_ADDR[16] <= DBG_DAT_IN[0];
-        8'h83 : 
-          DBG_CRAM_ADDR <= DBG_DAT_IN;
-        8'h84 : 
-          DBG_OAM_ADDR <= DBG_DAT_IN;
-        8'h85 : 
-          DBG_CTRL <= DBG_DAT_IN;
-        8'h86 : 
-          DBG_BRK_HCNT[7:0] <= DBG_DAT_IN;
-        8'h87 : 
-          DBG_BRK_HCNT[8] <= DBG_DAT_IN[0];
-        8'h88 : 
-          DBG_BRK_VCNT[7:0] <= DBG_DAT_IN;
-        8'h89 : 
-          DBG_BRK_VCNT[8] <= DBG_DAT_IN[0];
-        8'h8A : 
-          DBG_BG_EN <= DBG_DAT_IN;
-        8'h8B : 
-          DBG_OBJ_EN <= DBG_DAT_IN;
-        default : begin
-        end
-        endcase
-      end
-    end
-end
-*/
 
 endmodule

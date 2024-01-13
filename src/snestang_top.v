@@ -153,7 +153,7 @@ reg        PAL;
 wire       dotclk  /*verilator public*/;
 wire [14:0] rgb_out  /*verilator public*/;
 wire [8:0] x_out /*verilator public*/, y_out /*verilator public*/;
-wire       hblank,vblank;
+wire       hblankn,vblankn;
 
 wire [15:0] audio_l /*verilator public*/, audio_r /*verilator public*/;
 wire audio_ready /*verilator public*/;
@@ -226,8 +226,8 @@ main main (
     .ARAM_CE_N(ARAM_CE_N), .ARAM_OE_N(ARAM_OE_N), .ARAM_WE_N(ARAM_WE_N),
 
 	.BLEND(BLEND), .PAL(PAL), .HIGH_RES(), .FIELD(), .INTERLACE(),
-	.DOTCLK(dotclk), .RGB_OUT(rgb_out), .HBLANK(hblank),
-	.VBLANK(vblank), .X_OUT(x_out), .Y_OUT(y_out),
+	.DOTCLK(dotclk), .RGB_OUT(rgb_out), .HBLANKn(hblankn),
+	.VBLANKn(vblankn), .X_OUT(x_out), .Y_OUT(y_out),
 
     .JOY1_DI(joy1_di), .JOY2_DI(joy2_di), .JOY_STRB(joy_strb), 
     .JOY1_CLK(joy1_clk), .JOY2_CLK(joy2_clk), 
@@ -386,7 +386,7 @@ wire [7:0] dbg_dat_out_loader;
 snes2hdmi s2h(
     .clk(wclk), .resetn(resetn), .snes_refresh(refresh),
     .pause_snes_for_frame_sync(pause_snes_for_frame_sync),
-    .dotclk(dotclk), .hblank(hblank),.vblank(vblank),.rgb5(rgb_out),
+    .dotclk(dotclk), .hblank(~hblankn),.vblank(~vblankn),.rgb5(rgb_out),
     .xs(x_out), .ys(y_out), 
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color), 

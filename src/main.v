@@ -66,8 +66,8 @@ module main (
 	output            INTERLACE,
 	output            DOTCLK,
     output     [14:0] RGB_OUT,
-	output            HBLANK,
-	output            VBLANK,
+	output            HBLANKn,
+	output            VBLANKn,
     output     [8:0]  X_OUT,
     output     [8:0]  Y_OUT,
 
@@ -184,7 +184,7 @@ SNES SNES
 	.BLEND(BLEND), .PAL(PAL), .HIGH_RES(HIGH_RES), .FIELD_OUT(FIELD),
 	.INTERLACE(INTERLACE), .DOTCLK(DOTCLK),
 
-	.RGB_OUT(RGB_OUT), .HBLANK(HBLANK), .VBLANK(VBLANK),
+	.RGB_OUT(RGB_OUT), .HDE(HBLANKn), .VDE(VBLANKn), .HSYNC(), .VSYNC(),
     .X_OUT(X_OUT), .Y_OUT(Y_OUT),
 
 	.AUDIO_L(AUDIO_L), .AUDIO_R(AUDIO_R), .AUDIO_READY(AUDIO_READY),

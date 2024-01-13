@@ -74,8 +74,10 @@ module SNES(
     output DOTCLK,
 
     output [14:0] RGB_OUT /*verilator public*/,
-    output HBLANK,
-    output VBLANK,
+    output HDE,
+    output VDE,
+    output HSYNC,
+    output VSYNC,
     output [8:0] X_OUT,
     output [8:0] Y_OUT,
 
@@ -199,9 +201,9 @@ SPPU PPU(
     .VRAM_WRA_N(VRAM_WRA_N), .VRAM_WRB_N(VRAM_WRB_N),
     .EXTLATCH(JPIO67[7]), .PAL(PAL), .BLEND(BLEND), .HIGH_RES(), .DOTCLK(DOTCLK), 
     .HBLANK(INT_HBLANK), .VBLANK(INT_VBLANK),
+    .HDE(HDE), .VDE(VDE), .HSYNC(HSYNC), .VSYNC(VSYNC),
     .COLOR_OUT(RGB_OUT), .FRAME_OUT(), .X_OUT(X_OUT), .Y_OUT(Y_OUT), .V224(),
-    .FIELD_OUT(), .INTERLACE(),
-    .HSYNC(), .VSYNC(), .HDE(), .VDE(), .BG_EN(5'b11111)
+    .FIELD_OUT(), .INTERLACE(), .BG_EN(5'b11111)
     // .DBG_REG(DBG_REG), .DBG_DAT_OUT(DBG_PPU_DAT), .DBG_DAT_IN(DBG_DAT_IN),
     // .DBG_DAT_WR(PPU_DBG_WR), .DBG_BRK(PPU_DBG_BRK)
 );
@@ -239,8 +241,8 @@ assign RAMSEL_N = INT_RAMSEL_N;
 assign ROMSEL_N = INT_ROMSEL_N;
 assign DO = BUSA_SEL == 1'b1 ? CPU_DO : BUSB_DO;
 // assign SYSCLK = INT_SYSCLK;
-assign HBLANK = INT_HBLANK;
-assign VBLANK = INT_VBLANK;
+// assign HBLANK = INT_HBLANK;
+// assign VBLANK = INT_VBLANK;
 assign CPU_DBG_WR = DBG_SEL[0] & DBG_REG_WR;
 assign WRAM_DBG_WR = DBG_SEL[2] & DBG_REG_WR;
 assign SPC700_DAT_WR = DBG_SEL[3] & DBG_REG_WR;
