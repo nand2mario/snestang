@@ -291,7 +291,7 @@ always @(posedge wclk) begin
         cpu_addr <= ROM_ADDR[23:0];
         cpu_ds <= 2'b11;
     end else if (wram_rd | wram_wr) begin
-        cpu_addr <= {7'b1110111, WRAM_ADDR[16:0]};
+        cpu_addr <= {7'b1110_111, WRAM_ADDR[16:0]};  // EE,EF:0000-FFFF, total 128KB
         cpu_ds <= {WRAM_ADDR[0], ~WRAM_ADDR[0]};
         cpu_din <= {WRAM_D, WRAM_D};        
         cpu_port <= 1;

@@ -2,7 +2,7 @@
 // nand2mario 2023.11
 // 
 // This supports two parallel access streams (CPU and ARAM), independent from
-// each other. SNES CPU uses bank 0 and 1 and thus is 16MB max. ARAM uses bank 2.
+// each other. SNES CPU uses bank 0,1 and thus is 16MB max. ARAM uses bank 2.
 // 
 // clkref needs to be at least 6 clk cycles long. It should be aligned with clk's
 // rising edge. This can be achieved with generating both from the same PLL.
@@ -72,8 +72,8 @@ module sdram_snes
 	input             cpu_wr /* synthesis syn_keep=1 */,
 	input       [1:0] cpu_ds,       // which bytes to enable
 
-    input      [19:0] bsram_addr,   // byte access
-    input       [7:0] bsram_din,
+    input      [19:0] bsram_addr,   // only [16:0] value, max 128KB
+    input       [7:0] bsram_din,    // byte access
     output reg  [7:0] bsram_dout,
     input             bsram_rd,
     input             bsram_wr,
@@ -216,7 +216,7 @@ always @(posedge clk) begin
             end else if (bsram_rd | bsram_wr) begin
                 cmd_next <= CMD_BankActivate;
                 ba_next <= 2'b01;
-                a_next <= {3'b111, bsram_addr[19:10]};  // 13-bit address
+                a_next <= {6'b111_000, bsram_addr[16:10]};  // 17-bit bsram address, map to F0-F1:xxxx
             end
 
         // CPU CAS & ARAM DATA

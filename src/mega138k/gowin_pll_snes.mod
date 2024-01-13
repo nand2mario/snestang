@@ -7,7 +7,7 @@
 
 -mod_name gowin_pll_snes
 -file_name gowin_pll_snes
--path D:/Gowin/dev/snes-experiments/10.tinysnes_m138k/src/mega138k/
+-path D:/Gowin/dev/snestang/src/mega138k/
 -type PLL_ADV
 -file_type vlg
 -ssc false
@@ -57,8 +57,8 @@
 -clkout2_dt_dir 1
 -clkout2_dt_step 0
 -dyn_pe2_sel false
--clkout2_pe_coarse 7
--clkout2_pe_fine 4
+-clkout2_pe_coarse 9
+-clkout2_pe_fine 3
 -de2_en false
 -en_clkout3 true
 -clkout3_bypass false

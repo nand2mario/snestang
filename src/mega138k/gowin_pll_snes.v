@@ -5,7 +5,7 @@
 //Part Number: GW5AST-LV138FPG676AES
 //Device: GW5AST-138B
 //Device Version: B
-//Created Time: Tue Dec 19 12:55:31 2023
+//Created Time: Sat Jan 13 14:04:38 2024
 
 module gowin_pll_snes (clkout0, clkout1, clkout2, clkout3, clkin);
 
@@ -125,8 +125,8 @@ defparam PLL_inst.CLKOUT0_PE_COARSE = 0;
 defparam PLL_inst.CLKOUT0_PE_FINE = 0;
 defparam PLL_inst.CLKOUT1_PE_COARSE = 0;
 defparam PLL_inst.CLKOUT1_PE_FINE = 0;
-defparam PLL_inst.CLKOUT2_PE_COARSE = 7;
-defparam PLL_inst.CLKOUT2_PE_FINE = 4;
+defparam PLL_inst.CLKOUT2_PE_COARSE = 9;
+defparam PLL_inst.CLKOUT2_PE_FINE = 3;
 defparam PLL_inst.CLKOUT3_PE_COARSE = 0;
 defparam PLL_inst.CLKOUT3_PE_FINE = 0;
 defparam PLL_inst.CLKOUT4_PE_COARSE = 0;
