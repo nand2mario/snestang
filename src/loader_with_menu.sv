@@ -373,7 +373,8 @@ always @* begin
     2'd0: mem_addr_b <= {1'b0, py[7:3], px[7:3]};       // fetch next character
     2'd1: mem_addr_b <= logo_active ? 
                         {4'b0111, logo_addr} :          // fetch logo byte
-                        {1'b1, mem_do_b[6:0], yoff};    // fetch font byte
+                        {1'b1, mem_do_b[7] ? 7'h3F : mem_do_b[6:0], yoff};    
+                                                        // fetch font byte (? for non-ASCII chars)
     default: mem_addr_b <= 0;
     endcase
 end

@@ -67,7 +67,8 @@ wire pause;
 reg [15:0] resetcnt = 16'hffff;
 always @(posedge wclk) begin
     resetcnt <= resetcnt == 0 ? 0 : resetcnt - 1;
-    if (resetcnt == 0/* && ~s0*/)
+    if (resetcnt == 0)
+    // if (resetcnt == 0 && ~s0)
         resetn <= 1'b1;    
 end
 

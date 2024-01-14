@@ -378,10 +378,19 @@ reg  [ 5:0] longno = 6'h0;
 reg  [ 7:0] lastchar = 8'h0;
 reg  [ 7:0] fdtnamelen = 8'h0;
 reg  [ 7:0] sdtnamelen = 8'h0;
+reg  [ 7:0] dot_pos;
 reg  [ 7:0] file_namelen = 8'h0;
 reg  [15:0] file_1st_cluster = 16'h0;
 reg  [31:0] file_1st_size = 0;
 
+// This is quite messy. Parsing dir entries are hard. They are 32 bytes long. 
+// Byte $0B determines if this is a long-file-name(LFN) entry, which comes before the
+// short name entry for files with non-8.3 names. As we are streaming 
+// bytes, we cannot wait until $0B. So we use the heuristic that byte $02 must be a 
+// 0 for long ASCII file name. For short file names, it is either a character or $20. 
+// For long names with non-ASCII first character, this leads us to ignore their long
+// names and show short names instead.
+//   - nand2mario
 always @ (posedge clk) begin
     reg isshort_t;      // current dir entry is short file name
     reg islong_t;       // current dir entry is LFN
@@ -442,12 +451,13 @@ always @ (posedge clk) begin
                 fdtnamelen_t = 8'h0;
                 sdtnamelen_t = 8'h0;
 
-                // test finish of all long entries
-                if (rdata!=8'hE5 && rdata!=8'h2E && rdata!=8'h00) begin
-                    if (islong_t && longno_t == 6'h1)
+                if (rdata!=8'hE5 && rdata!=8'h2E && rdata!=8'h00) 
+                    if (islong_t && longno_t == 6'h1 && longvalid_t)
+                        // final entry of a long name (a short entry)
                         islongok_t = 1'b1;
-                end
-
+                    else                                    // possible short entry
+                        isshort_t = 1'b1;
+                
                 // test long name entry
                 if (rdata[7]==1'b0 && ~islongok_t) begin
                     if (rdata[6]) begin
@@ -466,27 +476,27 @@ always @ (posedge clk) begin
                     end
                 end else
                     islong_t = 1'b0;
-
-                // test short name entry
-                if (rdata!=8'hE5 && rdata!=8'h2E && rdata!=8'h00
-                        && ~islong_t && ~islongok_t)
-                    isshort_t = 1'b1;
-
+            end else if (raddr[4:0] == 5'h2) begin          // byte 2 heuristic
+                if (islong_t) begin
+                    if (rdata == 8'h0)
+                        isshort_t = 0;
+                    else
+                        islong_t = 0;
+                end
             end else if (raddr[4:0] == 5'hB) begin          // file attribute
                 if (rdata != 8'h0F)                         // not LFN
                     islong_t = 1'b0;
                 if (rdata != 8'h20 && rdata != 8'h21)       // not valid dir entry
                     {isshort_t, islongok_t} = 2'b00;
             end else if (raddr[4:0] == 5'h1F) begin
-                if (islongok_t && longvalid_t || isshort_t) begin
+                if ((islongok_t && longvalid_t) || isshort_t) begin
                     // output final file name
                     fready <= 1'b1;
                     fnamelen <= file_namelen;
                     list_file_num <= list_file_num + 1;     // increment file number
-                    // for (i=0;i<32;i=i+1) fname[i] <= (i < file_namelen) ? file_name[i] : 8'h0;
                     fcluster <= file_1st_cluster_t;
                     fsize <= file_1st_size_t;
-                    active <= ~active;
+                    active <= ~active;                      // flip double buffer
                 end
             end
 
@@ -503,39 +513,37 @@ always @ (posedge clk) begin
                         if ({rdata,lastchar} == 16'h0000)
                             file_namelen <= index_t;
                         if (index_t < 32 && {rdata,lastchar} != 16'hFFFF)
-                            name_wr = 1;
-                            name_idx = index_t;
-                            name_char = lastchar;
-                            // file_name[active][index_t] <= lastchar;       // assuming ASCII: only take lower 8-bit
+                            if (rdata == 8'h0) begin        // check ASCII
+                                name_wr = 1;
+                                name_idx = index_t;
+                                name_char = lastchar;
+                            end else
+                                longvalid_t = 0;            // revert back to short name
                     end
                 end
             end
 
+            // collect short file name
             if (isshort_t) begin
-                if(raddr[4:0]<5'h8) begin
-                    if(rdata!=8'h20) begin
+                if(raddr[4:0] < 5'hB && rdata!=8'h20) begin
+                    name_wr = 1;
+                    name_char = rdata;
+                    if (raddr[4:0] == 8'h8) begin   // leave space for '.'
+                        dot_pos <= sdtnamelen;
+                        name_idx = sdtnamelen_t + 8'd1;
+                        sdtnamelen_t = sdtnamelen_t + 8'd2;
+                    end else begin
                         name_idx = sdtnamelen_t;
-                        name_char = rdata;
-                        // file_name[active][sdtnamelen_t] <= rdata;
                         sdtnamelen_t = sdtnamelen_t + 8'd1;
                     end
-                end else if(raddr[4:0]<5'hB) begin
-                    if(raddr[4:0]==5'h8) begin
-                        name_idx = sdtnamelen_t;
-                        name_char = 8'h2E;
-                        // file_name[active][sdtnamelen_t] <= 8'h2E;   // dot
-                        sdtnamelen_t = sdtnamelen_t + 8'd1;
-                    end
-                    if(rdata!=8'h20) begin
-                        name_idx = sdtnamelen_t;
-                        name_char = rdata;
-                        // file_name[active][sdtnamelen_t] <= rdata;
-                        sdtnamelen_t = sdtnamelen_t + 8'd1;
-                    end
-                end else if(raddr[4:0]==5'hB) begin
+                end else if (raddr[4:0]==5'hB) begin    // dot
+                    name_wr = 1;
+                    name_idx = dot_pos;
+                    name_char = 8'h2E;
+                end else if(raddr[4:0]==5'hC) begin     // NULL terminate
+                    name_wr = 1;
                     name_idx = sdtnamelen_t;
                     name_char = 0;
-                    // file_name[active][sdtnamelen_t] <= 0;
                     file_namelen <= sdtnamelen_t;
                 end
             end
