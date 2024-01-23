@@ -1,19 +1,33 @@
 #include "picorv32.h"
 #include <stdarg.h>
 
+int curx, cury;
+
+void cursor(int x, int y) {
+   curx = x;
+   cury = y;
+}
+
 int putchar(int c)
 {
-	if (c == '\n')
-		putchar('\r');
-	reg_uart_data = c;
-    return c;
+	if (curx >= 0 && curx < 32 && cury >= 0 && cury < 28) {
+      reg_textdisp = (curx << 16) + (cury << 8) + c;
+      if (c >= 32 && c < 128)
+         curx++;
+   }
+   // new line
+   if (c == '\n') {
+      curx = 2;
+      cury++;
+   }
+   return c;
 }
 
 int print(char *p)
 {
 	while (*p)
 		putchar(*(p++));
-    return 0;
+   return 0;
 }
 
 void print_hex_digits(uint32_t val, int nbdigits) {
@@ -65,23 +79,23 @@ int printf(const char *fmt,...)
     return 0;
 }
 
-char getchar_prompt(char *prompt)
-{
-	int32_t c = -1;
+// char getchar_prompt(char *prompt)
+// {
+// 	int32_t c = -1;
 
-	if (prompt)
-		print(prompt);
+// 	if (prompt)
+// 		print(prompt);
 
-	while (c == -1) {
-		c = reg_uart_data;
-	}
-	return c;
-}
+// 	while (c == -1) {
+// 		c = reg_uart_data;
+// 	}
+// 	return c;
+// }
 
-int getchar()
-{
-	return getchar_prompt(0);
-}
+// int getchar()
+// {
+// 	return getchar_prompt(0);
+// }
 
 /* 
  * Needed to prevent the compiler from recognizing memcpy in the

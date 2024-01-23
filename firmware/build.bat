@@ -20,6 +20,6 @@ set CROSS=D:\opt\xpack-riscv-none-elf-gcc-13.2.0-2\bin\riscv-none-elf-
    fatfs\diskio.o fatfs\ff.o fatfs\ffunicode.o -lgcc
 
 %CROSS%objcopy firmware.elf firmware.bin -O binary
-python bin2hexwords.py firmware.bin firmware.hex
+@REM python bin2hexwords.py firmware.bin firmware.hex
 
 %CROSS%objdump -Mnumeric -D firmware.elf > firmware.elf.list

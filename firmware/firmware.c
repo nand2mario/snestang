@@ -66,50 +66,23 @@ int main() {
 	a = 1; b = 2; c = 3; d = 4;
 	reg_uart_clkdiv = 94;       // 10800000 / 115200
 
-    print("\n");
-    print("~~~ Welcome to SoCDEMO ~~~\n");
+    cursor(2, 10);
+	//     01234567890123456789012345678901
+    print("~~~ Welcome to SoCDEMO ~~~");
+	cursor(2, 12);
+	print("1) Test SD card\n");
+	cursor(2, 13);
+	print("2) List root\n");
+	cursor(2, 15);
 	print("Version: ");
 	print(__DATE__);
-	print("\n");
-	print("1) Test SD card\n");
-	print("2) List root\n");
-	printf("3) File read test: %s\n", FILENAME);
-    print("\n");
 
-	print("Mounting SD card...\n");
+	cursor(2, 27);
+	print("Init SD card... ");
 	f_mount(&fs, "", 0);
-	print("done\n");
+	print("done");
 
 	while (1) {
-		print("> ");
-		char cmd = getchar();
-		if (cmd > 32 && cmd < 127)
-			putchar(cmd);
-		print("\n");
-
-		if (cmd == '1') {
-			// read sector 0 and print in hex
-			int r = sd_init();
-			if (r == 0) {
-				uint8_t buf[512];
-				if (sd_readsector(0, buf, 1)) {
-					printf("Dumping sector 0:");
-					for (int i = 0; i < 512; i++) {
-						if (i % 16 == 0)
-							printf("\n%w: ", i);
-						printf("%b ", buf[i]);
-					}
-					printf("\n");
-				} else
-					printf("Failed to read sector 0\n");
-			} else
-				printf("Failed to initialize sd card\n");
-		} else if (cmd == '2') {
-			cmd_print_root();
-		} else if (cmd == '3') {
-			cmd_read_test();
-		} else 
-			print("Invalid input\n");
 	}
 
 }

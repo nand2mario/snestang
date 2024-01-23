@@ -4,12 +4,14 @@
 #include <stdint.h>
 #include <string.h>
 
+#define reg_textdisp (*(volatile uint32_t*)0x02000000)
 #define reg_uart_clkdiv (*(volatile uint32_t*)0x02000004)
-#define reg_uart_data (*(volatile uint32_t*)0x02000008)
-#define reg_leds (*(volatile uint32_t*)0x03000000)
+// #define reg_uart_data (*(volatile uint32_t*)0x02000008)
+// #define reg_uart_data (*(volatile uint32_t*)0x02000010)
 
 // Standard library for PicoRV32 RV32I softcore
 
+extern void cursor(int x, int y);
 extern int  printf(const char *fmt,...); /* supports %s, %d, %x */
 extern int  getchar();
 extern int  putchar(int c);

@@ -20,7 +20,7 @@ module snestang_top (
     output [2:0] tmds_d_p,
 
     // LED
-    output [4:0] led,
+    output [1:0] led,
 
     // MicroSD
     output sd_clk,
@@ -75,8 +75,8 @@ wire pause;
 reg [15:0] resetcnt = 16'hffff;
 always @(posedge wclk) begin
     resetcnt <= resetcnt == 0 ? 0 : resetcnt - 1;
-    if (resetcnt == 0)
-    // if (resetcnt == 0 && ~s0)
+//    if (resetcnt == 0)
+     if (resetcnt == 0 && s0)
         resetn <= 1'b1;    
 end
 
@@ -280,6 +280,11 @@ reg [19:0] bsram_addr;
 reg [7:0] bsram_din;
 wire [7:0] bsram_dout;
 
+wire rv_rd, rv_wr;
+wire [15:0] rv_din, rv_dout;
+wire [22:0] rv_addr;
+wire [1:0] rv_ds;
+
 // Generate SDRAM signals
 always @(posedge wclk) begin
     f2 <= sysclkf_ce && enable;
@@ -340,7 +345,7 @@ sdram_snes sdram(
     .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd),
 
     // IOSys risc-v softcore
-    .rv_addr(rv_addr), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
+    .rv_addr(rv_addr[22:1]), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
     .rv_rd(rv_rd), .rv_wr(rv_wr)
 );
 
@@ -420,6 +425,7 @@ iosys iosys (
     .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid), 
     .map_ctrl(rom_type), .rom_mask(rom_mask), .ram_mask(ram_mask),
     .rom_size(rom_size), .ram_size(ram_size),
+    .ram_busy(sdram_busy),
 
     .rv_addr(rv_addr), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
     .rv_rd(rv_rd), .rv_wr(rv_wr),
@@ -634,6 +640,7 @@ debugger dbg (
 // Print control
 //
 
+/*
 `include "print.v"
 localparam BAUDRATE=115200;
 
@@ -682,176 +689,9 @@ always @(posedge wclk) begin
         20'hf0000: `print("\n", STR);
         endcase
 
-/*
-    if (prt_state == 0) begin
-        case (timer)
-        20'h00000: begin
-            `print("loader: mapctrl=", STR);
-            dbg_reg <= 0;
-        end
-        20'h10000: begin
-            `print(dbg_dat_out_loader, 1);
-            dbg_reg <= 2;
-        end
-        20'h20000: `print(", romsize=", STR);
-        20'h30000: begin
-            `print(dbg_dat_out_loader, 1);
-            dbg_reg <= 3;
-        end
-        20'h40000: `print(", ramsize=", STR);
-        20'h50000: begin
-            `print(dbg_dat_out_loader, 1);
-            dbg_reg <= 8'hc;
-        end
-        20'h60000: begin
-            `print(", sector=", STR); 
-            dbg_sd_sector[7:0] <= dbg_dat_out_loader;
-            dbg_reg <= 8'hd;
-        end
-        20'h70000: begin
-            dbg_sd_sector[15:8] <= dbg_dat_out_loader;
-            dbg_reg <= 8'he;
-        end
-        20'h80000: begin
-            `print({dbg_dat_out_loader, dbg_sd_sector[15:0]}, 3);
-        end
-        20'h90000: `print(", fail=", STR);
-        20'hA0000: `print({7'b0, loader_fail}, 1);
-        20'hf0000: begin
-            `print("\n", STR); 
-            if (~loading) prt_state <= 1;
-        end
-        endcase        
-        if (~loading) prt_state <= 1;
-    end else if (prt_state == 1) begin
-        case (timer)
-        20'h00000: `print("Dumping memory access log. Entries=", STR);
-        20'h10000: `print(8'(mlog_i), 1);
-        20'hf0000: begin
-            `print("\n", STR);
-            prt_state <= 2;
-        end
-        endcase
-    end else if (prt_state == 2) begin
-        case (timer)
-        20'h00000: `print(mlog_a[mlog_prt], 3);
-        20'h10000: `print(":", STR);
-        20'h20000: `print(mlog_q[mlog_prt], 1);
-        20'h30000: `print(" ", STR);
-        20'h40000: `print(mlog_a[mlog_prt+1], 3);
-        20'h50000: `print(":", STR);
-        20'h60000: `print(mlog_q[mlog_prt+1], 1);
-        20'h70000: `print(" ", STR);
-        20'h80000: `print(mlog_a[mlog_prt+2], 3);
-        20'h90000: `print(":", STR);
-        20'hA0000: `print(mlog_q[mlog_prt+2], 1);
-        20'hB0000: `print(" ", STR);
-        20'hC0000: `print(mlog_a[mlog_prt+3], 3);
-        20'hD0000: `print(":", STR);
-        20'hE0000: `print(mlog_q[mlog_prt+3], 1);
-        20'hF0000: `print("\n", STR);
-        endcase
 
-        if (timer == 20'hf0000)
-            if (mlog_prt < mlog_i && mlog_prt + 4 < mlog_len)
-                mlog_prt <= mlog_prt + 4;
-            else
-                prt_state <= 3;
-    end else if (prt_state == 3) begin
-        case (timer)
-        20'h00000: `print("cpu_addr=", STR);
-        20'h10000: `print(cpu_addr, 3);
-        20'h20000: `print(", aram_addr=", STR);
-        20'h30000: `print(ARAM_ADDR, 2);
-        20'h40000: begin
-            `print(", cpu_x=", STR);
-            dbg_sel <= 1;       // P65
-            dbg_reg <= 3;       // X[15:8]
-        end 
-        20'h50000: begin
-            `print(dbg_dat_out, 1);
-            dbg_reg <= 2;       // X[7:0]
-        end
-        20'h60000:
-            `print(dbg_dat_out, 1);
-        20'h70000: begin
-            `print(", cpu_a=", STR);
-            dbg_sel <= 1;       // P65
-            dbg_reg <= 1;       // X[15:8]
-        end 
-        20'h80000: begin
-            `print(dbg_dat_out, 1);
-            dbg_reg <= 0;       // X[7:0]
-        end
-        20'h90000:
-            `print(dbg_dat_out, 1);
-        20'hA0000: begin
-            `print(", JOY1=", STR);
-            dbg_sel <= 2;    // SCPU
-            dbg_reg <= 8'h1D;
-        end
-        20'hB0000: begin
-            `print(dbg_dat_out, 1);
-            dbg_reg <= 8'h1C;
-        end
-        20'hC0000:
-            `print(dbg_dat_out, 1);
-        20'hF0000: begin timer <= 0; prt_state <= 4; end
-        endcase
-//         9, A, B, C, D, E - 2 bits per hex, total 12 points
-//        if (timer[14:0] == 0 && timer[19:16] >= 9 && timer[19:16] <= 14) begin
-//            logic [4:0] b;
-//            b = timer[19:15] - 5'd18;
-//            if (reached[b])
-//                `print("O", STR);
-//            else
-//                `print(".", STR);
-//        end
-    end else if (prt_state == 4) begin
-        dbg_sel <= 8'b0001_0000;        // SMP
-        case (timer)
-        20'h00000: begin
-            `print(", APU I[0]=", STR);
-            dbg_reg <= 0;
-        end
-        20'h20000: begin
-            `print(", I[1]=", STR);
-            dbg_reg <= 1;
-        end
-        20'h40000: begin
-            `print(", I[2]=", STR);
-            dbg_reg <= 2;
-        end
-        20'h60000: begin
-            `print(", I[3]=", STR);
-            dbg_reg <= 3;
-        end
-        20'h80000: begin
-            `print(", O[0]=", STR);
-            dbg_reg <= 4;
-        end
-        20'hA0000: begin
-            `print(", O[1]=", STR);
-            dbg_reg <= 5;
-        end
-        20'hC0000: begin
-            `print(", O[2]=", STR);
-            dbg_reg <= 6;
-        end
-        20'hE0000: begin
-            `print(", O[3]=", STR);
-            dbg_reg <= 7;
-        end
-
-        20'h10000, 20'h30000, 20'h50000, 20'h70000, 20'h90000, 20'hB0000, 20'hD0000, 20'hF0000: 
-            `print(dbg_dat_out, 1);
-
-        20'hF8000: begin `print("\n", STR); prt_state <= 3; end
-        endcase
-
-    end
-    */
 end
+*/
 
 `endif
 
