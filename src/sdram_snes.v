@@ -1,48 +1,45 @@
-// Dual-bank SDRAM controller for SNES on Tang Primer 25K and Tang Mega 138K
-// nand2mario 2023.11
+// Dual-chip, 4-channel SDRAM controller for SNES on Tang Primer 25K and Tang Mega 138K
+// nand2mario 2024.1
 // 
-// This supports two parallel access streams (CPU and ARAM), independent from
-// each other. SNES CPU uses bank 0,1 and thus is 16MB max. ARAM uses bank 2.
+// This supports 4 parallel access streams (CPU, ARAM, VRAM and RiscV softcore),
+// independent from each other. SNES CPU uses bank 0 and 1 and thus is 16MB max. 
+// ARAM uses bank 2. VRAM uses bank 3. Risc-V softcore uses the 2nd chip.
 // 
-// clkref needs to be at least 6 clk cycles long. It should be aligned with clk's
-// rising edge. This can be achieved with generating both from the same PLL.
-// Access requests are recognized at clkref's rising edge. And results will be
-// available on clkref's next rising edge.
+// Memory works at 8x clkref speed. clkref and clk should come from the same PLL
+// so that they are aligned. Access requests are recognized at clkref's rising edge. 
+// Read results will be available in 1 clkref cycle for CPU, 1.25 cycles for ARAM, 
+// 1.5 cycles for VRAM, and 1.75 cycles for RiscV.
+//
+// The Risc-V channel is 16 bit wide for reliability. A 32-bit design would be
+// a 10x gear-ratio design and over 100Mhz.
 //
 // SDRAM is accessed in an interleaving style like this (RAS: bank activation,
-//   CAS: read/write commands, DATA: read data available),
+// CAS: read/write commands, DS: DQM mask for reads, DATA: read data available),
 //
-// clk_#    CPU         ARAM
-//   0          
-//   1      RAS1        DATA2
-//   2      CAS1
-//   3                  RAS2/Refresh
-//   4      DATA1
-//   5                  CAS2
+//             Chip 1        | Chip 2   DQ driven by
+//     CPU     ARAM    VRAM    RV                
+// 0   RAS0            DS2              FPGA        
+// 1           DATA1           CAS3     RAM         
+// 2           RAS1            DS3      FPGA        
+// 3   CAS0            DATA2            RAM
+// 4   DS0             RAS2             FPGA
+// 5           CAS1            DATA3    RAM 
+// 6           DS1             RAS3     FPGA
+// 7   DATA0           CAS2             RAM     
 //
-// - The CPU channel is designed for 1 wclk cycle. The ARAM channel is done in 2 
-//   wclk cycles.
-// - CAS and RAS are shown when they are registered. They are issued a cycle earlier.
-// - CAS1-DATA1, CAS2-DATA2 do not overlap, so there's less bus contention.
-// - RAS1 is at cycle 1 instead of 0 to satisfy T_RC between REFRESH (cycle 3) and
-//   RAS1.
-// - REFRESH is issued when the refresh timer expires and both banks are idle.
-//
-// Tang SDRAM v1.2 - Winbond W9825G6KH. 8K rows, 512 words per row, 16 bits per word
+// Tang SDRAM v1.2 - 2x Winbond W9825G6KH-6 (166CL3, 133CL2). 8K rows, 512 words per row, 
+// 16 bits per word
 
 module sdram_snes
 #(
-    // Clock frequency, max 66.7Mhz with current set of T_xx/CAS parameters.
-    parameter         FREQ = 64_800_000,  
+    parameter         FREQ = 86_400_000,
 
-    // Time delays for 66.7Mhz max clock (min clock cycle 15ns)
-    // The SDRAM supports max 166.7Mhz (RP/RCD/RC need changes)
-    // Alliance AS4C32M16SB-7TIN 512Mb
-    parameter [3:0]   CAS  = 4'd2,     // 2/3 cycles, set in mode register
+    // Time delays
+    parameter [3:0]   CAS  = 4'd3,     // 3 cycles, set in mode register
     parameter [3:0]   T_WR = 4'd2,     // 2 cycles, write recovery
     parameter [3:0]   T_MRD= 4'd2,     // 2 cycles, mode register set
     parameter [3:0]   T_RP = 4'd1,     // 15ns, precharge to active
-    parameter [3:0]   T_RCD= 4'd1,     // 15ns, active to r/w
+    parameter [3:0]   T_RCD= 4'd1,     // 15ns, active to r/w, 2 cycles below 133, 1 cycle below 66.7
     parameter [3:0]   T_RC = 4'd4      // 63ns, ref/active to ref/active
 )
 (
@@ -50,7 +47,7 @@ module sdram_snes
     inout      [15:0] SDRAM_DQ,
     output reg [12:0] SDRAM_A,
     output reg [1:0]  SDRAM_BA,
-    output            SDRAM_nCS,
+    output reg        SDRAM_nCS,    // chip select for 2 chips
     output            SDRAM_nWE,
     output            SDRAM_nRAS,
     output            SDRAM_nCAS,
@@ -70,11 +67,11 @@ module sdram_snes
 	input      [23:1] cpu_addr,     // 16MB SNES memory space 
 	input             cpu_rd /* synthesis syn_keep=1 */,
 	input             cpu_wr /* synthesis syn_keep=1 */,
-	input       [1:0] cpu_ds,       // which bytes to enable
+	input       [1:0] cpu_ds,       // byte enable
 
-    input      [19:0] bsram_addr,   // only [16:0] value, max 128KB
-    input       [7:0] bsram_din,    // byte access
-    output reg  [7:0] bsram_dout,
+    input      [19:0] bsram_addr,
+    input       [7:0] bsram_din,
+    output reg [15:0] bsram_dout,
     input             bsram_rd,
     input             bsram_wr,
 
@@ -82,11 +79,21 @@ module sdram_snes
 	input             aram_16,      // 16-bit access
 	input      [15:0] aram_addr,
 	input      [15:0] aram_din,
-	output     [15:0] aram_dout,
+	output reg [15:0] aram_dout,
 	input             aram_rd,
     input             aram_wr,
 
-    output reg        busy
+    // Risc-V softcore uses bank 0-1 of 2nd chip
+    input      [22:1] rv_addr,      // 8MB RV memory space (currently using only bank 0 of 2nd chip)
+    input      [15:0] rv_din,       // 32-bit accesses
+    input       [1:0] rv_ds,        // byte enable for writes
+    output reg [15:0] rv_dout,      // available 1 and 3/5 clkref cycles later
+    input             rv_rd,
+    input             rv_wr,
+
+    output reg [23:0] total_refresh,
+
+    output            busy
 );
 
 // Tri-state DQ input/output
@@ -95,8 +102,10 @@ reg [15:0] dq_out;
 assign SDRAM_DQ = dq_oen ? {16{1'bz}} : dq_out;
 wire [15:0] dq_in = SDRAM_DQ;     // DQ input
 reg [3:0] cmd;
-assign {SDRAM_nCS, SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE} = cmd;
+assign {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE} = cmd[2:0];
 
+reg busy_buf = 1;
+assign busy = busy_buf;
 assign SDRAM_CKE = 1'b1;
 
 reg [2:0] state;
@@ -138,23 +147,15 @@ reg [3:0] cycle /* synthesis syn_keep=1 */;
 
 reg clkref_r;
 always @(posedge clk) clkref_r <= clkref;
-reg aram_rd_buf;
+reg cpu_rd_buf, aram_rd_buf;
+reg rv_rd_buf, rv_wr_buf;
+reg [31:0] rv_din_buf;
+reg [22:1] rv_addr_buf;
+reg [1:0] rv_ds_buf;
 
-reg [15:0] aram_dout_buf;
-// immediately use dq_in as aram_dout for cycle 5
-assign aram_dout = (aram_rd_buf && cycle == 4'd1) ? dq_in : aram_dout_buf;
-
-reg        refresh;
+// reg        refresh;
 reg [8:0]  refresh_cnt;
-reg        need_refresh = 1'b0;
-
-always @(posedge clk) begin
-	if (refresh_cnt == 0)
-		need_refresh <= 0;
-	else if (refresh_cnt == RFRSH_CYCLES)
-		need_refresh <= 1;
-end
-
+reg [1:0]  need_refresh = 0; // for 2 chips
 
 //
 // SDRAM state machine
@@ -165,6 +166,15 @@ always @(posedge clk) begin
     // defaults
     cmd_next <= CMD_NOP; 
     dq_oen_next <= 1'b1;
+    SDRAM_DQM <= 2'b11;
+    SDRAM_nCS <= 0;
+
+    // refresh logic
+    refresh_cnt <= refresh_cnt + 1'd1;
+    if (refresh_cnt == RFRSH_CYCLES) begin
+		need_refresh <= 2'b11;
+        refresh_cnt <= 0;
+    end
 
     // wait 200 us on power-on
     if (state == INIT && cfg_now) begin
@@ -196,19 +206,16 @@ always @(posedge clk) begin
         T_RP+T_RC+T_RC+T_MRD: begin
             state <= NORMAL;
             cycle <= 0;
-            busy <= 1'b0;              // init&config is done
+            busy_buf <= 1'b0;              // init&config is done
         end
     endcase else if (state == NORMAL) begin
-        if (clkref & ~clkref_r)         // cycle 0-5 for NORMAL
+        if (clkref & ~clkref_r)         // cycle 0-7 for NORMAL
             cycle <= 4'd1;
-        else if (cycle == 5)
+        else if (cycle == 7)
             cycle <= 0;
-		refresh_cnt <= refresh_cnt + 1'd1;
         
-        case (cycle[2:0])
-
-        // CPU RAS
-        3'd0: 
+        // RAS
+        if (cycle == 4'd0) begin        // CPU
             if (cpu_rd | cpu_wr) begin
                 cmd_next <= CMD_BankActivate;
                 ba_next <= {1'b0, cpu_addr[23]};        
@@ -216,66 +223,111 @@ always @(posedge clk) begin
             end else if (bsram_rd | bsram_wr) begin
                 cmd_next <= CMD_BankActivate;
                 ba_next <= 2'b01;
-                a_next <= {6'b111_000, bsram_addr[16:10]};  // 17-bit bsram address, map to F0-F1:xxxx
+                a_next <= {3'b111, bsram_addr[19:10]};  // 13-bit address
             end
+        end
+        if (cycle == 4'd2) begin        // ARAM
+            if (aram_rd | aram_wr) begin    // tight timing for aram_rd, aram_wr, aram_addr
+                cmd_next <= CMD_BankActivate;
+                ba_next <= 2'b10;
+                a_next <= {7'b0, aram_addr[15:10]};
+                aram_rd_buf <= aram_rd;
+            end else if (need_refresh[0] && ~cpu_rd && ~cpu_wr) begin  
+                // refresh when all banks are idle
+				// refresh <= 1'b1;
+				cmd_next <= CMD_AutoRefresh;                
+                need_refresh[0] <= 0;
+                total_refresh <= total_refresh + 1;
+            end            
+        end
+        if (cycle == 4'd4) begin        // VRAM
+        end
+        if (cycle == 4'd6) begin        // RV
+            if (rv_rd | rv_wr) begin
+                {rv_rd_buf, rv_wr_buf} <= {rv_rd, rv_wr};
+                rv_addr_buf <= rv_addr;
+                rv_din_buf <= rv_din;
+                rv_ds_buf <= rv_ds;
+                SDRAM_nCS <= 1'b1;
+                cmd_next <= CMD_BankActivate;
+                ba_next <= 2'b0;
+                a_next <= rv_addr[22:10];
+            end else if (need_refresh[1]) begin  
+                // refresh for 2nd chip
+                SDRAM_nCS <= 1'b1;
+				cmd_next <= CMD_AutoRefresh;
+                need_refresh[1] <= 0;
+                total_refresh <= total_refresh + 1;
+            end   
+        end
 
-        // CPU CAS & ARAM DATA
-        3'd1: begin
+        // CAS
+        if (cycle == 4'd3) begin        // CPU
             if (cpu_rd | cpu_wr) begin
                 cmd_next <= cpu_wr?CMD_Write:CMD_Read;
                 ba_next <= {1'b0, cpu_addr[23]};
                 a_next[10] <= 1'b1;                     // set auto precharge
                 a_next[8:0] <= cpu_addr[9:1];           // column address
-                SDRAM_DQM <= ~cpu_ds;     
                 if (cpu_wr) begin
                     dq_oen_next <= 0;
                     dq_out_next <= cpu_din;
+                    SDRAM_DQM <= ~cpu_ds;     
                 end            
             end else if (bsram_rd | bsram_wr) begin
                 cmd_next <= bsram_wr?CMD_Write:CMD_Read;
                 ba_next <= 2'b01;
                 a_next[10] <= 1'b1;                     // set auto precharge
                 a_next[8:0] <= bsram_addr[9:1];         // column address
-                SDRAM_DQM <= {~bsram_addr[0], bsram_addr[0]};
                 if (bsram_wr) begin
                     dq_oen_next <= 0;
                     dq_out_next <= {bsram_din, bsram_din};
+                    SDRAM_DQM <= ~cpu_ds;
                 end            
-            end
-            if (aram_rd_buf) 
-                aram_dout_buf <= dq_in;
-            aram_rd_buf <= 0;
+            end            
         end
-
-        // ARAM RAS
-        3'd2: begin
-            if (aram_rd | aram_wr) begin    // tight timing for aram_rd, aram_wr, aram_addr
-                cmd_next <= CMD_BankActivate;
-                ba_next <= 2'b10;
-                a_next <= {7'b0, aram_addr[15:10]};
-                aram_rd_buf <= aram_rd;
-            end else if (need_refresh && ~cpu_rd && ~cpu_wr) begin  
-                // refresh when both bank are idle
-				refresh <= 1'b1;
-				refresh_cnt <= 0;
-				cmd_next <= CMD_AutoRefresh;                
-            end
-        end
-
-        // ARAM CAS & CPU DATA
-        3'd4: begin
+        if (cycle == 4'd5) begin        // ARAM
             if (aram_rd | aram_wr) begin
                 cmd_next <= aram_wr ? CMD_Write : CMD_Read;
                 ba_next <= 2'b10;
                 a_next[10] <= 1'b1;                 // set auto precharge
                 a_next[8:0] <= aram_addr[9:1];      // column address
-                SDRAM_DQM <= aram_16 ? 2'b0 : {~aram_addr[0], aram_addr[0]}; // DQM
                 if (aram_wr) begin
                     dq_oen_next <= 0;
                     dq_out_next <= aram_din;
+                    SDRAM_DQM <= aram_16 ? 2'b0 : {~aram_addr[0], aram_addr[0]}; // DQM
+                end
+            end            
+        end
+        if (cycle == 4'd7) begin        // VRAM
+        end
+        if (cycle == 4'd1) begin        // RV
+            if (rv_rd_buf || rv_wr_buf) begin
+                SDRAM_nCS <= 1;
+                cmd_next <= rv_wr_buf ? CMD_Write : CMD_Read;
+                ba_next <= 2'b0;
+                a_next[10] <= 1'b1;
+                a_next[8:0] <= rv_addr_buf[9:1];
+                if (rv_wr_buf) begin
+                    dq_oen_next <= 0;
+                    dq_out_next <= rv_din_buf;
+                    SDRAM_DQM <= ~rv_ds_buf;
+                    rv_wr_buf <= 0;
                 end
             end
+        end
 
+        // DS
+        if (cycle == 4'd4 && (cpu_rd|bsram_rd)) // CPU
+            SDRAM_DQM <= 2'b0;
+        if (cycle == 4'd6 && aram_rd)           // ARAM
+            SDRAM_DQM <= 2'b0; 
+        if (cycle == 4'd8) begin                // VRAM
+        end
+        if (cycle == 4'd2)                      // RV
+            if (rv_rd_buf) SDRAM_DQM <= 2'b0;
+
+        // DATA
+        if (cycle == 4'd7) begin                // CPU
             if (cpu_rd) begin
                 if (cpu_port) begin
                     if (cpu_ds[0]) cpu_port1[7:0] <= dq_in[7:0];
@@ -285,17 +337,27 @@ always @(posedge clk) begin
                     if (cpu_ds[1]) cpu_port0[15:8] <= dq_in[15:8];
                 end
             end else if (bsram_rd) begin
-                if (bsram_addr[0]) bsram_dout <= dq_in[15:8];
-                else               bsram_dout <= dq_in[7:0];
+                if (cpu_ds[0]) bsram_dout[7:0] <= dq_in[7:0];
+                if (cpu_ds[1]) bsram_dout[15:8] <= dq_in[15:8];
+            end            
+        end
+        if (cycle == 4'd1) begin                // ARAM
+            if (aram_rd_buf) aram_dout <= dq_in;
+        end
+        if (cycle == 4'd3) begin                // VRAM
+        end
+        if (cycle == 4'd5) begin                // RV
+            if (rv_rd_buf) begin
+                rv_dout <= dq_in;
+                rv_rd_buf <= 0;
             end
         end
-        endcase
     end
 
     if (~resetn) begin
-        busy <= 1'b1;
+        busy_buf <= 1'b1;
         dq_oen_next <= 1'b1;        // turn off DQ output
-        SDRAM_DQM <= 2'b0;      // DQM
+        SDRAM_DQM <= 2'b0;          // DQM
         state <= INIT;
     end
 end

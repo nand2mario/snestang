@@ -7,7 +7,7 @@
 
 -mod_name gowin_pll_snes
 -file_name gowin_pll_snes
--path D:/Gowin/dev/snes-experiments/10.tinysnes_m138k/src/primer25k/
+-path D:/Gowin/dev/snestang/src/primer25k/
 -type PLL_ADV
 -file_type vlg
 -ssc false
@@ -22,7 +22,7 @@
 -en_lock false
 -dyn_dpa_en false
 -clkout0_bypass false
--odiv0_sel 90
+-odiv0_sel 80
 -odiv0_frac_sel 0
 -clkout0_dt_dir 1
 -clkout0_dt_step 0
@@ -34,7 +34,7 @@
 -clkout0_dt_step 0
 -en_clkout1 true
 -clkout1_bypass false
--odiv1_sel 15
+-odiv1_sel 10
 -clkout1_dt_dir 1
 -clkout1_dt_step 0
 -dyn_pe1_sel false
@@ -43,16 +43,16 @@
 -de1_en false
 -en_clkout2 true
 -clkout2_bypass false
--odiv2_sel 15
+-odiv2_sel 10
 -clkout2_dt_dir 1
 -clkout2_dt_step 0
 -dyn_pe2_sel false
--clkout2_pe_coarse 7
--clkout2_pe_fine 4
+-clkout2_pe_coarse 6
+-clkout2_pe_fine 2
 -de2_en false
 -en_clkout3 true
 -clkout3_bypass false
--odiv3_sel 90
+-odiv3_sel 80
 -clkout3_dt_dir 1
 -clkout3_dt_step 0
 -dyn_pe3_sel false
@@ -63,5 +63,5 @@
 -en_clkout5 false
 -en_clkout6 false
 -en_clkfbout false
--mdiv_sel 36
+-mdiv_sel 32
 -mdiv_frac_sel 0

@@ -42,7 +42,7 @@ sim: ./obj_dir/V$N
 trace: ./obj_dir/V$N
 	@echo
 	@echo "### SIMULATION (trace) ###"
-	@cd obj_dir && ./V$N -t -c 100000000 -s 80000000
+	@cd obj_dir && ./V$N -t -c 400000000 -s 300000000
 # @cd obj_dir && ./V$N -t -c 100000000 -s 75000000
 
 trace2: ./obj_dir/V$N

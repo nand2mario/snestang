@@ -25,7 +25,6 @@
         <File path="src/dualshock_controller.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_dpb_cgram.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_dpb_hoam.v" type="file.verilog" enable="1"/>
-        <File path="src/gowin_dpb_menu.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_dpb_oam.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_dpb_spr_buf.v" type="file.verilog" enable="1"/>
         <File path="src/hdmi2/audio_clock_regeneration_packet.sv" type="file.verilog" enable="1"/>
@@ -38,9 +37,14 @@
         <File path="src/hdmi2/serializer.sv" type="file.verilog" enable="1"/>
         <File path="src/hdmi2/source_product_description_info_frame.sv" type="file.verilog" enable="1"/>
         <File path="src/hdmi2/tmds_channel.sv" type="file.verilog" enable="1"/>
-        <File path="src/loader.sv" type="file.verilog" enable="0"/>
-        <File path="src/loader_serial.sv" type="file.verilog" enable="1"/>
-        <File path="src/loader_with_menu.sv" type="file.verilog" enable="1"/>
+        <File path="src/iosys/gowin_dpb_menu.v" type="file.verilog" enable="1"/>
+        <File path="src/iosys/iosys.v" type="file.verilog" enable="1"/>
+        <File path="src/iosys/picorv32.v" type="file.verilog" enable="1"/>
+        <File path="src/iosys/simplespimaster.v" type="file.verilog" enable="1"/>
+        <File path="src/iosys/simpleuart.v" type="file.verilog" enable="1"/>
+        <File path="src/iosys/spi_master.v" type="file.verilog" enable="1"/>
+        <File path="src/iosys/spiflash.v" type="file.verilog" enable="1"/>
+        <File path="src/iosys/textdisp.v" type="file.verilog" enable="1"/>
         <File path="src/main.v" type="file.verilog" enable="1"/>
         <File path="src/ppu.v" type="file.verilog" enable="1"/>
         <File path="src/ppucgram.v" type="file.verilog" enable="1"/>
@@ -50,9 +54,6 @@
         <File path="src/primer25k/gowin_pll_27.v" type="file.verilog" enable="1"/>
         <File path="src/primer25k/gowin_pll_hdmi.v" type="file.verilog" enable="1"/>
         <File path="src/primer25k/gowin_pll_snes.v" type="file.verilog" enable="1"/>
-        <File path="src/sd_file_list_reader.v" type="file.verilog" enable="1"/>
-        <File path="src/sd_reader.sv" type="file.verilog" enable="1"/>
-        <File path="src/sdcmd_ctrl.sv" type="file.verilog" enable="1"/>
         <File path="src/sdram_snes.v" type="file.verilog" enable="1"/>
         <File path="src/smp.v" type="file.verilog" enable="1"/>
         <File path="src/snes.v" type="file.verilog" enable="1"/>

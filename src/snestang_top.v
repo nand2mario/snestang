@@ -30,6 +30,14 @@ module snestang_top (
     output sd_dat2,     // 1
     output sd_dat3,     // 1
 
+    // SPI flash
+    output flash_spi_cs_n,          // chip select
+    input flash_spi_miso,           // master in slave out
+    output flash_spi_mosi,          // mster out slave in
+    output flash_spi_clk,           // spi clock
+    output flash_spi_wp_n,          // write protect
+    output flash_spi_hold_n,        // hold operations
+
     // dualshock controllers
     output ds_clk,
     input ds_miso,
@@ -329,7 +337,11 @@ sdram_snes sdram(
 
     // ARAM accesses
     .aram_16(aram_16), .aram_addr(ARAM_ADDR), .aram_din({ARAM_D, ARAM_D}), 
-    .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd)
+    .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd),
+
+    // IOSys risc-v softcore
+    .rv_addr(rv_addr), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
+    .rv_rd(rv_rd), .rv_wr(rv_wr)
 );
 
 `else
@@ -397,41 +409,27 @@ snes2hdmi s2h(
 	.tmds_d_n(tmds_d_n), .tmds_d_p(tmds_d_p)
 );
 
-wire [7:0] loader_do_orig;
-wire loader_do_valid_orig;
+// IOSys for menu, rom loading...
+iosys iosys (
+    .wclk(wclk), .hclk(hclk), .resetn(resetn),
 
-wire [7:0] serial_data;
-wire serial_data_valid, serial_reset;
-wire [23:0] loader_sector;
-wire [2:0] loader_state;
-wire debug_serial_en;
-
-loader loader (
-    .wclk(wclk), .resetn(resetn),
-    .hclk(hclk),
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color),
     .btns(joy1_btns),
-    .dout(loader_do), .dout_valid(loader_do_valid),
 
+    .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid), 
     .map_ctrl(rom_type), .rom_mask(rom_mask), .ram_mask(ram_mask),
     .rom_size(rom_size), .ram_size(ram_size),
-    .loading(loading), .fail(loader_fail),
 
-    // data coming from serial interface
-    .serial_reset(serial_reset), .serial_data(serial_data), .serial_data_valid(serial_data_valid),
+    .rv_addr(rv_addr), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
+    .rv_rd(rv_rd), .rv_wr(rv_wr),
 
-    .sd_clk(sd_clk), .sd_cmd(sd_cmd), .sd_dat0(sd_dat0),
-    .sd_dat1(sd_dat1), .sd_dat2(sd_dat2), .sd_dat3(sd_dat3),
-
-    .dbg_read_sector_no(loader_sector), .dbg_state(loader_state)
+    .flash_spi_cs_n(flash_spi_cs_n), .flash_spi_miso(flash_spi_miso),
+    .flash_spi_mosi(flash_spi_mosi), .flash_spi_clk(flash_spi_clk),
+    .flash_spi_wp_n(flash_spi_wp_n), .flash_spi_hold_n(flash_spi_hold_n)
 );
 
-loader_serial serial (
-    .clk(wclk), .resetn(resetn),
-    .uart_rx(UART_RXD), .serial_reset(serial_reset), .serial_data(serial_data), 
-    .serial_data_valid(serial_data_valid), .loading(loading)
-);
+
 
 // Test rom
 //testrom rom (
@@ -676,10 +674,10 @@ always @(posedge wclk) begin
         20'h70000: `print({4'b0, joy1_btns}, 2);
         20'h80000: `print(", addr=", STR);
         20'h90000: `print(loader_addr, 3);
-        20'ha0000: `print(", sector=", STR);
-        20'hb0000: `print(loader_sector, 3);
-        20'hd8000: `print(", loader_state=", STR);
-        20'he0000: `print({5'b0, loader_state}, 1);
+//        20'ha0000: `print(", sector=", STR);
+//        20'hb0000: `print(loader_sector, 3);
+//        20'hd8000: `print(", loader_state=", STR);
+//        20'he0000: `print({5'b0, loader_state}, 1);
 
         20'hf0000: `print("\n", STR);
         endcase
