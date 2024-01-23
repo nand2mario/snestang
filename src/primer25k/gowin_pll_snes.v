@@ -5,7 +5,7 @@
 //Part Number: GW5A-LV25MG121NC1/I0
 //Device: GW5A-25
 //Device Version: A
-//Created Time: Tue Jan 23 18:10:40 2024
+//Created Time: Tue Jan 23 23:57:18 2024
 
 module gowin_pll_snes (clkout0, clkout1, clkout2, clkout3, clkin);
 
@@ -103,8 +103,8 @@ defparam PLLA_inst.CLKOUT0_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT0_PE_FINE = 0;
 defparam PLLA_inst.CLKOUT1_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT1_PE_FINE = 0;
-defparam PLLA_inst.CLKOUT2_PE_COARSE = 6;
-defparam PLLA_inst.CLKOUT2_PE_FINE = 2;
+defparam PLLA_inst.CLKOUT2_PE_COARSE = 5;
+defparam PLLA_inst.CLKOUT2_PE_FINE = 0;
 defparam PLLA_inst.CLKOUT3_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT3_PE_FINE = 0;
 defparam PLLA_inst.CLKOUT4_PE_COARSE = 0;

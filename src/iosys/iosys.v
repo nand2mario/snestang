@@ -91,7 +91,8 @@ localparam FIRMWARE_SIZE = 256*1024;
 
 reg flash_loaded;
 reg flash_loading;
-reg [20:0] flash_cnt, flash_addr;
+reg [20:0] flash_cnt;
+reg [20:0] flash_addr /* synthesis syn_keep=1 */;
 
 reg flash_start;
 wire [7:0] flash_dout;
