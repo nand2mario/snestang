@@ -76,7 +76,8 @@ reg [15:0] resetcnt = 16'hffff;
 always @(posedge wclk) begin
     resetcnt <= resetcnt == 0 ? 0 : resetcnt - 1;
 //    if (resetcnt == 0)
-     if (resetcnt == 0 && s0)
+    //  if (resetcnt == 0 && s0)   // primer25k
+     if (resetcnt == 0 && ~s0)   // mega138k
         resetn <= 1'b1;    
 end
 
@@ -432,7 +433,10 @@ iosys iosys (
 
     .flash_spi_cs_n(flash_spi_cs_n), .flash_spi_miso(flash_spi_miso),
     .flash_spi_mosi(flash_spi_mosi), .flash_spi_clk(flash_spi_clk),
-    .flash_spi_wp_n(flash_spi_wp_n), .flash_spi_hold_n(flash_spi_hold_n)
+    .flash_spi_wp_n(flash_spi_wp_n), .flash_spi_hold_n(flash_spi_hold_n),
+
+    .sd_clk(sd_clk), .sd_cmd(sd_cmd), .sd_dat0(sd_dat0), .sd_dat1(sd_dat1),
+    .sd_dat2(sd_dat2), .sd_dat3(sd_dat3)
 );
 
 

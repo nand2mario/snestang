@@ -35,6 +35,7 @@ reg is_cursor;
 reg [2:0] xoff, yoff;
 reg [14:0] overlay_color_buf;
 
+wire [1:0] cmd = reg_char_di[31:24];
 wire [4:0] text_x = reg_char_di[20:16];
 wire [4:0] text_y = reg_char_di[12:8];
 wire [6:0] text_char = reg_char_di[6:0];
@@ -46,7 +47,7 @@ wire [6:0] text_char = reg_char_di[6:0];
 // $400-$800: Font ROM
 gowin_dpb_menu menu_mem (
     .clka(wclk), .reseta(1'b0), .ocea(), .cea(1'b1), 
-    .ada({1'b0, text_y, text_x}), .wrea(|reg_char_we),
+    .ada({1'b0, text_y, text_x}), .wrea(reg_char_we[0] && cmd == 2'd0),
     .dina({1'b0, text_char}), .douta(), 
 
     .clkb(hclk), .resetb(1'b0), .oceb(), .ceb(1'b1), 

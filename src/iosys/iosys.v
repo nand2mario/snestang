@@ -102,8 +102,8 @@ assign flash_spi_wp_n = 0;
 reg [15:0] flash_d;
 reg flash_wr;
 
-// Load 256KB of ROM from flash address 0x100000 into SDRAM at address 0x0
-spiflash #(.ADDR(24'h100000), .LEN(FIRMWARE_SIZE)) flash (
+// Load 256KB of ROM from flash address 0x500000 into SDRAM at address 0x0
+spiflash #(.ADDR(24'h500000), .LEN(FIRMWARE_SIZE)) flash (
     .clk(wclk), .resetn(resetn),
     .ncs(flash_spi_cs_n), .miso(flash_spi_miso), .mosi(flash_spi_mosi),
     .sck(flash_spi_clk),
@@ -200,6 +200,23 @@ textdisp disp (
     .reg_char_we(textdisp_reg_char_sel ? mem_wstrb : 4'b0),
     .reg_char_di(mem_wdata) 
 );
+
+// toggle overlay display on/off
+reg overlay_buf = 1;
+assign overlay = overlay_buf;
+always @(posedge wclk) begin
+    if (~resetn) begin
+        overlay_buf <= 1;
+    end else begin
+        if (textdisp_reg_char_sel && mem_wstrb[0]) begin
+            case (mem_wdata[25:24])
+            2'd1: overlay_buf <= 1;
+            2'd2: overlay_buf <= 0;
+            default: ;
+            endcase
+        end 
+    end
+end
 
 // uart @ 0x0200_0004 & 0x200_0008
 // simpleuart simpleuart (
