@@ -152,7 +152,7 @@ wire [31:0] mem_rdata /* synthesis syn_keep=1 */;
 reg ram_ready;
 reg [31:0] ram_rdata;
 
-wire        textdisp_reg_char_sel = mem_valid && (mem_addr == 32'h 0200_0000);
+wire        textdisp_reg_char_sel /* synthesis syn_keep=1 */= mem_valid && (mem_addr == 32'h 0200_0000);
 
 wire        simpleuart_reg_div_sel = mem_valid && (mem_addr == 32'h 0200_0004);
 wire [31:0] simpleuart_reg_div_do;
@@ -309,6 +309,8 @@ end
 // RV memory access
 reg [1:0] ram_cnt;
 reg ram_writing;
+reg [15:0] rv_din_hi;
+reg [1:0] rv_ds_hi;
 always @(posedge wclk) begin
     if (~resetn) begin
         ram_cnt <= 0;
@@ -328,30 +330,46 @@ always @(posedge wclk) begin
             case (ram_cnt)
             2'd0:
                 if (mem_valid && ~ram_ready && mem_addr < 8*1024*1024) begin
-                    rv_wr <= wr;
-                    rv_rd <= ~wr;
-                    rv_din <= mem_wdata[15:0];
-                    rv_ds <= mem_wstrb[1:0];        // only applies to writes
                     rv_addr <= {mem_addr[22:2], 2'b00};
+                    if (wr) begin
+                        ram_ready <= 1;                 // allow cpu to move on
+                        rv_wr <= 1;
+                        ram_writing <= 1;
+                        rv_din <= mem_wdata[15:0];      // low 16-bit request
+                        rv_ds <= mem_wstrb[1:0];
+                        rv_din_hi <= mem_wdata[31:16];  // store hi 16-bit request
+                        rv_ds_hi <= mem_wstrb[3:2];
+                    end else begin
+                        rv_rd <= 1;
+                    end
                     ram_cnt <= 1;
                 end
             2'd1: begin
-                if (~wr)
-                    ram_rdata[31:16] <= rv_dout; 
-                rv_wr <= wr;
-                rv_rd <= ~wr;
-                rv_din <= mem_wdata[15:0];
-                rv_ds <= mem_wstrb[3:2];
-                rv_addr <= {mem_addr[22:2], 2'b10};                
+                if (~ram_writing) begin // read hi 16-bit
+                    rv_rd <= 1;
+                    rv_addr <= {mem_addr[22:2], 2'b10};                
+                end
                 ram_cnt <= 2;
             end
             2'd2: begin
-                if (~wr)
-                    ram_rdata[31:16] <= rv_dout; 
-                ram_ready <= 1;
-                ram_cnt <= 0;
+                if (ram_writing) begin  // write hi 16-bit
+                    rv_wr <= 1;
+                    rv_din <= rv_din_hi;
+                    rv_ds <= rv_ds_hi;
+                    rv_addr <= {mem_addr[22:2], 2'b10};                
+                end else begin
+                    ram_rdata[15:0] <= rv_dout; 
+                end 
+                ram_cnt <= 3;
             end
-            2'd3: ;
+            2'd3: begin
+                if (~ram_writing) begin
+                    ram_rdata[31:16] <= rv_dout; 
+                    ram_ready <= 1;
+                end
+                ram_writing <= 0;
+                ram_cnt <= 0;                
+            end
             endcase            
         end
 

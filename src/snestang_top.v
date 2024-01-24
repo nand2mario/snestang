@@ -76,9 +76,9 @@ reg [15:0] resetcnt = 16'hffff;
 always @(posedge wclk) begin
     resetcnt <= resetcnt == 0 ? 0 : resetcnt - 1;
 //    if (resetcnt == 0)
-    //  if (resetcnt == 0 && s0)   // primer25k
+//      if (resetcnt == 0 && s0)   // primer25k
      if (resetcnt == 0 && ~s0)   // mega138k
-        resetn <= 1'b1;    
+        resetn <= 1'b1;
 end
 
 `ifndef VERILATOR

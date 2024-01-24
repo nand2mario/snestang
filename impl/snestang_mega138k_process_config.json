@@ -66,7 +66,7 @@
  "PlaceInRegToIob" : true,
  "PlaceIoRegToIob" : true,
  "PlaceOutRegToIob" : true,
- "Place_Option" : "0",
+ "Place_Option" : "2",
  "Process_Configuration_Verion" : "1.0",
  "Promote_Physical_Constraint_Warning_to_Error" : true,
  "Push_Tristates" : true,
