@@ -309,63 +309,52 @@ end
 // RV memory access
 reg [1:0] ram_cnt;
 reg ram_writing;
-wire ram_access = mem_addr < 8*1024*1024;
-
-always @* begin
-    rv_rd = 0;
-    rv_wr = 0;
-    rv_addr = 0;
-    rv_din = 0;
-    rv_ds = 2'b11;
-    if (flash_loading) begin
-        rv_addr = flash_addr;
-        rv_wr = flash_wr;
-        rv_din = flash_d;
-    end else if (ram_access) begin
-        reg wr = (| mem_wstrb);
-        if (ram_cnt == 2'd0 && mem_valid && ~ram_ready) begin    // r/w 1st cycle
-            rv_rd = ~wr;
-            rv_wr = wr;
-            rv_din = mem_wdata[15:0];
-            rv_ds = mem_wstrb[1:0];
-            rv_addr = {mem_addr[22:2], 2'b00};       
-        end else if (ram_cnt == 2'd1) begin           // r/w 2nd cycle
-            rv_rd = ~ram_writing;
-            rv_addr = {mem_addr[22:2], 2'b10};       
-        end else if (ram_cnt == 2'd2) begin
-            rv_wr = ram_writing;
-            rv_din = mem_wdata[31:16];
-            rv_ds = mem_wstrb[3:2];
-            rv_addr = {mem_addr[22:2], 2'b10};       
-        end
-            
-    end
-end
-
 always @(posedge wclk) begin
     if (~resetn) begin
         ram_cnt <= 0;
         ram_writing <= 0;
-    end else begin
         ram_ready <= 0;
-        case (ram_cnt)
-        2'd0:
-            if (mem_valid && ~ram_ready && ram_access) begin
-                ram_writing <= rv_wr;
-                ram_cnt <= 1;
+    end else begin
+        rv_rd <= 0;
+        rv_wr <= 0;
+        if (flash_loading) begin
+            rv_addr <= flash_addr;
+            rv_wr <= flash_wr;
+            rv_din <= flash_d;        
+            rv_ds <= 2'b11;    
+        end else begin
+            reg wr = (| mem_wstrb);
+            ram_ready <= 0;
+            case (ram_cnt)
+            2'd0:
+                if (mem_valid && ~ram_ready && mem_addr < 8*1024*1024) begin
+                    rv_wr <= wr;
+                    rv_rd <= ~wr;
+                    rv_din <= mem_wdata[15:0];
+                    rv_ds <= mem_wstrb[1:0];        // only applies to writes
+                    rv_addr <= {mem_addr[22:2], 2'b00};
+                    ram_cnt <= 1;
+                end
+            2'd1: begin
+                if (~wr)
+                    ram_rdata[31:16] <= rv_dout; 
+                rv_wr <= wr;
+                rv_rd <= ~wr;
+                rv_din <= mem_wdata[15:0];
+                rv_ds <= mem_wstrb[3:2];
+                rv_addr <= {mem_addr[22:2], 2'b10};                
+                ram_cnt <= 2;
             end
-        2'd1: begin
-            ram_cnt <= 2;
-            if (~ram_writing) ram_rdata[15:0] <= rv_dout;
+            2'd2: begin
+                if (~wr)
+                    ram_rdata[31:16] <= rv_dout; 
+                ram_ready <= 1;
+                ram_cnt <= 0;
+            end
+            2'd3: ;
+            endcase            
         end
-        2'd2: begin
-            ram_cnt <= 0;
-            ram_ready <= 1;
-            if (~ram_writing) ram_rdata[31:16] <= rv_dout;
-            ram_writing <= 0;
-        end
-        default: ;
-        endcase
+
     end
 end
 

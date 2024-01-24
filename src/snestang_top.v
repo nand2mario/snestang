@@ -283,7 +283,7 @@ wire [7:0] bsram_dout;
 
 wire rv_rd, rv_wr;
 wire [15:0] rv_din, rv_dout;
-wire [22:0] rv_addr;
+wire [22:0] rv_addr /* systhesis syn_keep=1 */;
 wire [1:0] rv_ds;
 
 // Generate SDRAM signals
