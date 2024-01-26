@@ -108,11 +108,10 @@ reg busy_buf = 1;
 assign busy = busy_buf;
 assign SDRAM_CKE = 1'b1;
 
-reg [2:0] state;
-localparam INIT = 3'd0;
-localparam CONFIG = 3'd1;
-localparam NORMAL = 3'd2;
-localparam REFRESH = 3'd3;
+reg [1:0] state;
+localparam INIT = 2'd0;
+localparam CONFIG = 2'd1;
+localparam NORMAL = 2'd2;
 
 // CS# RAS# CAS# WE#
 localparam CMD_NOP=4'b1111;
@@ -143,7 +142,8 @@ assign SDRAM_A = a_next;
 assign dq_oen = dq_oen_next;
 assign dq_out = dq_out_next;
 
-reg [3:0] cycle /* synthesis syn_keep=1 */;
+// reg [3:0] cycle /* synthesis syn_keep=1 */;
+reg [11:0] cycle;       // one hot encoded
 
 reg clkref_r;
 always @(posedge clk) clkref_r <= clkref;
@@ -161,7 +161,19 @@ reg [1:0]  need_refresh = 0; // for 2 chips
 // SDRAM state machine
 //
 always @(posedge clk) begin
-    cycle <= cycle == 4'hf ? cycle : cycle + 4'd1;
+    if (state == INIT ) begin
+        if (cfg_now) begin                  // wait 200 us on power-on
+            state <= CONFIG;
+            cycle <= 1;
+        end
+    end else if (state == CONFIG)           // cycle 0-11 for CONFIG
+        cycle <= {cycle[10:0], 1'b0};
+    else begin                              // cycle 0-7 for NORMAL
+        if (clkref & ~clkref_r)             // go to cycle 1 after clkref posedge
+            cycle <= 2;
+        else
+            cycle[7:0] <= {cycle[6:0], cycle[7]};
+    end
 
     // defaults
     cmd_next <= CMD_NOP; 
@@ -176,46 +188,37 @@ always @(posedge clk) begin
         refresh_cnt <= 0;
     end
 
-    // wait 200 us on power-on
-    if (state == INIT && cfg_now) begin
-        state <= CONFIG;
-        cycle <= 0;
-    end else if (state == CONFIG) case (cycle)
+    if (state == CONFIG) begin
         // configuration sequence
         //  cycle  / 0 \___/ 1 \___/ 2 \___/ ... __/ 6 \___/ ...___/10 \___/11 \___/ 12\___
         //  cmd            |PC_All |Refresh|       |Refresh|       |  MRD  |       | _next_
         //                 '-T_RP--`----  T_RC  ---'----  T_RC  ---'------T_MRD----'
-        4'd0 : begin
+        if (cycle[0]) begin
             // precharge all
             cmd_next <= CMD_PreCharge;
             a_next[10] <= 1'b1;
         end
-        T_RP : begin
+        if (cycle[T_RP]) begin
             // 1st AutoRefresh
             cmd_next <= CMD_AutoRefresh;
         end
-        T_RP+T_RC : begin
+        if (cycle[T_RP+T_RC]) begin
             // 2nd AutoRefresh
             cmd_next <= CMD_AutoRefresh;
         end
-        T_RP+T_RC+T_RC : begin
+        if (cycle[T_RP+T_RC+T_RC]) begin
             // set register
             cmd_next <= CMD_SetModeReg;
             a_next[10:0] <= MODE_REG;
         end
-        T_RP+T_RC+T_RC+T_MRD: begin
+        if (cycle[T_RP+T_RC+T_RC+T_MRD]) begin
             state <= NORMAL;
-            cycle <= 0;
+            cycle <= 1;
             busy_buf <= 1'b0;              // init&config is done
         end
-    endcase else if (state == NORMAL) begin
-        if (clkref & ~clkref_r)         // cycle 0-7 for NORMAL
-            cycle <= 4'd1;
-        else if (cycle == 7)
-            cycle <= 0;
-        
+    end else if (state == NORMAL) begin
         // RAS
-        if (cycle == 4'd0) begin        // CPU
+        if (cycle[4'd0]) begin        // CPU
             if (cpu_rd | cpu_wr) begin
                 cmd_next <= CMD_BankActivate;
                 ba_next <= {1'b0, cpu_addr[23]};        
@@ -226,7 +229,7 @@ always @(posedge clk) begin
                 a_next <= {3'b111, bsram_addr[19:10]};  // 13-bit address
             end
         end
-        if (cycle == 4'd2) begin        // ARAM
+        if (cycle[4'd2]) begin        // ARAM
             if (aram_rd | aram_wr) begin    // tight timing for aram_rd, aram_wr, aram_addr
                 cmd_next <= CMD_BankActivate;
                 ba_next <= 2'b10;
@@ -240,9 +243,9 @@ always @(posedge clk) begin
                 total_refresh <= total_refresh + 1;
             end            
         end
-        if (cycle == 4'd4) begin        // VRAM
+        if (cycle[4'd4]) begin        // VRAM
         end
-        if (cycle == 4'd6) begin        // RV
+        if (cycle[4'd6]) begin        // RV
             if (rv_rd | rv_wr) begin
                 {rv_rd_buf, rv_wr_buf} <= {rv_rd, rv_wr};
                 rv_addr_buf <= rv_addr;
@@ -262,7 +265,7 @@ always @(posedge clk) begin
         end
 
         // CAS
-        if (cycle == 4'd3) begin        // CPU
+        if (cycle[4'd3]) begin        // CPU
             if (cpu_rd | cpu_wr) begin
                 cmd_next <= cpu_wr?CMD_Write:CMD_Read;
                 ba_next <= {1'b0, cpu_addr[23]};
@@ -285,7 +288,7 @@ always @(posedge clk) begin
                 end            
             end            
         end
-        if (cycle == 4'd5) begin        // ARAM
+        if (cycle[4'd5]) begin        // ARAM
             if (aram_rd | aram_wr) begin
                 cmd_next <= aram_wr ? CMD_Write : CMD_Read;
                 ba_next <= 2'b10;
@@ -298,9 +301,9 @@ always @(posedge clk) begin
                 end
             end            
         end
-        if (cycle == 4'd7) begin        // VRAM
+        if (cycle[4'd7]) begin        // VRAM
         end
-        if (cycle == 4'd1) begin        // RV
+        if (cycle[4'd1]) begin        // RV
             if (rv_rd_buf || rv_wr_buf) begin
                 SDRAM_nCS <= 1;
                 cmd_next <= rv_wr_buf ? CMD_Write : CMD_Read;
@@ -317,17 +320,17 @@ always @(posedge clk) begin
         end
 
         // DS
-        if (cycle == 4'd4 && (cpu_rd|bsram_rd)) // CPU
+        if (cycle[4'd4] && (cpu_rd|bsram_rd)) // CPU
             SDRAM_DQM <= 2'b0;
-        if (cycle == 4'd6 && aram_rd)           // ARAM
+        if (cycle[4'd6] && aram_rd)           // ARAM
             SDRAM_DQM <= 2'b0; 
-        if (cycle == 4'd8) begin                // VRAM
+        if (cycle[4'd8]) begin                // VRAM
         end
-        if (cycle == 4'd2)                      // RV
+        if (cycle[4'd2])                      // RV
             if (rv_rd_buf) SDRAM_DQM <= 2'b0;
 
         // DATA
-        if (cycle == 4'd7) begin                // CPU
+        if (cycle[4'd7]) begin                // CPU
             if (cpu_rd) begin
                 if (cpu_port) begin
                     if (cpu_ds[0]) cpu_port1[7:0] <= dq_in[7:0];
@@ -341,12 +344,12 @@ always @(posedge clk) begin
                 if (cpu_ds[1]) bsram_dout[15:8] <= dq_in[15:8];
             end            
         end
-        if (cycle == 4'd1) begin                // ARAM
+        if (cycle[4'd1]) begin                // ARAM
             if (aram_rd_buf) aram_dout <= dq_in;
         end
-        if (cycle == 4'd3) begin                // VRAM
+        if (cycle[4'd3]) begin                // VRAM
         end
-        if (cycle == 4'd5) begin                // RV
+        if (cycle[4'd5]) begin                // RV
             if (rv_rd_buf) begin
                 rv_dout <= dq_in;
                 rv_rd_buf <= 0;

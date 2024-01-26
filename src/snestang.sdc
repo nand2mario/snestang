@@ -8,20 +8,20 @@ create_generated_clock -name wclk -source [get_nets {fclk}] -master_clock fclk -
 create_generated_clock -name smpclk -source [get_nets {fclk}] -master_clock fclk -divide_by 8 [get_nets {smpclk}]
 create_generated_clock -name clk_audio -source [get_nets {wclk}] -master_clock wclk -divide_by 225 [get_nets {s2h/clk_audio}]
 
-//create_clock -name hclk5 -period 2.694 -waveform {0 1.347} [get_nets {hclk5}]
-//create_generated_clock -name hclk -source [get_nets {hclk5}] -master_clock hclk5 -divide_by 5 [get_nets {hclk}]
+create_clock -name hclk5 -period 2.694 -waveform {0 1.347} [get_nets {hclk5}]
+create_generated_clock -name hclk -source [get_nets {hclk5}] -master_clock hclk5 -divide_by 5 [get_nets {hclk}]
 
 // see start of sdram_snes.v for detailed timing of sdram
 // sdram to CPU/RV
-set_multicycle_path 2 -setup -start -from [get_clocks {fclk}] -to [get_clocks {wclk}]
-set_multicycle_path 1 -hold -start -from [get_clocks {fclk}] -to [get_clocks {wclk}]
+set_multicycle_path 3 -setup -start -from [get_clocks {fclk}] -to [get_clocks {wclk}]
+set_multicycle_path 2 -hold -start -from [get_clocks {fclk}] -to [get_clocks {wclk}]
 // sdram to SMP
 set_multicycle_path 6 -setup -start -from [get_clocks {fclk}] -to [get_clocks {smpclk}]
 set_multicycle_path 5 -hold -start -from [get_clocks {fclk}] -to [get_clocks {smpclk}]
 
 // CPU/RV to sdram
-set_multicycle_path 1 -setup -end -from [get_clocks {wclk}] -to [get_clocks {fclk}]
-set_multicycle_path 0 -hold -end -from [get_clocks {wclk}] -to [get_clocks {fclk}]
+set_multicycle_path 3 -setup -end -from [get_clocks {wclk}] -to [get_clocks {fclk}]
+set_multicycle_path 2 -hold -end -from [get_clocks {wclk}] -to [get_clocks {fclk}]
 // SMP to sdram
 set_multicycle_path 3 -setup -end -from [get_clocks {smpclk}] -to [get_clocks {fclk}]
 set_multicycle_path 2 -hold -end -from [get_clocks {smpclk}] -to [get_clocks {fclk}]
