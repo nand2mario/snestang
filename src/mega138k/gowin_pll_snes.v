@@ -5,7 +5,7 @@
 //Part Number: GW5AST-LV138FPG676AES
 //Device: GW5AST-138B
 //Device Version: B
-//Created Time: Wed Jan 24 13:14:44 2024
+//Created Time: Sat Jan 27 21:33:54 2024
 
 module gowin_pll_snes (clkout0, clkout1, clkout2, clkout3, clkin);
 
@@ -77,12 +77,28 @@ PLL PLL_inst (
     .SSCMDSEL_FRAC({gw_gnd,gw_gnd,gw_gnd})
 );
 
+// PS=(COARSE+FINE/8)/ODIV*360
+// COARSE = 36 degrees, FINE = 4 degrees
+// Tested: 224 (6,2), 216(6,0), 232(6,4), 208(5,7), 240(6,6), 200(5,5), 248(6,8), 192(5,3), 256(7,1)
+//defparam PLL_inst.CLKOUT2_PE_COARSE = 6;        // 228, OXO
+//defparam PLL_inst.CLKOUT2_PE_FINE = 3;
+
+//defparam PLL_inst.CLKOUT2_PE_COARSE = 6;        // 232, OOO
+//defparam PLL_inst.CLKOUT2_PE_FINE = 4;
+defparam PLL_inst.CLKOUT2_PE_COARSE = 6;        // 240, OOO <----- best choice
+defparam PLL_inst.CLKOUT2_PE_FINE = 6;
+//defparam PLL_inst.CLKOUT2_PE_COARSE = 6;        // 248, OOO
+//defparam PLL_inst.CLKOUT2_PE_FINE = 8;
+
+//defparam PLL_inst.CLKOUT2_PE_COARSE = 7;        // 256, XXX
+//defparam PLL_inst.CLKOUT2_PE_FINE = 1;
+defparam PLL_inst.ODIV2_SEL = 10;
+
 defparam PLL_inst.FCLKIN = "27";
 defparam PLL_inst.IDIV_SEL = 1;
 defparam PLL_inst.FBDIV_SEL = 1;
 defparam PLL_inst.ODIV0_SEL = 80;
 defparam PLL_inst.ODIV1_SEL = 10;
-defparam PLL_inst.ODIV2_SEL = 10;
 defparam PLL_inst.ODIV3_SEL = 80;
 defparam PLL_inst.ODIV4_SEL = 8;
 defparam PLL_inst.ODIV5_SEL = 8;
@@ -125,8 +141,6 @@ defparam PLL_inst.CLKOUT0_PE_COARSE = 0;
 defparam PLL_inst.CLKOUT0_PE_FINE = 0;
 defparam PLL_inst.CLKOUT1_PE_COARSE = 0;
 defparam PLL_inst.CLKOUT1_PE_FINE = 0;
-defparam PLL_inst.CLKOUT2_PE_COARSE = 6;
-defparam PLL_inst.CLKOUT2_PE_FINE = 2;
 defparam PLL_inst.CLKOUT3_PE_COARSE = 0;
 defparam PLL_inst.CLKOUT3_PE_FINE = 0;
 defparam PLL_inst.CLKOUT4_PE_COARSE = 0;

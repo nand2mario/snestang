@@ -130,9 +130,18 @@ int menu_loadrom(int *choice) {
 		if (load_dir(pwd, page*20, 20, &total) == 0) {
 			pages = (total + 19) / 20;
 			status("Page ");
-			printf("%d / %d", page, pages);
+			printf("%d / %d", page+1, pages);
 			if (active > file_len-1)
 				active = file_len-1;
+			for (int i = 0; i < 20; i++) {
+				int idx = page*20 + i;
+				cursor(2, i+5);
+				if (idx < total) {
+					print(file_names[i]);
+					if (file_dir[i])
+						print("/");
+				}
+			}
 			while (1) {
 				int r = joy_choice(0, file_len, &active);
 				if (r == 1) {

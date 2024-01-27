@@ -49,7 +49,7 @@ module snestang_top (
     output ds_cs2,
 
     // SDRAM
-    output O_sdram_clk,
+    output sdram_clk,               
     output O_sdram_cke,
     output O_sdram_cs_n,            // chip select
     output O_sdram_cas_n,           // columns address select
@@ -63,7 +63,8 @@ module snestang_top (
 
 // Clock signals
 // wire mclk;                      // SNES master clock at 21.6Mhz (~21.477), not actually instantiated
-wire fclk, fclk_p;              // Fast clock for sdram, and 180-degree shifted, for SDRAM
+wire fclk;                          // Fast clock for sdram, and 180-degree shifted, for SDRAM
+wire fclk_p /* synthesis syn_keep=1 */;              
 wire wclk;                      // Actual work clock for SNES, 1/6 of fclk and 1/2 of mclk
 wire smpclk;                    // same as wclk, for timing constratins
 wire clk27;                     // 27Mhz for hdmi clock generation
@@ -271,7 +272,7 @@ reg [15:0] cpu_din;
 reg        cpu_rd, cpu_wr;
 reg        f2, r2;
 
-assign O_sdram_clk = fclk_p;
+assign sdram_clk = fclk_p;
 wire aram_rd = ~ARAM_CE_N & ~ARAM_OE_N;
 wire aram_wr = ~ARAM_CE_N & ~ARAM_WE_N;
 always @(posedge wclk) if (aram_rd) aram_lsb <= ARAM_ADDR[0];

@@ -83,7 +83,7 @@ void clear() {
    for (int i = 0; i < 28; i++) {
       cursor(0, i);
       for (int j = 0; j < 32; j++)
-         putchar(' ');
+         putchar('.');
    }
 }
 
