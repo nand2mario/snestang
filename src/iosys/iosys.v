@@ -41,7 +41,8 @@ module iosys (
     input [10:0] overlay_x,         // 720p
     input [9:0] overlay_y,
     output [14:0] overlay_color,    // BGR5
-    input [11:0] btns,              // joystick 1 buttons
+    input [11:0] joy1,              // joystick 1: (R L X A RT LT DN UP START SELECT Y B)
+    input [11:0] joy2,              // joystick 2
 
     // ROM loading interface
     output reg rom_loading,             // 0-to-1 loading starts, 1-to-0 loading is finished
@@ -168,12 +169,15 @@ wire        simplespimaster_reg_wait /* synthesis syn_keep=1 */;
 wire        romload_reg_ctrl_sel = mem_valid && (mem_addr == 32'h 0200_0010);       // write 1 to start loading, 0 to finish loading
 wire        romload_reg_data_sel = mem_valid && (mem_addr == 32'h 0200_0014);       // write once to load 4 bytes
 
+wire        joystick_reg_sel = mem_valid && (mem_addr == 32'h 0200_0018);
+
 assign mem_ready = ram_ready || textdisp_reg_char_sel || simpleuart_reg_div_sel || 
-            romload_reg_ctrl_sel || romload_reg_data_sel ||
+            romload_reg_ctrl_sel || romload_reg_data_sel || joystick_reg_sel ||
             (simpleuart_reg_dat_sel && !simpleuart_reg_dat_wait) ||
             (simplespimaster_reg_sel && !simplespimaster_reg_wait);
 
 assign mem_rdata = ram_ready ? ram_rdata :
+        joystick_reg_sel ? {4'b0, joy1, 4'b0, joy2} :
         simpleuart_reg_div_sel ? simpleuart_reg_div_do :
         simpleuart_reg_dat_sel ? simpleuart_reg_dat_do : 
         simplespimaster_reg_sel ? simplespimaster_reg_do : 32'h 0000_0000;

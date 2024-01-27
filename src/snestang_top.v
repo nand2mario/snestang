@@ -173,7 +173,7 @@ wire audio_en /* synthesis syn_keep=1 */;
 wire [1:0] joy1_di, joy2_di;
 wire joy_strb;
 wire joy1_clk, joy2_clk;
-wire [11:0] joy1_btns;
+wire [11:0] joy1_btns, joy2_btns;
 
 wire [5:0] ph;
 reg snes_start = 1'b0;
@@ -390,6 +390,7 @@ ds2snes joy1 (
 ds2snes joy2 (
     .clk(wclk),
     .snes_joy_strb(joy_strb), .snes_joy_clk(joy2_clk), .snes_joy_di(joy2_di[0]),
+    .snes_buttons(joy2_btns),
     .ds_clk(ds_clk2), .ds_miso(ds_miso2), .ds_mosi(ds_mosi2), .ds_cs(ds_cs2) 
 );
 assign joy1_di[1] = 0;  // P3
@@ -421,7 +422,7 @@ iosys iosys (
 
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color),
-    .btns(joy1_btns),
+    .joy1(joy1_btns), .joy2(joy2_btns),
 
     .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid), 
     .map_ctrl(rom_type), .rom_mask(rom_mask), .ram_mask(ram_mask),

@@ -79,6 +79,58 @@ int printf(const char *fmt,...)
     return 0;
 }
 
+void clear() {
+   for (int i = 0; i < 28; i++) {
+      cursor(0, i);
+      for (int j = 0; j < 32; j++)
+         putchar(' ');
+   }
+}
+
+// for -O2
+int delay_count;
+void delay(int ms) {
+	for (int i = 0; i < ms; i++)
+		for (int j = 0; j < 1080; j++) {
+			delay_count++;
+		}
+}
+
+void joy_get(int *joy1, int *joy2) {
+   uint32_t joy = reg_joystick;
+   *joy1 = joy & 0xfff;
+   *joy2 = (joy >> 16) & 0xfff;
+}
+
+// (R L X A RT LT DN UP START SELECT Y B)
+int joy_choice(int start_line, int len, int *active) {
+   int joy1, joy2;
+   int last = *active;
+   joy_get(&joy1, &joy2);
+   if ((joy1 & 0x10) || (joy2 & 0x10)) {
+      if (*active > 0) active--;
+   }
+   if ((joy1 & 0x20) || (joy2 & 0x20)) {
+      if (*active < len-1) (*active)++;
+   }
+   if ((joy1 & 0x40) || (joy2 & 0x40))
+      return 3;      // previous page
+   if ((joy1 & 0x80) || (joy2 & 0x80))
+      return 2;      // next page
+   if ((joy1 & 0x1) || (joy1 & 0x100) || (joy2 & 0x1) || (joy2 & 0x100))
+      return 1;      // confirm
+
+   cursor(0, start_line + (*active));
+   print(">");
+   if (last != *active) {
+      cursor(0, start_line + last);
+      print(" ");
+      delay(30);     // button debounce
+   }
+
+   return 0;      
+}
+
 // char getchar_prompt(char *prompt)
 // {
 // 	int32_t c = -1;
@@ -159,4 +211,40 @@ char *strchr(const char *s, int c) {
       s++;
    }
    return (char *)0;
+}
+
+int strcmp(const char* s1, const char* s2)
+{
+   while(*s1 && (*s1 == *s2)) {
+      s1++;
+      s2++;
+   }
+   return *(const unsigned char*)s1 - *(const unsigned char*)s2;
+}
+
+char* strncat(char* destination, const char* source, size_t num)
+{
+   int i, j;
+   for (i = 0; destination[i] != '\0'; i++);
+   for (j = 0; source[j] != '\0' && j < num; j++) {
+      destination[i + j] = source[j];
+   }
+   destination[i + j] = '\0';
+   return destination;
+}
+
+char *strncpy(char* _dst, const char* _src, size_t _n) {
+   size_t i = 0;
+   char *r = _dst;
+   while(i++ != _n && (*_dst++ = *_src++));
+   return r;
+}
+
+char *strrchr (const char *s, int c) {
+  char *r = 0;
+  do {
+    if (*s == c)
+      r = (char*) s;
+  } while (*s++);
+  return r;
 }
