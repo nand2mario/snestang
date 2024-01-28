@@ -141,6 +141,13 @@ int joy_choice(int start_line, int len, int *active) {
    return 0;      
 }
 
+void snes_ctrl(uint32_t ctrl) {
+   reg_romload_ctrl = ctrl;
+}
+extern void snes_data(uint32_t data) {
+   reg_romload_data = data;
+}
+
 // char getchar_prompt(char *prompt)
 // {
 // 	int32_t c = -1;

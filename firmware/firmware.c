@@ -231,7 +231,8 @@ int parse_snes_header(FIL *fp, int pos, int file_size, int typ, int *map_ctrl, i
 	int size2 = 1024 << rom;
 	status("");
 	printf("size=%d", size2);
-	if (rom < 14 && ram <= 7 && size2 >= file_size && (
+	// a lot of test ROMS have rom_size = 1...
+	if (rom < 14 && ram <= 7 && (size2 >= file_size || rom == 1) && (
 		(typ == 0 && (mc & 3) == 0) || 	// normal LoROM
 		(typ == 0 && mc == 0x53)    ||	// contra 3 has 0x53 and LoROM
 		(typ == 1 && (mc & 3) == 1) ||	// HiROM
@@ -277,11 +278,25 @@ int loadrom(int rom) {
 	}
 
 	// load actual ROM
-	f_lseek(&f, off);
+	snes_ctrl(1);
+	// 3-word header
+	snes_data(map_ctrl | (rom_size << 8) || (ram_size << 16));
+	snes_data((1024 << (rom_size < 7 ? 12 : rom_size)) - 1);
+	snes_data(ram_size ? (1024 << ram_size) - 1 : 0);
+
+	if ((r = f_lseek(&f, off)) != FR_OK) {
+		status("Seek failure");
+		goto loadrom_snes_end;
+	}
 	do {
-		f_read(&f, buf, 1024, &br);
+		if ((r = f_read(&f, buf, 1024, &br)) != FR_OK)
+			break;
+		for (int i = 0; i < br; i += 4) {
+			uint32_t *w = (uint32_t *)(buf + i);
+			snes_data(*w);				// send actual ROM data
+		}
 		total += br;
-		if ((total & 0xffff) == 0) {	// every 64KB
+		if ((total & 0xffff) == 0) {	// display progress every 64KB
 			status("");
 			printf("%d/%dK", total >> 10, size >> 10);
 			if ((map_ctrl & 3) == 0)
@@ -295,6 +310,8 @@ int loadrom(int rom) {
 	} while (br == 1024);
 	status("Done");
 
+loadrom_snes_end:
+	snes_ctrl(0);
 loadrom_close_file:
 	f_close(&f);
 loadrom_end:

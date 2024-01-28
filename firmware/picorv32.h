@@ -41,4 +41,11 @@ extern uint8_t sd_send_command(uint8_t cmd, uint32_t arg);
 extern int sd_readsector(uint32_t sector, uint8_t* buffer, uint32_t sector_count); /* 1:success, 0:failure*/
 extern int sd_writesector(uint32_t sector, const uint8_t* buffer, uint32_t sector_count); /* 1:success, 0:failure*/
 
+// communication with snes
+extern void snes_ctrl(uint32_t ctrl);   // 1: start loading, 0: end loading
+extern void snes_data(uint32_t data);   // 3 word (12-byte) header, followed by 4-byte data words
+                                        // header #0: map_ctrl, rom_size, ram_size
+                                        // header #1: rom_mask
+                                        // header #2: ram_mask
+
 #endif
