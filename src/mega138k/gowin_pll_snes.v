@@ -83,10 +83,10 @@ PLL PLL_inst (
 //defparam PLL_inst.CLKOUT2_PE_COARSE = 6;        // 228, OXO
 //defparam PLL_inst.CLKOUT2_PE_FINE = 3;
 
-//defparam PLL_inst.CLKOUT2_PE_COARSE = 6;        // 232, OOO
-//defparam PLL_inst.CLKOUT2_PE_FINE = 4;
-defparam PLL_inst.CLKOUT2_PE_COARSE = 6;        // 240, OOO <----- best choice
-defparam PLL_inst.CLKOUT2_PE_FINE = 6;
+defparam PLL_inst.CLKOUT2_PE_COARSE = 6;        // 232, OOO
+defparam PLL_inst.CLKOUT2_PE_FINE = 4;
+//defparam PLL_inst.CLKOUT2_PE_COARSE = 6;        // 240, OOO <----- best choice
+//defparam PLL_inst.CLKOUT2_PE_FINE = 6;
 //defparam PLL_inst.CLKOUT2_PE_COARSE = 6;        // 248, OOO
 //defparam PLL_inst.CLKOUT2_PE_FINE = 8;
 

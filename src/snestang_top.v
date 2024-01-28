@@ -646,7 +646,6 @@ debugger dbg (
 // Print control
 //
 
-/*
 `include "print.v"
 localparam BAUDRATE=115200;
 
@@ -673,31 +672,24 @@ reg [2:0] prt_state = 0;
 
 always @(posedge wclk) begin
     // print CA every tick
-    timer <= timer + 1;
+    timer <= timer + 20'd1;
+    case (timer) 
+    20'h00000: `print("map_ctrl=", STR);
+    20'h10000: `print(rom_type, 1);
+    20'h20000: `print(", rom_size=", STR);
+    20'h30000: `print({4'b0, rom_size}, 1);
+    20'h40000: `print(", ram_size=", STR);
+    20'h50000: `print({4'b0, ram_size}, 1);
+    20'h60000: `print(", btns=", STR);
+    20'h70000: `print({4'b0, joy1_btns}, 2);
+    20'h80000: `print(", addr=", STR);
+    20'h90000: `print(loader_addr, 3);
+    20'hA0000: `print(", loading=", STR);
+    20'hA8000: `print({7'b0, loading}, 1);
 
-        timer <= timer + 20'd1;
-        case (timer) 
-        20'h00000: `print("map_ctrl=", STR);
-        20'h10000: `print(rom_type, 1);
-        20'h20000: `print(", rom_size=", STR);
-        20'h30000: `print({4'b0, rom_size}, 1);
-        20'h40000: `print(", ram_size=", STR);
-        20'h50000: `print({4'b0, ram_size}, 1);
-        20'h60000: `print(", btns=", STR);
-        20'h70000: `print({4'b0, joy1_btns}, 2);
-        20'h80000: `print(", addr=", STR);
-        20'h90000: `print(loader_addr, 3);
-//        20'ha0000: `print(", sector=", STR);
-//        20'hb0000: `print(loader_sector, 3);
-//        20'hd8000: `print(", loader_state=", STR);
-//        20'he0000: `print({5'b0, loader_state}, 1);
-
-        20'hf0000: `print("\n", STR);
-        endcase
-
-
+    20'hf0000: `print("\n", STR);
+    endcase
 end
-*/
 
 `endif
 

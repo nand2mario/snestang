@@ -166,8 +166,8 @@ wire        simplespimaster_reg_sel = mem_valid && (mem_addr == 32'h0200_000C);
 wire [31:0] simplespimaster_reg_do;
 wire        simplespimaster_reg_wait /* synthesis syn_keep=1 */;
 
-wire        romload_reg_ctrl_sel = mem_valid && (mem_addr == 32'h 0200_0010);       // write 1 to start loading, 0 to finish loading
-wire        romload_reg_data_sel = mem_valid && (mem_addr == 32'h 0200_0014);       // write once to load 4 bytes
+wire        romload_reg_ctrl_sel /* synthesis syn_keep=1 */ = mem_valid && (mem_addr == 32'h 0200_0010);       // write 1 to start loading, 0 to finish loading
+wire        romload_reg_data_sel /* synthesis syn_keep=1 */ = mem_valid && (mem_addr == 32'h 0200_0014);       // write once to load 4 bytes
 
 wire        joystick_reg_sel = mem_valid && (mem_addr == 32'h 0200_0018);
 
@@ -271,7 +271,7 @@ always @(posedge wclk) begin
         rom_cnt <= 0;
     end else begin
         rom_do_valid <= 0;
-        if (romload_reg_ctrl_sel) begin
+        if (romload_reg_ctrl_sel && mem_wstrb) begin
             if (mem_wdata[7:0] == 8'd1) begin
                 rom_loading <= 1;
                 rom_header <= 0;

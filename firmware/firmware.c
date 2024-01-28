@@ -280,7 +280,7 @@ int loadrom(int rom) {
 	// load actual ROM
 	snes_ctrl(1);
 	// 3-word header
-	snes_data(map_ctrl | (rom_size << 8) || (ram_size << 16));
+	snes_data(map_ctrl | (rom_size << 8) | (ram_size << 16));
 	snes_data((1024 << (rom_size < 7 ? 12 : rom_size)) - 1);
 	snes_data(ram_size ? (1024 << ram_size) - 1 : 0);
 

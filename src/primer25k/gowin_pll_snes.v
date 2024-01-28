@@ -55,15 +55,15 @@ PLLA PLLA_inst (
     .MDWDI({gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd})
 );
 
-defparam PLLA_inst.CLKOUT2_PE_COARSE = 6;        // 216
-defparam PLLA_inst.CLKOUT2_PE_FINE = 0;
+//defparam PLLA_inst.CLKOUT2_PE_COARSE = 6;        // 216
+//defparam PLLA_inst.CLKOUT2_PE_FINE = 0;
 
 //defparam PLLA_inst.CLKOUT2_PE_COARSE = 4;         // 176, XXX
 //defparam PLLA_inst.CLKOUT2_PE_FINE = 8;
 //defparam PLLA_inst.CLKOUT2_PE_COARSE = 5;          // 184, OOO
 //defparam PLLA_inst.CLKOUT2_PE_FINE = 1;
-//defparam PLLA_inst.CLKOUT2_PE_COARSE = 7;        // 252, OOO  <---- best choice
-//defparam PLLA_inst.CLKOUT2_PE_FINE = 0;
+defparam PLLA_inst.CLKOUT2_PE_COARSE = 7;        // 252, OOO  <---- best choice
+defparam PLLA_inst.CLKOUT2_PE_FINE = 0;
 //defparam PLLA_inst.CLKOUT2_PE_COARSE = 8;        // 320, OOO
 //defparam PLLA_inst.CLKOUT2_PE_FINE = 8;        
 //defparam PLLA_inst.CLKOUT2_PE_COARSE = 9;          // 328, XXX
