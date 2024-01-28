@@ -346,6 +346,7 @@ always @(posedge clk) begin
         end
         if (cycle[4'd1]) begin                // ARAM
             if (aram_rd_buf) aram_dout <= dq_in;
+            aram_rd_buf <= 0;
         end
         if (cycle[4'd3]) begin                // VRAM
         end

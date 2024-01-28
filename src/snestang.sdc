@@ -19,8 +19,8 @@ set_multicycle_path 6 -hold -start -from [get_nets {bsram_dout*}] -to [get_clock
 set_multicycle_path 2 -setup -start -from [get_nets {rv_dout*}] -to [get_clocks {wclk}] 
 set_multicycle_path 1 -hold -start -from [get_nets {rv_dout*}] -to [get_clocks {wclk}] 
 // sdram to SMP (available cycle 2, so 6 fclk)
-set_multicycle_path 6 -setup -start -from [get_clocks {fclk}] -to [get_clocks {smpclk}]
-set_multicycle_path 5 -hold -start -from [get_clocks {fclk}] -to [get_clocks {smpclk}]
+set_multicycle_path 5 -setup -start -from [get_clocks {fclk}] -to [get_clocks {smpclk}]
+set_multicycle_path 4 -hold -start -from [get_clocks {fclk}] -to [get_clocks {smpclk}]
 
 // CPU/RV to sdram (*only* 1 fclk for cpu, 7 fclk for RV)
 set_multicycle_path 1 -setup -end -from [get_clocks {wclk}] -to [get_clocks {fclk}]
