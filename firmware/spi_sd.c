@@ -203,7 +203,7 @@ int sd_init() {
        sdhc_card = 0;
     }
 
-    printf("SD init complete. sdhc_card=%d, sd_version=%d\n", sdhc_card, sd_version);
+    // printf("SD init complete. sdhc_card=%d, sd_version=%d\n", sdhc_card, sd_version);
     return 0;
 }
 

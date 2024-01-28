@@ -90,9 +90,11 @@ int load_dir(char *dir, int start, int len, int *count) {
 	int r = 0;
 	DIR d;
 	file_len = 0;
+	// initiaze sd again to be sure
+	if (sd_init() != 0) return 99;
+
 	if (f_opendir(&d, dir) != 0) {
-		r = -1;
-		goto load_dir_end;
+		return -1;
 	}
 	// an entry to return to parent dir or main menu 
 	int is_root = dir[1] == '\0';
@@ -126,9 +128,7 @@ int load_dir(char *dir, int start, int len, int *count) {
 	}
 	f_closedir(&d);
 	*count = cnt;
-
-load_dir_end:
-	return r;
+	return 0;
 }
 
 // return 0: user chose a ROM (*choice), 1: no choice made, -1: error
@@ -140,7 +140,8 @@ int menu_loadrom(int *choice) {
 	pwd[1] = '\0';
 	while (1) {
 		clear();
-		if (load_dir(pwd, page*PAGESIZE, PAGESIZE, &total) == 0) {
+		int r = load_dir(pwd, page*PAGESIZE, PAGESIZE, &total);
+		if (r == 0) {
 			pages = (total+PAGESIZE-1) / PAGESIZE;
 			status("Page ");
 			printf("%d/%d", page+1, pages);
@@ -190,6 +191,7 @@ int menu_loadrom(int *choice) {
 			}
 		} else {
 			status("Error opening director");
+			printf(" %d", r);
 			return -1;
 		}
 	}
@@ -213,6 +215,35 @@ void menu_options() {
 
 int in_game;
 
+// return 0 if snes header is successfully parsed at off
+// typ 0: LoROM, 1: HiROM, 2: ExHiROM
+int parse_snes_header(FIL *fp, int pos, int file_size, int typ, int *map_ctrl, int *rom_size, int *ram_size) {
+	int br;
+	int mc, rom, ram;
+	if (f_lseek(fp, pos))
+		return 1;
+	uint8_t hdr[32];
+	f_read(fp, hdr, 32, &br);
+	if (br != 32) return 1;
+	mc = hdr[21];
+	rom = hdr[23];
+	ram = hdr[24];
+	int size2 = 1024 << rom;
+	status("");
+	printf("size=%d", size2);
+	if (rom < 14 && ram <= 7 && size2 >= file_size && (
+		(typ == 0 && (mc & 3) == 0) || 	// normal LoROM
+		(typ == 0 && mc == 0x53)    ||	// contra 3 has 0x53 and LoROM
+		(typ == 1 && (mc & 3) == 1) ||	// HiROM
+		(typ == 2 && (mc & 3) == 2))) {	// ExHiROM
+		*map_ctrl = mc;
+		*rom_size = rom;
+		*ram_size = ram;
+		return 0;
+	}
+	return 1;
+}
+
 // actually load a rom file
 // return 0 if successful
 int loadrom(int rom) {
@@ -223,22 +254,50 @@ int loadrom(int rom) {
 	strncat(fname, "/", 1024);
 	strncat(fname, file_names[rom], 1024);
 
+	// initiaze sd again to be sure
+	if (sd_init() != 0) return 99;
+
 	int r = f_open(&f, fname, FA_READ);
-	if (r == 0) {
-		int br, total = 0;
-		do {
-			f_read(&f, buf, 1024, &br);
-			total += br;
-			if ((total & 0xffff) == 0) {	// every 64KB
-				status("");
-				printf("%dKB / %dKB", total >> 10, file_sizes[rom] >> 10);
-			}
-		} while (br == 1024);
-		status("Done");
-		f_close(&f);
-	} else {
+	if (r) {
 		status("Cannot open file");
+		goto loadrom_end;
 	}
+	int br, total = 0;
+	int size = file_sizes[rom];
+	int map_ctrl, rom_size, ram_size;
+	// parse SNES header from ROM file
+	int off = size & 0x3ff;		// rom header (0 or 512)
+	r = parse_snes_header(&f, 0x7fc0 + off, size-off, 0, &map_ctrl, &rom_size, &ram_size) &&
+		parse_snes_header(&f, 0xffc0 + off, size-off, 1, &map_ctrl, &rom_size, &ram_size) &&
+		parse_snes_header(&f, 0x40ffc0 + off, size-off, 2, &map_ctrl, &rom_size, &ram_size);
+	if (r) {
+		status("Not a SNES ROM file");
+		delay(200);
+		goto loadrom_close_file;
+	}
+
+	// load actual ROM
+	f_lseek(&f, off);
+	do {
+		f_read(&f, buf, 1024, &br);
+		total += br;
+		if ((total & 0xffff) == 0) {	// every 64KB
+			status("");
+			printf("%d/%dK", total >> 10, size >> 10);
+			if ((map_ctrl & 3) == 0)
+				print(" Lo");
+			else if ((map_ctrl & 3) == 1)
+				print(" Hi");
+			else if ((map_ctrl & 3) == 2)
+				print(" ExHi");
+			printf(" ROM=%d RAM=%d", 1 << rom_size, ram_size ? (1 << ram_size) : 0);
+		}
+	} while (br == 1024);
+	status("Done");
+
+loadrom_close_file:
+	f_close(&f);
+loadrom_end:
 	return r;
 }
 
