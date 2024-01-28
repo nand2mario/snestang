@@ -62,8 +62,8 @@ module sdram_snes
     // CPU access (ROM and WRAM) uses bank 0 and 1 (total 16MB)
 	input      [15:0] cpu_din /* synthesis syn_keep=1 */,
 	input             cpu_port,
-	output reg [15:0] cpu_port0,    // output register for bank 0
-	output reg [15:0] cpu_port1,    // output register for bank 1
+	output reg [15:0] cpu_port0 /* synthesis syn_keep=1 */,    // output register for bank 0
+	output reg [15:0] cpu_port1 /* synthesis syn_keep=1 */,    // output register for bank 1
 	input      [23:1] cpu_addr,     // 16MB SNES memory space 
 	input             cpu_rd /* synthesis syn_keep=1 */,
 	input             cpu_wr /* synthesis syn_keep=1 */,
@@ -71,7 +71,7 @@ module sdram_snes
 
     input      [19:0] bsram_addr,
     input       [7:0] bsram_din,
-    output reg [15:0] bsram_dout,
+    output reg [15:0] bsram_dout /* synthesis syn_keep=1 */,
     input             bsram_rd,
     input             bsram_wr,
 
@@ -87,7 +87,7 @@ module sdram_snes
     input      [22:1] rv_addr,      // 8MB RV memory space (currently using only bank 0 of 2nd chip)
     input      [15:0] rv_din,       // 32-bit accesses
     input       [1:0] rv_ds,        // byte enable for writes
-    output reg [15:0] rv_dout,      // available 1 and 3/5 clkref cycles later
+    output reg [15:0] rv_dout /* synthesis syn_keep=1 */,      // available 1 and 3/5 clkref cycles later
     input             rv_rd,
     input             rv_wr,
 

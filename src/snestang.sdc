@@ -11,17 +11,21 @@ create_clock -name hclk5 -period 2.694 -waveform {0 1.347} [get_nets {hclk5}]
 create_generated_clock -name hclk -source [get_nets {hclk5}] -master_clock hclk5 -divide_by 5 [get_nets {hclk}]
 
 // see start of sdram_snes.v for detailed timing of sdram
-// sdram to CPU/RV
-set_multicycle_path 3 -setup -start -from [get_clocks {fclk}] -to [get_clocks {wclk}]
-set_multicycle_path 2 -hold -start -from [get_clocks {fclk}] -to [get_clocks {wclk}]
-// sdram to SMP
+// sdram to CPU/RV (more than 1 wclk for CPU, but only 2 fclk for RV)
+set_multicycle_path 7 -setup -start -from [get_nets {cpu_port*}] -to [get_clocks {wclk}]
+set_multicycle_path 6 -hold -start -from [get_nets {cpu_port*}] -to [get_clocks {wclk}]
+set_multicycle_path 7 -setup -start -from [get_nets {bsram_dout*}] -to [get_clocks {wclk}]
+set_multicycle_path 6 -hold -start -from [get_nets {bsram_dout*}] -to [get_clocks {wclk}]
+set_multicycle_path 2 -setup -start -from [get_nets {rv_dout*}] -to [get_clocks {wclk}] 
+set_multicycle_path 1 -hold -start -from [get_nets {rv_dout*}] -to [get_clocks {wclk}] 
+// sdram to SMP (available cycle 2, so 6 fclk)
 set_multicycle_path 6 -setup -start -from [get_clocks {fclk}] -to [get_clocks {smpclk}]
 set_multicycle_path 5 -hold -start -from [get_clocks {fclk}] -to [get_clocks {smpclk}]
 
-// CPU/RV to sdram
-set_multicycle_path 3 -setup -end -from [get_clocks {wclk}] -to [get_clocks {fclk}]
-set_multicycle_path 2 -hold -end -from [get_clocks {wclk}] -to [get_clocks {fclk}]
-// SMP to sdram
+// CPU/RV to sdram (*only* 1 fclk for cpu, 7 fclk for RV)
+set_multicycle_path 1 -setup -end -from [get_clocks {wclk}] -to [get_clocks {fclk}]
+set_multicycle_path 0 -hold -end -from [get_clocks {wclk}] -to [get_clocks {fclk}]
+// SMP to sdram (3 fclk)
 set_multicycle_path 3 -setup -end -from [get_clocks {smpclk}] -to [get_clocks {fclk}]
 set_multicycle_path 2 -hold -end -from [get_clocks {smpclk}] -to [get_clocks {fclk}]
 
