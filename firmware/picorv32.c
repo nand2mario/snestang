@@ -8,6 +8,13 @@ void cursor(int x, int y) {
    cury = y;
 }
 
+void overlay(int on) {
+   if (on)
+      reg_textdisp = 0x01000000;
+   else
+      reg_textdisp = 0x02000000;
+}
+
 int putchar(int c)
 {
 	if (curx >= 0 && curx < 32 && cury >= 0 && cury < 28) {
@@ -83,17 +90,18 @@ void clear() {
    for (int i = 0; i < 28; i++) {
       cursor(0, i);
       for (int j = 0; j < 32; j++)
-         putchar('.');
+         putchar(' ');
    }
 }
 
-// for -O2
 int delay_count;
 void delay(int ms) {
-	for (int i = 0; i < ms; i++)
-		for (int j = 0; j < 1080; j++) {
+	for (int i = 0; i < ms; i++) {
+      delay_count = 0;
+		for (int j = 0; j < 500; j++) {
 			delay_count++;
 		}
+   }
 }
 
 void joy_get(int *joy1, int *joy2) {
@@ -108,7 +116,7 @@ int joy_choice(int start_line, int len, int *active) {
    int last = *active;
    joy_get(&joy1, &joy2);
    if ((joy1 & 0x10) || (joy2 & 0x10)) {
-      if (*active > 0) active--;
+      if (*active > 0) (*active)--;
    }
    if ((joy1 & 0x20) || (joy2 & 0x20)) {
       if (*active < len-1) (*active)++;
@@ -119,13 +127,15 @@ int joy_choice(int start_line, int len, int *active) {
       return 2;      // next page
    if ((joy1 & 0x1) || (joy1 & 0x100) || (joy2 & 0x1) || (joy2 & 0x100))
       return 1;      // confirm
+   if ((joy1 & 0xC) || (joy2 & 0xC))
+      overlay(1);    // SELECT & START to display OSD
 
    cursor(0, start_line + (*active));
    print(">");
    if (last != *active) {
       cursor(0, start_line + last);
       print(" ");
-      delay(30);     // button debounce
+      delay(100);     // button debounce
    }
 
    return 0;      

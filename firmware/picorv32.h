@@ -23,6 +23,7 @@ extern void print_hex(uint32_t v);
 extern void print_dec(int v);
 extern int  print(char *s);
 extern void clear();
+extern void overlay(int on);
 
 extern void delay(int ms);
 

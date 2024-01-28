@@ -8,8 +8,6 @@
 #include "picorv32.h"
 #include "fatfs/ff.h"
 
-
-
 void cmd_print_root() {
 	DIR d;
 	if (f_opendir(&d, "/") != 0) {
@@ -71,28 +69,42 @@ void status(char *msg) {
 
 FATFS fs;
 
-// one page of file names to display
-char file_names[20][256];
-int file_dir[20];
-int file_len;		// number of files
+#define PAGESIZE 22
+#define TOPLINE 2
+#define PWD_SIZE 1024
 
-// load one page of file names into file_names
-// *count is set to number of total entries to display
+char pwd[PWD_SIZE];		// total path length 1023
+// one page of file names to display
+char file_names[PAGESIZE][256];
+int file_dir[PAGESIZE];
+int file_sizes[PAGESIZE];
+int file_len;		// number of files on this page
+
+// starting from `start`, load `len` file names into file_names, 
+// file_dir. 
+// *count is set to number of all valid entries and `file_len` is
+// set to valid entries on this page.
 // return: 0 if successful
 int load_dir(char *dir, int start, int len, int *count) {
-	int cnt = 0, idx = 0;
+	int cnt = 0;
 	int r = 0;
 	DIR d;
+	file_len = 0;
 	if (f_opendir(&d, dir) != 0) {
 		r = -1;
 		goto load_dir_end;
 	}
-	// generate `..` to return to parent dir
+	// an entry to return to parent dir or main menu 
 	int is_root = dir[1] == '\0';
 	if (start == 0 && len > 0) {
-		strncpy(file_names[0], is_root ? ".. <main menu> .." : "..", 256);
-		file_dir[0] = 1;
-		idx++;
+		if (is_root) {
+			strncpy(file_names[0], "<< Return to main menu", 256);
+			file_dir[0] = 0;
+		} else {
+			strncpy(file_names[0], "..", 256);
+			file_dir[0] = 1;
+		}
+		file_len++;
 	}
 	cnt++;
 
@@ -101,10 +113,14 @@ int load_dir(char *dir, int start, int len, int *count) {
 	while (f_readdir(&d, &fno) == FR_OK) {
 		if (fno.fname[0] == 0)
 			break;
-		if (cnt >= start && idx < len) {
-			strncpy(file_names[idx], fno.fname, 256);
-			file_dir[idx] = fno.fattrib & AM_DIR;
-			idx++;
+		if ((fno.fattrib & AM_HID) || (fno.fattrib & AM_SYS))
+ 			// skip hidden and system files
+			continue;
+		if (cnt >= start && file_len < len) {
+			strncpy(file_names[file_len], fno.fname, 256);
+			file_dir[file_len] = fno.fattrib & AM_DIR;
+			file_sizes[file_len] = fno.fsize;
+			file_len++;
 		}
 		cnt++;
 	}
@@ -115,9 +131,6 @@ load_dir_end:
 	return r;
 }
 
-#define PWD_SIZE 1024
-char pwd[PWD_SIZE];		// total path length 1023
-
 // return 0: user chose a ROM (*choice), 1: no choice made, -1: error
 // file chosen: pwd / file_name[*choice]
 int menu_loadrom(int *choice) {
@@ -127,15 +140,15 @@ int menu_loadrom(int *choice) {
 	pwd[1] = '\0';
 	while (1) {
 		clear();
-		if (load_dir(pwd, page*20, 20, &total) == 0) {
-			pages = (total + 19) / 20;
+		if (load_dir(pwd, page*PAGESIZE, PAGESIZE, &total) == 0) {
+			pages = (total+PAGESIZE-1) / PAGESIZE;
 			status("Page ");
-			printf("%d / %d", page+1, pages);
+			printf("%d/%d", page+1, pages);
 			if (active > file_len-1)
 				active = file_len-1;
-			for (int i = 0; i < 20; i++) {
-				int idx = page*20 + i;
-				cursor(2, i+5);
+			for (int i = 0; i < PAGESIZE; i++) {
+				int idx = page*PAGESIZE + i;
+				cursor(2, i+TOPLINE);
 				if (idx < total) {
 					print(file_names[i]);
 					if (file_dir[i])
@@ -143,19 +156,17 @@ int menu_loadrom(int *choice) {
 				}
 			}
 			while (1) {
-				int r = joy_choice(0, file_len, &active);
+				int r = joy_choice(TOPLINE, file_len, &active);
 				if (r == 1) {
-					if (file_dir[active]) {
+					if (strcmp(pwd, "/") && page == 0 && active == 0) {
+						// return to main menu
+						return 1;
+					} else if (file_dir[active]) {
 						if (file_names[active][0] == '.' && file_names[active][1] == '.') {
-							if (strcmp(pwd, "/")) {
-								// return to main menu
-								return 1;
-							} else {
-								// return to parent dir
-								char *slash = strrchr(pwd, '/');
-								if (slash)
-									*slash = '\0';
-							}							
+							// return to parent dir
+							char *slash = strrchr(pwd, '/');
+							if (slash)
+								*slash = '\0';
 						} else {								// enter sub dir
 							strncat(pwd, "/", PWD_SIZE);
 							strncat(pwd, file_names[active], PWD_SIZE);
@@ -164,9 +175,8 @@ int menu_loadrom(int *choice) {
 						page = 0;
 						break;
 					} else {
+						// actually load a ROM
 						*choice = active;
-						status("ROM: ");
-						print(file_names[active]);
 						return 0;
 					}
 				}
@@ -192,12 +202,44 @@ void menu_options() {
 
 	cursor(2, 12);
 	print("Return to main menu");
+	delay(100);
 
 	int choice = 0;
 	for (;;) {
 		if (joy_choice(12, 1, &choice) == 1)
 			break;
 	}
+}
+
+int in_game;
+
+// actually load a rom file
+// return 0 if successful
+int loadrom(int rom) {
+	FIL f;
+	char fname[1024];
+	char buf[1024];
+	strncpy(fname, pwd, 1024);
+	strncat(fname, "/", 1024);
+	strncat(fname, file_names[rom], 1024);
+
+	int r = f_open(&f, fname, FA_READ);
+	if (r == 0) {
+		int br, total = 0;
+		do {
+			f_read(&f, buf, 1024, &br);
+			total += br;
+			if ((total & 0xffff) == 0) {	// every 64KB
+				status("");
+				printf("%dKB / %dKB", total >> 10, file_sizes[rom] >> 10);
+			}
+		} while (br == 1024);
+		status("Done");
+		f_close(&f);
+	} else {
+		status("Cannot open file");
+	}
+	return r;
 }
 
 int main() {
@@ -219,10 +261,12 @@ int main() {
 		print("Version: ");
 		print(__DATE__);
 
-		cursor(2, 27);
-		print("Init SD card... ");
+		// cursor(2, 27);
+		// print("Init SD card... ");
 		f_mount(&fs, "", 0);
-		print("done");
+		// print("done");
+
+		delay(100);
 
 		int choice = 0;
 		for (;;) {
@@ -232,9 +276,16 @@ int main() {
 
 		if (choice == 0) {
 			int rom;
-			menu_loadrom(&rom);
+			int r = menu_loadrom(&rom);
+			if (r == 0) {
+				if (loadrom(rom) == 0) {
+					overlay(0);		// turn off OSD
+					in_game = 1;
+				}
+			}
 		} else if (choice == 1) {
 			menu_options();
+			continue;
 		}
 	}
 }
