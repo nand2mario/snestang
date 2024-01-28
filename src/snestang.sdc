@@ -3,7 +3,6 @@
 
 create_clock -name sys_clk -period 20 -waveform {0 10} [get_ports {sys_clk}]
 create_clock -name fclk -period 11.57 -waveform {0 5.787} [get_nets {fclk}]
-create_generated_clock -name fclk_p -source [get_nets {fclk}] -phase 225 [get_ports {sdram_clk}]
 create_generated_clock -name wclk -source [get_nets {fclk}] -divide_by 8 [get_nets {wclk}]
 create_generated_clock -name smpclk -source [get_nets {fclk}] -divide_by 8 [get_nets {smpclk}]
 create_generated_clock -name clk_audio -source [get_nets {wclk}] -divide_by 225 [get_nets {s2h/clk_audio}]
@@ -38,6 +37,7 @@ set_false_path -from [get_regs {main/SNES/smp/CPUO*}] -to [get_regs {sdram/dq_ou
 // SDRAM max and min output delay + board delay (1ns)
 // Output Data High Impedance Time = 5ns
 // About 0.15ns/in
+//create_generated_clock -name fclk_p -source [get_nets {fclk}] -phase 225 [get_ports {sdram_clk}]
 //set_input_delay 0.5 -clock fclk_p [get_ports {IO_sdram*}]
 //set_input_delay 6 -max -clock fclk_p [get_ports {IO_sdram*}]
 //set_input_delay 1 -min -clock fclk_p [get_ports {IO_sdram*}]
