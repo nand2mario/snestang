@@ -234,8 +234,12 @@ module snes2hdmi (
 //             else
             if (~overlay)
                 rgb <= {mem_portB_rdata[4:0], 3'b0, mem_portB_rdata[9:5], 3'b0, mem_portB_rdata[14:10], 3'b0};                
-            else
-                rgb <= {overlay_color[4:0], 3'b0, overlay_color[9:5], 3'b0, overlay_color[14:10], 3'b0};
+            else begin
+//                if (overlay_color == 0) 
+//                    rgb <= {2'b0, mem_portB_rdata[4:0], 3'b0, mem_portB_rdata[9:5], 3'b0, mem_portB_rdata[14:10], 1'b0};
+//                else
+                    rgb <= {overlay_color[4:0], 3'b0, overlay_color[9:5], 3'b0, overlay_color[14:10], 3'b0};
+            end
         else
             rgb <= 24'h303030;      // show a grey background
     end

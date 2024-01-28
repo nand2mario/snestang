@@ -245,20 +245,21 @@ int parse_snes_header(FIL *fp, int pos, int file_size, int typ, int *map_ctrl, i
 	return 1;
 }
 
+char load_fname[1024];
+char load_buf[1024];
+
 // actually load a rom file
 // return 0 if successful
 int loadrom(int rom) {
 	FIL f;
-	char fname[1024];
-	char buf[1024];
-	strncpy(fname, pwd, 1024);
-	strncat(fname, "/", 1024);
-	strncat(fname, file_names[rom], 1024);
+	strncpy(load_fname, pwd, 1024);
+	strncat(load_fname, "/", 1024);
+	strncat(load_fname, file_names[rom], 1024);
 
 	// initiaze sd again to be sure
 	if (sd_init() != 0) return 99;
 
-	int r = f_open(&f, fname, FA_READ);
+	int r = f_open(&f, load_fname, FA_READ);
 	if (r) {
 		status("Cannot open file");
 		goto loadrom_end;
@@ -289,10 +290,10 @@ int loadrom(int rom) {
 		goto loadrom_snes_end;
 	}
 	do {
-		if ((r = f_read(&f, buf, 1024, &br)) != FR_OK)
+		if ((r = f_read(&f, load_buf, 1024, &br)) != FR_OK)
 			break;
 		for (int i = 0; i < br; i += 4) {
-			uint32_t *w = (uint32_t *)(buf + i);
+			uint32_t *w = (uint32_t *)(load_buf + i);
 			snes_data(*w);				// send actual ROM data
 		}
 		total += br;
@@ -308,7 +309,8 @@ int loadrom(int rom) {
 			printf(" ROM=%d RAM=%d", 1 << rom_size, ram_size ? (1 << ram_size) : 0);
 		}
 	} while (br == 1024);
-	status("Done");
+	status("Success");
+	overlay(0);		// turn off OSD
 
 loadrom_snes_end:
 	snes_ctrl(0);
@@ -352,11 +354,8 @@ int main() {
 
 		if (choice == 0) {
 			int rom;
-			int r = menu_loadrom(&rom);
-			if (r == 0) {
+			if (menu_loadrom(&rom) == 0) {
 				if (loadrom(rom) == 0) {
-					overlay(0);		// turn off OSD
-					in_game = 1;
 				}
 			}
 		} else if (choice == 1) {

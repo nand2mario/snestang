@@ -645,7 +645,7 @@ debugger dbg (
 //
 // Print control
 //
-
+/*
 `include "print.v"
 localparam BAUDRATE=115200;
 
@@ -690,6 +690,7 @@ always @(posedge wclk) begin
     20'hf0000: `print("\n", STR);
     endcase
 end
+*/
 
 `endif
 
