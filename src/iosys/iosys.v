@@ -62,6 +62,7 @@ module iosys (
     input [15:0] rv_dout,
     output reg rv_rd,
     output reg rv_wr,
+    input rv_wait,
     input ram_busy,                 // iosys starts after SDRAM initialization
 
     // SPI flash
@@ -348,31 +349,37 @@ always @(posedge wclk) begin
                     end
                     ram_cnt <= 1;
                 end
-            2'd1: begin
-                if (~ram_writing) begin // read hi 16-bit
-                    rv_rd <= 1;
-                    rv_addr <= {mem_addr[22:2], 2'b10};                
-                end
-                ram_cnt <= 2;
-            end
-            2'd2: begin
-                if (ram_writing) begin  // write hi 16-bit
-                    rv_wr <= 1;
-                    rv_din <= rv_din_hi;
-                    rv_ds <= rv_ds_hi;
-                    rv_addr <= {mem_addr[22:2], 2'b10};                
+            2'd1: 
+                if (~rv_wait) begin
+                    if (ram_writing) begin  // write hi 16-bit
+                        rv_wr <= 1;
+                        rv_din <= rv_din_hi;
+                        rv_ds <= rv_ds_hi;
+                        rv_addr <= {mem_addr[22:2], 2'b10};                
+                    end else begin // read hi 16-bit
+                        rv_rd <= 1;
+                        rv_addr <= {mem_addr[22:2], 2'b10};                
+                    end
+                    ram_cnt <= 2;
                 end else begin
-                    ram_rdata[15:0] <= rv_dout; 
-                end 
-                ram_cnt <= 3;
-            end
-            2'd3: begin
-                if (~ram_writing) begin
-                    ram_rdata[31:16] <= rv_dout; 
-                    ram_ready <= 1;
+                    {rv_rd, rv_wr} <= {rv_rd, rv_wr};   // retry
                 end
-                ram_writing <= 0;
-                ram_cnt <= 0;                
+            2'd2: 
+                if (~rv_wait) begin
+                    if (ram_writing) begin
+                        ram_writing <= 0;
+                        ram_cnt <= 0;
+                    end else begin
+                        ram_rdata[15:0] <= rv_dout; 
+                        ram_cnt <= 3;
+                    end
+                end else begin
+                    {rv_rd, rv_wr} <= {rv_rd, rv_wr};   // retry
+                end
+            2'd3: begin
+                ram_rdata[31:16] <= rv_dout; 
+                ram_ready <= 1;
+                ram_cnt <= 0;
             end
             endcase            
         end

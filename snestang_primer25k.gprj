@@ -72,6 +72,6 @@
         <File path="src/vram.v" type="file.verilog" enable="1"/>
         <File path="src/primer25k/snestang.cst" type="file.cst" enable="1"/>
         <File path="src/snestang.sdc" type="file.sdc" enable="1"/>
-        <File path="src/iosys.gao" type="file.gao" enable="0"/>
+        <File path="src/iosys.gao" type="file.gao" enable="1"/>
     </FileList>
 </Project>

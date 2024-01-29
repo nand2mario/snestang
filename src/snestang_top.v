@@ -77,8 +77,8 @@ reg [15:0] resetcnt = 16'hffff;
 always @(posedge wclk) begin
     resetcnt <= resetcnt == 0 ? 0 : resetcnt - 1;
 //    if (resetcnt == 0)
-//      if (resetcnt == 0 && s0)   // primer25k
-     if (resetcnt == 0 && ~s0)   // mega138k
+      if (resetcnt == 0 && s0)   // primer25k
+//     if (resetcnt == 0 && ~s0)   // mega138k
         resetn <= 1'b1;
 end
 
@@ -181,7 +181,7 @@ reg snes_start = 1'b0;
 wire pause_snes_for_frame_sync;
 
 wire [7:0] loader_do;
-wire loader_do_valid, loading, loader_fail;
+wire loader_do_valid, loading;
 
 reg [23:0] loader_addr = 0;
 
@@ -201,9 +201,10 @@ reg  [7:0] company_header;
 wire sdram_busy;
 wire refresh;
 reg enable; // && ~dbg_break && ~pause;
+reg loaded;
 
 always @(posedge wclk) begin        // wait until memory initialize to start SNES
-    if (~sdram_busy && ~loader_fail && ~pause_snes_for_frame_sync)
+    if (~sdram_busy && ~pause_snes_for_frame_sync && loaded)
         enable <= 1;
     else 
         enable <= 0;
@@ -348,7 +349,7 @@ sdram_snes sdram(
 
     // IOSys risc-v softcore
     .rv_addr(rv_addr[22:1]), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
-    .rv_rd(rv_rd), .rv_wr(rv_wr)
+    .rv_rd(rv_rd), .rv_wr(rv_wr), .rv_wait(rv_wait)
 );
 
 `else
@@ -372,11 +373,20 @@ sdram_sim sdram(
 
 reg loading_r;
 always @(posedge wclk) begin
-    loading_r <= loading;
-    if (loader_do_valid)
-        loader_addr <= loader_addr + 24'd1; 
-    if (loading & ~loading_r)
-        loader_addr <= 0;
+    if (~resetn) begin
+        loading_r <= 0;
+        loaded <= 0;
+    end else begin
+        loading_r <= loading;
+        if (loader_do_valid)
+            loader_addr <= loader_addr + 24'd1; 
+        if (loading & ~loading_r) begin
+            loader_addr <= 0;
+            loaded <= 0;
+        end
+        if (~loading & loading_r)
+            loaded <= 1;
+    end
 end
 
 `ifndef VERILATOR
@@ -431,7 +441,7 @@ iosys iosys (
     .ram_busy(sdram_busy),
 
     .rv_addr(rv_addr), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
-    .rv_rd(rv_rd), .rv_wr(rv_wr),
+    .rv_rd(rv_rd), .rv_wr(rv_wr), .rv_wait(rv_wait),
 
     .flash_spi_cs_n(flash_spi_cs_n), .flash_spi_miso(flash_spi_miso),
     .flash_spi_mosi(flash_spi_mosi), .flash_spi_clk(flash_spi_clk),
@@ -514,7 +524,6 @@ reg [11:0] reached;
 
 // LED control
 assign led = ~s0 ? ~(reached[9:5]) : ~{reached[4:0]};
-// assign led = ~{reached[4:0], loader_done, timer[19]};
 
 // PC markers for snes_10
 always @(posedge wclk) begin

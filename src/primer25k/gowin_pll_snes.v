@@ -5,7 +5,7 @@
 //Part Number: GW5A-LV25MG121NC1/I0
 //Device: GW5A-25
 //Device Version: A
-//Created Time: Tue Jan 23 23:57:18 2024
+//Created Time: Tue Jan 30 00:36:12 2024
 
 module gowin_pll_snes (clkout0, clkout1, clkout2, clkout3, clkin);
 
@@ -55,38 +55,12 @@ PLLA PLLA_inst (
     .MDWDI({gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd})
 );
 
-// OSD freezes
-//defparam PLLA_inst.CLKOUT2_PE_COARSE = 4;         // 176, XXX
-//defparam PLLA_inst.CLKOUT2_PE_FINE = 8;
-//defparam PLLA_inst.CLKOUT2_PE_COARSE = 5;          // 184, OOO
-//defparam PLLA_inst.CLKOUT2_PE_FINE = 1;
-//defparam PLLA_inst.CLKOUT2_PE_COARSE = 6;          // 216
-//defparam PLLA_inst.CLKOUT2_PE_FINE = 0;
-
-// The following has graphics glitches
-//defparam PLLA_inst.CLKOUT2_PE_COARSE = 7;        // 252, CPU:X RV:O
-//defparam PLLA_inst.CLKOUT2_PE_FINE = 0;
-//defparam PLLA_inst.CLKOUT2_PE_COARSE = 7;          // 268
-//defparam PLLA_inst.CLKOUT2_PE_FINE = 4;
-//defparam PLLA_inst.CLKOUT2_PE_COARSE = 7;          // 284
-//defparam PLLA_inst.CLKOUT2_PE_FINE = 8;
-
-// This works
-defparam PLLA_inst.CLKOUT2_PE_COARSE = 8;          // 304
-defparam PLLA_inst.CLKOUT2_PE_FINE = 4;
-//defparam PLLA_inst.CLKOUT2_PE_COARSE = 8;        // 320, OOO
-//defparam PLLA_inst.CLKOUT2_PE_FINE = 8;        
-
-// OSD freezes
-//defparam PLLA_inst.CLKOUT2_PE_COARSE = 9;          // 328, XXX
-//defparam PLLA_inst.CLKOUT2_PE_FINE = 1;        
-
 defparam PLLA_inst.FCLKIN = "27";
 defparam PLLA_inst.IDIV_SEL = 1;
 defparam PLLA_inst.FBDIV_SEL = 1;
 defparam PLLA_inst.ODIV0_SEL = 80;
-defparam PLLA_inst.ODIV1_SEL = 10;
-defparam PLLA_inst.ODIV2_SEL = 10;
+defparam PLLA_inst.ODIV1_SEL = 8;
+defparam PLLA_inst.ODIV2_SEL = 8;
 defparam PLLA_inst.ODIV3_SEL = 80;
 defparam PLLA_inst.ODIV4_SEL = 8;
 defparam PLLA_inst.ODIV5_SEL = 8;
@@ -129,6 +103,8 @@ defparam PLLA_inst.CLKOUT0_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT0_PE_FINE = 0;
 defparam PLLA_inst.CLKOUT1_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT1_PE_FINE = 0;
+defparam PLLA_inst.CLKOUT2_PE_COARSE = 4;
+defparam PLLA_inst.CLKOUT2_PE_FINE = 0;
 defparam PLLA_inst.CLKOUT3_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT3_PE_FINE = 0;
 defparam PLLA_inst.CLKOUT4_PE_COARSE = 0;

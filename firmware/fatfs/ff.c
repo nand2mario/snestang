@@ -4621,10 +4621,14 @@ FRESULT f_opendir (
 
 	/* Get logical drive */
 	res = mount_volume(&path, &fs, 0);
+	cursor(2, 0);
+	printf("mount_volume: %d\n", res);
+	delay(100);
 	if (res == FR_OK) {
 		dp->obj.fs = fs;
 		INIT_NAMBUF(fs);
 		res = follow_path(dp, path);			/* Follow the path to the directory */
+		printf("follow_path: %d\n", res);
 		if (res == FR_OK) {						/* Follow completed */
 			if (!(dp->fn[NSFLAG] & NS_NONAME)) {	/* It is not the origin directory itself */
 				if (dp->obj.attr & AM_DIR) {		/* This object is a sub-directory */
