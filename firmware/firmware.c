@@ -324,6 +324,7 @@ int main() {
 	uint8_t a, b, c, d;
 	a = 1; b = 2; c = 3; d = 4;
 	reg_uart_clkdiv = 94;       // 10800000 / 115200
+	overlay(1);
 
 	for (;;) {
 		// main menu

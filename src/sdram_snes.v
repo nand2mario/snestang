@@ -83,9 +83,9 @@ module sdram_snes
 	input             cpu_wr /* synthesis syn_keep=1 */,
 	input       [1:0] cpu_ds,       // byte enable
 
-    input      [19:0] bsram_addr,
+    input      [16:0] bsram_addr,
     input       [7:0] bsram_din,
-    output reg [15:0] bsram_dout,
+    output reg  [7:0] bsram_dout,
     input             bsram_rd,
     input             bsram_wr,
 
@@ -251,8 +251,8 @@ always @(posedge clk) begin
                     channel0_active <= 1;
                 end else if (bsram_rd | bsram_wr) begin
                     cmd_next <= CMD_BankActivate;
-                    ba_next <= 2'b01;
-                    a_next <= {3'b111, bsram_addr[19:10]};  // 13-bit address
+                    ba_next <= 2'b00;
+                    a_next <= {3'b111_000, bsram_addr[16:10]};  // BSRAM uses 128KB starting from 7MB
                     is_read = bsram_rd;
                     channel0_active <= 1;
                 end else if (rv_rd | rv_wr) begin
@@ -300,15 +300,14 @@ always @(posedge clk) begin
                         SDRAM_DQM <= 2'b0;
                 end else if (bsram_rd | bsram_wr) begin
                     cmd_next <= bsram_wr?CMD_Write:CMD_Read;
-                    ba_next <= 2'b01;
+                    ba_next <= 2'b00;
                     a_next[10] <= 1'b1;                     // set auto precharge
                     a_next[8:0] <= bsram_addr[9:1];         // column address
+                    SDRAM_DQM <= {~bsram_addr[0], bsram_addr[0]};
                     if (bsram_wr) begin
                         dq_oen_next <= 0;
                         dq_out_next <= {bsram_din, bsram_din};
-                        SDRAM_DQM <= ~cpu_ds;
-                    end else
-                        SDRAM_DQM <= 2'b0;
+                    end
                 end else if (rv_rd | rv_wr) begin
                     cmd_next <= rv_wr ? CMD_Write : CMD_Read;
                     ba_next <= 2'b01;
@@ -349,8 +348,8 @@ always @(posedge clk) begin
                         if (cpu_ds[1]) cpu_port0[15:8] <= dq_in[15:8];
                     end
                 end else if (bsram_rd) begin
-                    if (cpu_ds[0]) bsram_dout[7:0] <= dq_in[7:0];
-                    if (cpu_ds[1]) bsram_dout[15:8] <= dq_in[15:8];
+                    if (bsram_addr[0]) bsram_dout <= dq_in[15:8];
+                    else               bsram_dout <= dq_in[7:0];
                 end 
                 if (rv_rd & ~rv_wait) begin
                     rv_dout <= dq_in;

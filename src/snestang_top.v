@@ -76,8 +76,8 @@ wire pause;
 reg [15:0] resetcnt = 16'hffff;
 always @(posedge wclk) begin
     resetcnt <= resetcnt == 0 ? 0 : resetcnt - 1;
-//    if (resetcnt == 0)
-      if (resetcnt == 0 && s0)   // primer25k
+    if (resetcnt == 0)
+//   if (resetcnt == 0 && s0)   // primer25k
 //     if (resetcnt == 0 && ~s0)   // mega138k
         resetn <= 1'b1;
 end
@@ -241,9 +241,8 @@ main main (
 	.DOTCLK(dotclk), .RGB_OUT(rgb_out), .HBLANKn(hblankn),
 	.VBLANKn(vblankn), .X_OUT(x_out), .Y_OUT(y_out),
 
-    .JOY1_DI(joy1_di), .JOY2_DI(joy2_di), .JOY_STRB(joy_strb), 
+    .JOY1_DI(joy1_di & ~overlay), .JOY2_DI(joy2_di & ~overlay), .JOY_STRB(joy_strb), 
     .JOY1_CLK(joy1_clk), .JOY2_CLK(joy2_clk), 
-//    .JOY1_DI(), .JOY2_DI(), .JOY_STRB(), .JOY1_CLK(), .JOY2_CLK(), 
 
     .AUDIO_L(audio_l), .AUDIO_R(audio_r), .AUDIO_READY(audio_ready), .AUDIO_EN(audio_en),
 
@@ -264,7 +263,7 @@ vram vram(
 );
 
 // SDRAM for SNES ROM, WRAM and ARAM
-reg [23:0] cpu_addr; 
+reg [22:0] cpu_addr; 
 wire [15:0] cpu_port0;
 wire [15:0] cpu_port1;
 reg        cpu_port;
@@ -299,16 +298,16 @@ always @(posedge wclk) begin
     cpu_ds <= 0;
     cpu_port <= 0;
     if (loading && loader_do_valid) begin
-        cpu_addr <= loader_addr[23:0];
+        cpu_addr <= loader_addr[22:0];
         cpu_wr <= 1;
         cpu_din <= {loader_do, loader_do};
         cpu_ds <= {loader_addr[0], ~loader_addr[0]};
     end else if (~ROM_CE_N && f2) begin     // ROM reads on R cycles
         cpu_rd <= 1;
-        cpu_addr <= ROM_ADDR[23:0];
+        cpu_addr <= ROM_ADDR[22:0];
         cpu_ds <= 2'b11;
     end else if (wram_rd | wram_wr) begin
-        cpu_addr <= {7'b1110_111, WRAM_ADDR[16:0]};  // EE,EF:0000-FFFF, total 128KB
+        cpu_addr <= {6'b111_111, WRAM_ADDR[16:0]};  // 7E,7F:0000-FFFF, total 128KB
         cpu_ds <= {WRAM_ADDR[0], ~WRAM_ADDR[0]};
         cpu_din <= {WRAM_D, WRAM_D};        
         cpu_port <= 1;
@@ -335,7 +334,7 @@ sdram_snes sdram(
     .SDRAM_nCAS(O_sdram_cas_n), .SDRAM_CKE(O_sdram_cke), .SDRAM_DQM(O_sdram_dqm), 
 
     // CPU accesses
-    .cpu_addr(cpu_addr[23:1]), .cpu_din(cpu_din), .cpu_port(cpu_port), 
+    .cpu_addr(cpu_addr[22:1]), .cpu_din(cpu_din), .cpu_port(cpu_port), 
     .cpu_port0(cpu_port0), .cpu_port1(cpu_port1), .cpu_rd(cpu_rd), 
     .cpu_wr(cpu_wr), .cpu_ds(cpu_ds),
 

@@ -8,11 +8,18 @@ void cursor(int x, int y) {
    cury = y;
 }
 
+int _overlay_status;
+
 void overlay(int on) {
    if (on)
       reg_textdisp = 0x01000000;
    else
       reg_textdisp = 0x02000000;
+   _overlay_status = on;
+}
+
+int overlay_status() {
+   return _overlay_status;
 }
 
 int putchar(int c)
@@ -106,8 +113,8 @@ void delay(int ms) {
 
 void joy_get(int *joy1, int *joy2) {
    uint32_t joy = reg_joystick;
-   *joy1 = joy & 0xfff;
-   *joy2 = (joy >> 16) & 0xfff;
+   *joy1 = (joy >> 16) & 0xfff;
+   *joy2 = joy & 0xfff;
 }
 
 // (R L X A RT LT DN UP START SELECT Y B)
@@ -115,6 +122,18 @@ int joy_choice(int start_line, int len, int *active) {
    int joy1, joy2;
    int last = *active;
    joy_get(&joy1, &joy2);
+   // cursor(20, 27);
+   // print_hex_digits(joy1, 2);
+   // print(" ");
+   // print_hex_digits(joy2, 2);
+
+   if ((joy1 == 0xC) || (joy2 == 0xC)) {
+      overlay(!overlay_status());    // SELECT & START to toggle OSD
+      delay(300);
+   }
+   if (!overlay_status())           // stop responding when OSD is off
+      return 0;
+
    if ((joy1 & 0x10) || (joy2 & 0x10)) {
       if (*active > 0) (*active)--;
    }
@@ -127,8 +146,6 @@ int joy_choice(int start_line, int len, int *active) {
       return 2;      // next page
    if ((joy1 & 0x1) || (joy1 & 0x100) || (joy2 & 0x1) || (joy2 & 0x100))
       return 1;      // confirm
-   if ((joy1 & 0xC) || (joy2 & 0xC))
-      overlay(1);    // SELECT & START to display OSD
 
    cursor(0, start_line + (*active));
    print(">");

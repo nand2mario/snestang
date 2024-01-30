@@ -51,7 +51,7 @@ DSTATUS disk_initialize (
 	DSTATUS stat;
 	int result;
 
-	print("disk_initialize\n");
+	// print("disk_initialize\n");
 
 	switch (pdrv) {
 	case DEV_SD :
