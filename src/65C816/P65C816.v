@@ -483,8 +483,8 @@ module P65C816(CLK, RST_N, CE, RDY_IN, NMI_N, IRQ_N, ABORT_N, D_IN,
       end
 
    // nand2mario: PHP fix from FpgaSnes
-   assign D_OUT = (MC.OUT_BUS == 3'b001 & MC.BYTE_SEL[1] == 1'b1) ? AluR[15:8] :
-                  (MC.OUT_BUS == 3'b001 & MC.BYTE_SEL[1] == 1'b0) ? AluR[7:0] :
+   assign D_OUT = // (MC.OUT_BUS == 3'b001 & MC.BYTE_SEL[1] == 1'b1) ? AluR[15:8] :
+                  // (MC.OUT_BUS == 3'b001 & MC.BYTE_SEL[1] == 1'b0) ? AluR[7:0] :
                   (MC.OUT_BUS == 3'b010 & MC.BYTE_SEL[1] == 1'b1) ? PC[15:8] :
                   (MC.OUT_BUS == 3'b010 & MC.BYTE_SEL[1] == 1'b0) ? PC[7:0] :
                   (MC.OUT_BUS == 3'b011 & MC.BYTE_SEL[1] == 1'b1) ? AA[15:8] :

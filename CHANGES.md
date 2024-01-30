@@ -1,6 +1,9 @@
 Current,
 - Fix missing files with 8.3 names.
 
+0.3, 1/28/2024
+- 
+
 0.2, 1/13/2024
 - Bug fixes. More games are now playable: Donkey Kong Country, Earthbound, Mortal Kombat II, Donkey Kong Country 2 and more.
 - Fixes most image glitches from the upscaler.

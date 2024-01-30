@@ -5,7 +5,7 @@
 //Part Number: GW5A-LV25MG121NC1/I0
 //Device: GW5A-25
 //Device Version: A
-//Created Time: Sun Dec 24 21:54:17 2023
+//Created Time: Tue Jan 30 17:37:40 2024
 
 module gowin_pll_snes (clkout0, clkout1, clkout2, clkout3, clkin);
 
@@ -58,14 +58,14 @@ PLLA PLLA_inst (
 defparam PLLA_inst.FCLKIN = "27";
 defparam PLLA_inst.IDIV_SEL = 1;
 defparam PLLA_inst.FBDIV_SEL = 1;
-defparam PLLA_inst.ODIV0_SEL = 90;
-defparam PLLA_inst.ODIV1_SEL = 15;
-defparam PLLA_inst.ODIV2_SEL = 15;
-defparam PLLA_inst.ODIV3_SEL = 90;
+defparam PLLA_inst.ODIV0_SEL = 80;
+defparam PLLA_inst.ODIV1_SEL = 10;
+defparam PLLA_inst.ODIV2_SEL = 10;
+defparam PLLA_inst.ODIV3_SEL = 80;
 defparam PLLA_inst.ODIV4_SEL = 8;
 defparam PLLA_inst.ODIV5_SEL = 8;
 defparam PLLA_inst.ODIV6_SEL = 8;
-defparam PLLA_inst.MDIV_SEL = 36;
+defparam PLLA_inst.MDIV_SEL = 32;
 defparam PLLA_inst.MDIV_FRAC_SEL = 0;
 defparam PLLA_inst.ODIV0_FRAC_SEL = 0;
 defparam PLLA_inst.CLKOUT0_EN = "TRUE";
@@ -103,8 +103,8 @@ defparam PLLA_inst.CLKOUT0_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT0_PE_FINE = 0;
 defparam PLLA_inst.CLKOUT1_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT1_PE_FINE = 0;
-defparam PLLA_inst.CLKOUT2_PE_COARSE = 7;
-defparam PLLA_inst.CLKOUT2_PE_FINE = 4;
+defparam PLLA_inst.CLKOUT2_PE_COARSE = 5;
+defparam PLLA_inst.CLKOUT2_PE_FINE = 0;
 defparam PLLA_inst.CLKOUT3_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT3_PE_FINE = 0;
 defparam PLLA_inst.CLKOUT4_PE_COARSE = 0;

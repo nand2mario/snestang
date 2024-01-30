@@ -20,7 +20,7 @@ module snestang_top (
     output [2:0] tmds_d_p,
 
     // LED
-    output [4:0] led,
+    output [1:0] led,
 
     // MicroSD
     output sd_clk,
@@ -29,6 +29,14 @@ module snestang_top (
     output sd_dat1,     // 1
     output sd_dat2,     // 1
     output sd_dat3,     // 1
+
+    // SPI flash
+    output flash_spi_cs_n,          // chip select
+    input flash_spi_miso,           // master in slave out
+    output flash_spi_mosi,          // mster out slave in
+    output flash_spi_clk,           // spi clock
+    output flash_spi_wp_n,          // write protect
+    output flash_spi_hold_n,        // hold operations
 
     // dualshock controllers
     output ds_clk,
@@ -41,7 +49,7 @@ module snestang_top (
     output ds_cs2,
 
     // SDRAM
-    output O_sdram_clk,
+    output sdram_clk,               
     output O_sdram_cke,
     output O_sdram_cs_n,            // chip select
     output O_sdram_cas_n,           // columns address select
@@ -55,7 +63,8 @@ module snestang_top (
 
 // Clock signals
 // wire mclk;                      // SNES master clock at 21.6Mhz (~21.477), not actually instantiated
-wire fclk, fclk_p;              // Fast clock for sdram, and 180-degree shifted, for SDRAM
+wire fclk;                          // Fast clock for sdram, and 180-degree shifted, for SDRAM
+wire fclk_p /* synthesis syn_keep=1 */;              
 wire wclk;                      // Actual work clock for SNES, 1/6 of fclk and 1/2 of mclk
 wire smpclk;                    // same as wclk, for timing constratins
 wire clk27;                     // 27Mhz for hdmi clock generation
@@ -68,8 +77,9 @@ reg [15:0] resetcnt = 16'hffff;
 always @(posedge wclk) begin
     resetcnt <= resetcnt == 0 ? 0 : resetcnt - 1;
     if (resetcnt == 0)
-    // if (resetcnt == 0 && ~s0)
-        resetn <= 1'b1;    
+//   if (resetcnt == 0 && s0)   // primer25k
+//     if (resetcnt == 0 && ~s0)   // mega138k
+        resetn <= 1'b1;
 end
 
 `ifndef VERILATOR
@@ -164,14 +174,14 @@ wire audio_en /* synthesis syn_keep=1 */;
 wire [1:0] joy1_di, joy2_di;
 wire joy_strb;
 wire joy1_clk, joy2_clk;
-wire [11:0] joy1_btns;
+wire [11:0] joy1_btns, joy2_btns;
 
 wire [5:0] ph;
 reg snes_start = 1'b0;
 wire pause_snes_for_frame_sync;
 
 wire [7:0] loader_do;
-wire loader_do_valid, loading, loader_fail;
+wire loader_do_valid, loading;
 
 reg [23:0] loader_addr = 0;
 
@@ -191,9 +201,10 @@ reg  [7:0] company_header;
 wire sdram_busy;
 wire refresh;
 reg enable; // && ~dbg_break && ~pause;
+reg loaded;
 
 always @(posedge wclk) begin        // wait until memory initialize to start SNES
-    if (~sdram_busy && ~loader_fail && ~pause_snes_for_frame_sync)
+    if (~sdram_busy && ~pause_snes_for_frame_sync && loaded)
         enable <= 1;
     else 
         enable <= 0;
@@ -230,9 +241,8 @@ main main (
 	.DOTCLK(dotclk), .RGB_OUT(rgb_out), .HBLANKn(hblankn),
 	.VBLANKn(vblankn), .X_OUT(x_out), .Y_OUT(y_out),
 
-    .JOY1_DI(joy1_di), .JOY2_DI(joy2_di), .JOY_STRB(joy_strb), 
+    .JOY1_DI(joy1_di & ~overlay), .JOY2_DI(joy2_di & ~overlay), .JOY_STRB(joy_strb), 
     .JOY1_CLK(joy1_clk), .JOY2_CLK(joy2_clk), 
-//    .JOY1_DI(), .JOY2_DI(), .JOY_STRB(), .JOY1_CLK(), .JOY2_CLK(), 
 
     .AUDIO_L(audio_l), .AUDIO_R(audio_r), .AUDIO_READY(audio_ready), .AUDIO_EN(audio_en),
 
@@ -253,7 +263,7 @@ vram vram(
 );
 
 // SDRAM for SNES ROM, WRAM and ARAM
-reg [23:0] cpu_addr; 
+reg [22:0] cpu_addr; 
 wire [15:0] cpu_port0;
 wire [15:0] cpu_port1;
 reg        cpu_port;
@@ -262,7 +272,7 @@ reg [15:0] cpu_din;
 reg        cpu_rd, cpu_wr;
 reg        f2, r2;
 
-assign O_sdram_clk = fclk_p;
+assign sdram_clk = fclk_p;
 wire aram_rd = ~ARAM_CE_N & ~ARAM_OE_N;
 wire aram_wr = ~ARAM_CE_N & ~ARAM_WE_N;
 always @(posedge wclk) if (aram_rd) aram_lsb <= ARAM_ADDR[0];
@@ -271,6 +281,11 @@ reg bsram_rd, bsram_wr;
 reg [19:0] bsram_addr;
 reg [7:0] bsram_din;
 wire [7:0] bsram_dout;
+
+wire rv_rd, rv_wr;
+wire [15:0] rv_din, rv_dout;
+wire [22:0] rv_addr /* systhesis syn_keep=1 */;
+wire [1:0] rv_ds;
 
 // Generate SDRAM signals
 always @(posedge wclk) begin
@@ -283,16 +298,16 @@ always @(posedge wclk) begin
     cpu_ds <= 0;
     cpu_port <= 0;
     if (loading && loader_do_valid) begin
-        cpu_addr <= loader_addr[23:0];
+        cpu_addr <= loader_addr[22:0];
         cpu_wr <= 1;
         cpu_din <= {loader_do, loader_do};
         cpu_ds <= {loader_addr[0], ~loader_addr[0]};
     end else if (~ROM_CE_N && f2) begin     // ROM reads on R cycles
         cpu_rd <= 1;
-        cpu_addr <= ROM_ADDR[23:0];
+        cpu_addr <= ROM_ADDR[22:0];
         cpu_ds <= 2'b11;
     end else if (wram_rd | wram_wr) begin
-        cpu_addr <= {7'b1110_111, WRAM_ADDR[16:0]};  // EE,EF:0000-FFFF, total 128KB
+        cpu_addr <= {6'b111_111, WRAM_ADDR[16:0]};  // 7E,7F:0000-FFFF, total 128KB
         cpu_ds <= {WRAM_ADDR[0], ~WRAM_ADDR[0]};
         cpu_din <= {WRAM_D, WRAM_D};        
         cpu_port <= 1;
@@ -319,7 +334,7 @@ sdram_snes sdram(
     .SDRAM_nCAS(O_sdram_cas_n), .SDRAM_CKE(O_sdram_cke), .SDRAM_DQM(O_sdram_dqm), 
 
     // CPU accesses
-    .cpu_addr(cpu_addr[23:1]), .cpu_din(cpu_din), .cpu_port(cpu_port), 
+    .cpu_addr(cpu_addr[22:1]), .cpu_din(cpu_din), .cpu_port(cpu_port), 
     .cpu_port0(cpu_port0), .cpu_port1(cpu_port1), .cpu_rd(cpu_rd), 
     .cpu_wr(cpu_wr), .cpu_ds(cpu_ds),
 
@@ -329,7 +344,11 @@ sdram_snes sdram(
 
     // ARAM accesses
     .aram_16(aram_16), .aram_addr(ARAM_ADDR), .aram_din({ARAM_D, ARAM_D}), 
-    .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd)
+    .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd),
+
+    // IOSys risc-v softcore
+    .rv_addr(rv_addr[22:1]), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
+    .rv_rd(rv_rd), .rv_wr(rv_wr), .rv_wait(rv_wait)
 );
 
 `else
@@ -353,11 +372,20 @@ sdram_sim sdram(
 
 reg loading_r;
 always @(posedge wclk) begin
-    loading_r <= loading;
-    if (loader_do_valid)
-        loader_addr <= loader_addr + 24'd1; 
-    if (loading & ~loading_r)
-        loader_addr <= 0;
+    if (~resetn) begin
+        loading_r <= 0;
+        loaded <= 0;
+    end else begin
+        loading_r <= loading;
+        if (loader_do_valid)
+            loader_addr <= loader_addr + 24'd1; 
+        if (loading & ~loading_r) begin
+            loader_addr <= 0;
+            loaded <= 0;
+        end
+        if (~loading & loading_r)
+            loaded <= 1;
+    end
 end
 
 `ifndef VERILATOR
@@ -372,6 +400,7 @@ ds2snes joy1 (
 ds2snes joy2 (
     .clk(wclk),
     .snes_joy_strb(joy_strb), .snes_joy_clk(joy2_clk), .snes_joy_di(joy2_di[0]),
+    .snes_buttons(joy2_btns),
     .ds_clk(ds_clk2), .ds_miso(ds_miso2), .ds_mosi(ds_mosi2), .ds_cs(ds_cs2) 
 );
 assign joy1_di[1] = 0;  // P3
@@ -397,41 +426,31 @@ snes2hdmi s2h(
 	.tmds_d_n(tmds_d_n), .tmds_d_p(tmds_d_p)
 );
 
-wire [7:0] loader_do_orig;
-wire loader_do_valid_orig;
+// IOSys for menu, rom loading...
+iosys iosys (
+    .wclk(wclk), .hclk(hclk), .resetn(resetn),
 
-wire [7:0] serial_data;
-wire serial_data_valid, serial_reset;
-wire [23:0] loader_sector;
-wire [2:0] loader_state;
-wire debug_serial_en;
-
-loader loader (
-    .wclk(wclk), .resetn(resetn),
-    .hclk(hclk),
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color),
-    .btns(joy1_btns),
-    .dout(loader_do), .dout_valid(loader_do_valid),
+    .joy1(joy1_btns), .joy2(joy2_btns),
 
+    .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid), 
     .map_ctrl(rom_type), .rom_mask(rom_mask), .ram_mask(ram_mask),
     .rom_size(rom_size), .ram_size(ram_size),
-    .loading(loading), .fail(loader_fail),
+    .ram_busy(sdram_busy),
 
-    // data coming from serial interface
-    .serial_reset(serial_reset), .serial_data(serial_data), .serial_data_valid(serial_data_valid),
+    .rv_addr(rv_addr), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
+    .rv_rd(rv_rd), .rv_wr(rv_wr), .rv_wait(rv_wait),
 
-    .sd_clk(sd_clk), .sd_cmd(sd_cmd), .sd_dat0(sd_dat0),
-    .sd_dat1(sd_dat1), .sd_dat2(sd_dat2), .sd_dat3(sd_dat3),
+    .flash_spi_cs_n(flash_spi_cs_n), .flash_spi_miso(flash_spi_miso),
+    .flash_spi_mosi(flash_spi_mosi), .flash_spi_clk(flash_spi_clk),
+    .flash_spi_wp_n(flash_spi_wp_n), .flash_spi_hold_n(flash_spi_hold_n),
 
-    .dbg_read_sector_no(loader_sector), .dbg_state(loader_state)
+    .sd_clk(sd_clk), .sd_cmd(sd_cmd), .sd_dat0(sd_dat0), .sd_dat1(sd_dat1),
+    .sd_dat2(sd_dat2), .sd_dat3(sd_dat3)
 );
 
-loader_serial serial (
-    .clk(wclk), .resetn(resetn),
-    .uart_rx(UART_RXD), .serial_reset(serial_reset), .serial_data(serial_data), 
-    .serial_data_valid(serial_data_valid), .loading(loading)
-);
+
 
 // Test rom
 //testrom rom (
@@ -504,7 +523,6 @@ reg [11:0] reached;
 
 // LED control
 assign led = ~s0 ? ~(reached[9:5]) : ~{reached[4:0]};
-// assign led = ~{reached[4:0], loader_done, timer[19]};
 
 // PC markers for snes_10
 always @(posedge wclk) begin
@@ -635,7 +653,7 @@ debugger dbg (
 //
 // Print control
 //
-
+/*
 `include "print.v"
 localparam BAUDRATE=115200;
 
@@ -662,198 +680,25 @@ reg [2:0] prt_state = 0;
 
 always @(posedge wclk) begin
     // print CA every tick
-    timer <= timer + 1;
+    timer <= timer + 20'd1;
+    case (timer) 
+    20'h00000: `print("map_ctrl=", STR);
+    20'h10000: `print(rom_type, 1);
+    20'h20000: `print(", rom_size=", STR);
+    20'h30000: `print({4'b0, rom_size}, 1);
+    20'h40000: `print(", ram_size=", STR);
+    20'h50000: `print({4'b0, ram_size}, 1);
+    20'h60000: `print(", btns=", STR);
+    20'h70000: `print({4'b0, joy1_btns}, 2);
+    20'h80000: `print(", addr=", STR);
+    20'h90000: `print(loader_addr, 3);
+    20'hA0000: `print(", loading=", STR);
+    20'hA8000: `print({7'b0, loading}, 1);
 
-        timer <= timer + 20'd1;
-        case (timer) 
-        20'h00000: `print("map_ctrl=", STR);
-        20'h10000: `print(rom_type, 1);
-        20'h20000: `print(", rom_size=", STR);
-        20'h30000: `print({4'b0, rom_size}, 1);
-        20'h40000: `print(", ram_size=", STR);
-        20'h50000: `print({4'b0, ram_size}, 1);
-        20'h60000: `print(", btns=", STR);
-        20'h70000: `print({4'b0, joy1_btns}, 2);
-        20'h80000: `print(", addr=", STR);
-        20'h90000: `print(loader_addr, 3);
-        20'ha0000: `print(", sector=", STR);
-        20'hb0000: `print(loader_sector, 3);
-        20'hd8000: `print(", loader_state=", STR);
-        20'he0000: `print({5'b0, loader_state}, 1);
-
-        20'hf0000: `print("\n", STR);
-        endcase
-
-/*
-    if (prt_state == 0) begin
-        case (timer)
-        20'h00000: begin
-            `print("loader: mapctrl=", STR);
-            dbg_reg <= 0;
-        end
-        20'h10000: begin
-            `print(dbg_dat_out_loader, 1);
-            dbg_reg <= 2;
-        end
-        20'h20000: `print(", romsize=", STR);
-        20'h30000: begin
-            `print(dbg_dat_out_loader, 1);
-            dbg_reg <= 3;
-        end
-        20'h40000: `print(", ramsize=", STR);
-        20'h50000: begin
-            `print(dbg_dat_out_loader, 1);
-            dbg_reg <= 8'hc;
-        end
-        20'h60000: begin
-            `print(", sector=", STR); 
-            dbg_sd_sector[7:0] <= dbg_dat_out_loader;
-            dbg_reg <= 8'hd;
-        end
-        20'h70000: begin
-            dbg_sd_sector[15:8] <= dbg_dat_out_loader;
-            dbg_reg <= 8'he;
-        end
-        20'h80000: begin
-            `print({dbg_dat_out_loader, dbg_sd_sector[15:0]}, 3);
-        end
-        20'h90000: `print(", fail=", STR);
-        20'hA0000: `print({7'b0, loader_fail}, 1);
-        20'hf0000: begin
-            `print("\n", STR); 
-            if (~loading) prt_state <= 1;
-        end
-        endcase        
-        if (~loading) prt_state <= 1;
-    end else if (prt_state == 1) begin
-        case (timer)
-        20'h00000: `print("Dumping memory access log. Entries=", STR);
-        20'h10000: `print(8'(mlog_i), 1);
-        20'hf0000: begin
-            `print("\n", STR);
-            prt_state <= 2;
-        end
-        endcase
-    end else if (prt_state == 2) begin
-        case (timer)
-        20'h00000: `print(mlog_a[mlog_prt], 3);
-        20'h10000: `print(":", STR);
-        20'h20000: `print(mlog_q[mlog_prt], 1);
-        20'h30000: `print(" ", STR);
-        20'h40000: `print(mlog_a[mlog_prt+1], 3);
-        20'h50000: `print(":", STR);
-        20'h60000: `print(mlog_q[mlog_prt+1], 1);
-        20'h70000: `print(" ", STR);
-        20'h80000: `print(mlog_a[mlog_prt+2], 3);
-        20'h90000: `print(":", STR);
-        20'hA0000: `print(mlog_q[mlog_prt+2], 1);
-        20'hB0000: `print(" ", STR);
-        20'hC0000: `print(mlog_a[mlog_prt+3], 3);
-        20'hD0000: `print(":", STR);
-        20'hE0000: `print(mlog_q[mlog_prt+3], 1);
-        20'hF0000: `print("\n", STR);
-        endcase
-
-        if (timer == 20'hf0000)
-            if (mlog_prt < mlog_i && mlog_prt + 4 < mlog_len)
-                mlog_prt <= mlog_prt + 4;
-            else
-                prt_state <= 3;
-    end else if (prt_state == 3) begin
-        case (timer)
-        20'h00000: `print("cpu_addr=", STR);
-        20'h10000: `print(cpu_addr, 3);
-        20'h20000: `print(", aram_addr=", STR);
-        20'h30000: `print(ARAM_ADDR, 2);
-        20'h40000: begin
-            `print(", cpu_x=", STR);
-            dbg_sel <= 1;       // P65
-            dbg_reg <= 3;       // X[15:8]
-        end 
-        20'h50000: begin
-            `print(dbg_dat_out, 1);
-            dbg_reg <= 2;       // X[7:0]
-        end
-        20'h60000:
-            `print(dbg_dat_out, 1);
-        20'h70000: begin
-            `print(", cpu_a=", STR);
-            dbg_sel <= 1;       // P65
-            dbg_reg <= 1;       // X[15:8]
-        end 
-        20'h80000: begin
-            `print(dbg_dat_out, 1);
-            dbg_reg <= 0;       // X[7:0]
-        end
-        20'h90000:
-            `print(dbg_dat_out, 1);
-        20'hA0000: begin
-            `print(", JOY1=", STR);
-            dbg_sel <= 2;    // SCPU
-            dbg_reg <= 8'h1D;
-        end
-        20'hB0000: begin
-            `print(dbg_dat_out, 1);
-            dbg_reg <= 8'h1C;
-        end
-        20'hC0000:
-            `print(dbg_dat_out, 1);
-        20'hF0000: begin timer <= 0; prt_state <= 4; end
-        endcase
-//         9, A, B, C, D, E - 2 bits per hex, total 12 points
-//        if (timer[14:0] == 0 && timer[19:16] >= 9 && timer[19:16] <= 14) begin
-//            logic [4:0] b;
-//            b = timer[19:15] - 5'd18;
-//            if (reached[b])
-//                `print("O", STR);
-//            else
-//                `print(".", STR);
-//        end
-    end else if (prt_state == 4) begin
-        dbg_sel <= 8'b0001_0000;        // SMP
-        case (timer)
-        20'h00000: begin
-            `print(", APU I[0]=", STR);
-            dbg_reg <= 0;
-        end
-        20'h20000: begin
-            `print(", I[1]=", STR);
-            dbg_reg <= 1;
-        end
-        20'h40000: begin
-            `print(", I[2]=", STR);
-            dbg_reg <= 2;
-        end
-        20'h60000: begin
-            `print(", I[3]=", STR);
-            dbg_reg <= 3;
-        end
-        20'h80000: begin
-            `print(", O[0]=", STR);
-            dbg_reg <= 4;
-        end
-        20'hA0000: begin
-            `print(", O[1]=", STR);
-            dbg_reg <= 5;
-        end
-        20'hC0000: begin
-            `print(", O[2]=", STR);
-            dbg_reg <= 6;
-        end
-        20'hE0000: begin
-            `print(", O[3]=", STR);
-            dbg_reg <= 7;
-        end
-
-        20'h10000, 20'h30000, 20'h50000, 20'h70000, 20'h90000, 20'hB0000, 20'hD0000, 20'hF0000: 
-            `print(dbg_dat_out, 1);
-
-        20'hF8000: begin `print("\n", STR); prt_state <= 3; end
-        endcase
-
-    end
-    */
+    20'hf0000: `print("\n", STR);
+    endcase
 end
+*/
 
 `endif
 
