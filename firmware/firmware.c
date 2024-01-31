@@ -58,12 +58,19 @@ load_option_close:
 	return r;
 }
 
+void message(char *msg, int center);
+
 // return 0: success, 1: cannot save
 int save_option() {
 	FIL f;
-	if (f_open(&f, OPTION_FILE, FA_CREATE_ALWAYS))
+	if (f_open(&f, OPTION_FILE, FA_WRITE | FA_CREATE_ALWAYS)) {
+		message("f_open failed",1);
 		return 1;
-	f_puts("osd_key=", &f);
+	}
+	if (f_puts("osd_key=", &f) < 0) {
+		message("f_puts failed",1);
+		return 1;
+	}
 	if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
 		f_puts("1\n", &f);
 	else
@@ -278,6 +285,7 @@ int menu_loadrom(int *choice) {
 }
 
 void menu_options() {
+	int choice = 0;
 	while (1) {
 		clear();
 		cursor(2, 10);
@@ -293,17 +301,23 @@ void menu_options() {
 		else
 			print("SELECT&RB");
 
-		delay(100);
+		delay(300);
 
-		int choice = 0;
 		for (;;) {
 			if (joy_choice(12, 2, &choice, OSD_KEY_CODE) == 1) {
 				if (choice == 0) {
 					return;
 				} if (choice == 1) {
-					option_osd_key = 3-option_osd_key;
-					if (save_option())
+					if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
+						option_osd_key = OPTION_OSD_KEY_SELECT_RB;
+					else
+						option_osd_key = OPTION_OSD_KEY_SELECT_START;
+					status("Saving options...");
+					if (save_option()) {
 						message("Cannot save options to SD",1);
+						break;
+					}
+					break;	// redraw UI
 				}
 			}
 		}

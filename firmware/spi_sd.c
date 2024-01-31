@@ -19,12 +19,13 @@ uint8_t spi_send(uint8_t x) {
 	return reg_spimaster;		// receive
 }
 
-uint8_t spi_sendrecv(uint8_t x) {
-    return spi_send(x);
+uint8_t spi_receive() {
+    return spi_send(0xFF);
 }
 
-uint8_t spi_receive() {
-    return spi_send(0);
+uint8_t spi_sendrecv(uint8_t x) {
+    spi_send(x);
+    return spi_receive();
 }
 
 void spi_readblock(uint8_t *ptr, int length) {
