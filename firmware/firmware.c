@@ -16,7 +16,10 @@
 
 int option_osd_key = OPTION_OSD_KEY_SELECT_RB;
 
-#define OSD_KEY_CODE (option_osd_key == 1 ? 0xC : 0x84)
+#define OSD_KEY_CODE (option_osd_key == 1 ? 0xC : 0x804)
+
+void message(char *msg, int center);
+void status(char *msg);
 
 // return 0: success, 1: no option file found, 2: option file corrupt
 int load_option() {
@@ -40,6 +43,9 @@ int load_option() {
 		*s='\0';
 		key = trimwhitespace(line);
 		value = trimwhitespace(s+1);
+		// status("");
+		// printf("key=%s, value=%s", key, value);
+		// message("see below",1);
 
 		// now handle all key-value pairs
 		if (strcmp(key, "osd_key") == 0) {
@@ -58,7 +64,6 @@ load_option_close:
 	return r;
 }
 
-void message(char *msg, int center);
 
 // return 0: success, 1: cannot save
 int save_option() {
@@ -76,6 +81,8 @@ int save_option() {
 	else
 		f_puts("2\n", &f);
 	f_close(&f);
+	// hide snestang.ini in dir list
+	f_chmod(OPTION_FILE, AM_HID, AM_HID);
 	return 0;
 }
 
@@ -109,8 +116,8 @@ void message(char *msg, int center) {
 			break;
 		}		
 	}
-	status("");
-	printf("w=%d, lines=%d", maxw, lines);
+	// status("");
+	// printf("w=%d, lines=%d", maxw, lines);
 	// draw a box 
 	int y0 = 14 - ((lines + 2) >> 1);
 	int y1 = y0 + lines + 2;
@@ -288,14 +295,14 @@ void menu_options() {
 	int choice = 0;
 	while (1) {
 		clear();
-		cursor(2, 10);
+		cursor(8, 10);
 		print("--- Options ---");
 
 		cursor(2, 12);
 		print("<< Return to main menu");
-		cursor(2, 13);
+		cursor(2, 14);
 		print("OSD hot key:");
-		cursor(16, 13);
+		cursor(16, 14);
 		if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
 			print("SELECT&START");
 		else
@@ -304,10 +311,10 @@ void menu_options() {
 		delay(300);
 
 		for (;;) {
-			if (joy_choice(12, 2, &choice, OSD_KEY_CODE) == 1) {
+			if (joy_choice(12, 3, &choice, OSD_KEY_CODE) == 1) {
 				if (choice == 0) {
 					return;
-				} if (choice == 1) {
+				} if (choice == 2) {
 					if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
 						option_osd_key = OPTION_OSD_KEY_SELECT_RB;
 					else
@@ -437,9 +444,14 @@ int main() {
 	reg_uart_clkdiv = 94;       // 10800000 / 115200
 	overlay(1);
 
-	if (load_option() == 2) {	// file corrupt
+	f_mount(&fs, "", 0);
+	int r = load_option();
+	if (r == 2) {	// file corrupt
 		clear();
 		message("Option file corrupt and is not loaded",1);
+	} else if (r == 1) {
+		clear();
+		message("Cannot open option file",1);
 	}
 
 	for (;;) {
@@ -458,7 +470,7 @@ int main() {
 
 		// cursor(2, 27);
 		// print("Init SD card... ");
-		f_mount(&fs, "", 0);
+		// f_mount(&fs, "", 0);
 		// print("done");
 
 		delay(100);

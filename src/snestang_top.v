@@ -241,7 +241,7 @@ main main (
 	.DOTCLK(dotclk), .RGB_OUT(rgb_out), .HBLANKn(hblankn),
 	.VBLANKn(vblankn), .X_OUT(x_out), .Y_OUT(y_out),
 
-    .JOY1_DI(joy1_di & ~overlay), .JOY2_DI(joy2_di & ~overlay), .JOY_STRB(joy_strb), 
+    .JOY1_DI(joy1_di | overlay), .JOY2_DI(joy2_di | overlay), .JOY_STRB(joy_strb), 
     .JOY1_CLK(joy1_clk), .JOY2_CLK(joy2_clk), 
 
     .AUDIO_L(audio_l), .AUDIO_R(audio_r), .AUDIO_READY(audio_ready), .AUDIO_EN(audio_en),

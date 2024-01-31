@@ -178,7 +178,7 @@ assign mem_ready = ram_ready || textdisp_reg_char_sel || simpleuart_reg_div_sel 
             (simplespimaster_reg_sel && !simplespimaster_reg_wait);
 
 assign mem_rdata = ram_ready ? ram_rdata :
-        joystick_reg_sel ? {4'b0, joy1, 4'b0, joy2} :
+        joystick_reg_sel ? {4'b0, joy2, 4'b0, joy1} :
         simpleuart_reg_div_sel ? simpleuart_reg_div_do :
         simpleuart_reg_dat_sel ? simpleuart_reg_dat_do : 
         simplespimaster_reg_sel ? simplespimaster_reg_do : 32'h 0000_0000;

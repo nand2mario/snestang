@@ -114,8 +114,8 @@ void delay(int ms) {
 
 void joy_get(int *joy1, int *joy2) {
    uint32_t joy = reg_joystick;
-   *joy1 = (joy >> 16) & 0xfff;
-   *joy2 = joy & 0xfff;
+   *joy1 = joy & 0xffff;
+   *joy2 = (joy >> 16) & 0xffff;
 }
 
 // (R L X A RT LT DN UP START SELECT Y B)
@@ -125,9 +125,9 @@ int joy_choice(int start_line, int len, int *active, int overlay_key_code) {
    int last = *active;
    joy_get(&joy1, &joy2);
    // cursor(20, 27);
-   // print_hex_digits(joy1, 2);
+   // print_hex_digits(joy1, 3);
    // print(" ");
-   // print_hex_digits(joy2, 2);
+   // print_hex_digits(joy2, 3);
 
    if ((joy1 == overlay_key_code) || (joy2 == overlay_key_code)) {
       overlay(!overlay_status());    // toggle OSD
