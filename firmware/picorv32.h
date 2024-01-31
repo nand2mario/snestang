@@ -48,4 +48,14 @@ extern void snes_data(uint32_t data);   // 3 word (12-byte) header, followed by 
                                         // header #1: rom_mask
                                         // header #2: ram_mask
 
+inline int max(int x, int y) {
+    if (x > y) return x;
+    else       return y;
+}
+
+inline int min(int x, int y) {
+    if (x < y) return x;
+    else       return y;
+}
+
 #endif

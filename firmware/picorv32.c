@@ -238,15 +238,6 @@ int memcmp(const void *s1, const void *s2, size_t n) {
    return 0;
 }
 
-char *strchr(const char *s, int c) {
-   while (*s) {
-      if (*s == c)
-         return (char *)s;
-      s++;
-   }
-   return (char *)0;
-}
-
 int strcmp(const char* s1, const char* s2)
 {
    while(*s1 && (*s1 == *s2)) {
@@ -274,11 +265,29 @@ char *strncpy(char* _dst, const char* _src, size_t _n) {
    return r;
 }
 
-char *strrchr (const char *s, int c) {
-  char *r = 0;
-  do {
-    if (*s == c)
-      r = (char*) s;
-  } while (*s++);
-  return r;
+char *strchr(const char *s, int c) {
+   while (*s) {
+      if (*s == c)
+         return (char *)s;
+      s++;
+   }
+   return (char *)0;
+}
+
+char *strrchr(const char *s, int c) {
+   char *r = 0;
+   do {
+      if (*s == c)
+         r = (char*) s;
+   } while (*s++);
+   return r;
+}
+
+size_t strlen(const char *s) {
+   size_t r = 0;
+   while (*s != '\0') {
+      r++;
+      s++;
+   }
+   return r;
 }

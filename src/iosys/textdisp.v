@@ -116,7 +116,7 @@ always @(posedge hclk) begin
         overlay_color <= overlay_color_buf;
 
         // for next character
-        is_cursor <= px[7:4] == 0;
+        is_cursor <= px[7:3] == 0;
         xoff <= px[2:0];
         yoff <= py[2:0];
 

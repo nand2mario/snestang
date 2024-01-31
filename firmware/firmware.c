@@ -67,6 +67,72 @@ void status(char *msg) {
 	print(msg);
 }
 
+// show a pop-up message, press any key to discard (caller needs to redraw screen)
+// msg: could be multi-line (separate with \n), max 10 lines
+// center: whether to center the text
+void message(char *msg, int center) {
+	// count number of lines and max width
+	int w[10], lines=10, maxw = 0;
+	int len = strlen(msg);
+	char *end = msg + len;
+	char *sol = msg;
+	for (int i = 0; i < 10; i++) {
+		char *eol = strchr(sol, '\n');
+		if (eol) { // found \n
+			w[i] = min(eol - sol, 26);
+			maxw = max(w[i], maxw);
+			sol = eol+1;
+		} else {
+			w[i] = min(end - sol, 26);
+			maxw = max(w[i], maxw);
+			lines = i+1;
+			break;
+		}		
+	}
+	status("");
+	printf("w=%d, lines=%d", maxw, lines);
+	// draw a box 
+	int y0 = 14 - ((lines + 2) >> 1);
+	int y1 = y0 + lines + 2;
+	int x0 = 16 - ((maxw + 2) >> 1);
+	int x1 = x0 + maxw + 2;
+	for (int y = y0; y < y1; y++)
+		for (int x = x0; x < x1; x++) {
+			cursor(x, y);
+			if ((x == x0 || x == x1-1) && (y == y0 || y == y1-1))
+				putchar('+');
+			else if (x == x0 || x == x1-1)
+				putchar('|');
+			else if (y == y0 || y == y1-1)
+				putchar('-');
+			else
+				putchar(' ');
+		}
+	// print text
+	char *s = msg;
+	for (int i = 0; i < lines; i++) {
+		if (center)
+			cursor(16-(w[i]>>1), y0+i+1);
+		else
+			cursor(x0+1, y0+i+1);
+		while (*s != '\n' && *s != '\0') {
+			putchar(*s);
+			s++;
+		}
+		s++;
+	}
+	// wait for a keypress
+	delay(300);
+	for (;;) {
+		int joy1, joy2;
+		joy_get(&joy1, &joy2);
+	   	if ((joy1 & 0x1) || (joy1 & 0x100) || (joy2 & 0x1) || (joy2 & 0x100))
+	   		break;
+	}
+	delay(300);
+}
+
+
 FATFS fs;
 
 #define PAGESIZE 22
@@ -152,19 +218,20 @@ int menu_loadrom(int *choice) {
 				cursor(2, i+TOPLINE);
 				if (idx < total) {
 					print(file_names[i]);
-					if (file_dir[i])
+					if (idx != 0 && file_dir[i])
 						print("/");
 				}
 			}
 			while (1) {
 				int r = joy_choice(TOPLINE, file_len, &active);
 				if (r == 1) {
-					if (strcmp(pwd, "/") && page == 0 && active == 0) {
+					if (strcmp(pwd, "/") == 0 && page == 0 && active == 0) {
 						// return to main menu
 						return 1;
 					} else if (file_dir[active]) {
 						if (file_names[active][0] == '.' && file_names[active][1] == '.') {
 							// return to parent dir
+							// message(file_names[active], 1);
 							char *slash = strrchr(pwd, '/');
 							if (slash)
 								*slash = '\0';
