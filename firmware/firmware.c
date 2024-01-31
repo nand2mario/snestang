@@ -8,55 +8,68 @@
 #include "picorv32.h"
 #include "fatfs/ff.h"
 
-void cmd_print_root() {
-	DIR d;
-	if (f_opendir(&d, "/") != 0) {
-		printf("Open root dir failure\n");
-		goto print_root_end;
-	}
-	
-	FILINFO fno;
-	int cnt = 0;
-	while (f_readdir(&d, &fno) == FR_OK) {
-		if (fno.fname[0] == 0)
-			break;
-		if (fno.fattrib & AM_DIR) {
-			printf("%s/\n", fno.fname);
-		} else {
-			printf("%s %d\n", fno.fname, fno.fsize);
-		}
-		cnt++;
-	}
-	printf("Total %d entries.\n", cnt);
-	f_closedir(&d);
+#define OPTION_FILE "/snestang.ini"
+#define OPTION_INVALID 2
 
-print_root_end:
-	return;
+#define OPTION_OSD_KEY_SELECT_START 1
+#define OPTION_OSD_KEY_SELECT_RB 2
+
+int option_osd_key = OPTION_OSD_KEY_SELECT_RB;
+
+#define OSD_KEY_CODE (option_osd_key == 1 ? 0xC : 0x84)
+
+// return 0: success, 1: no option file found, 2: option file corrupt
+int load_option() {
+	FIL f;
+	int r = 0;
+	char buf[1024];
+	char *line, *key, *value;
+	if (f_open(&f, OPTION_FILE, FA_READ))
+		return 1;
+	// XXX: handle escapes and quotes
+	while (f_gets(buf, 1024, &f)) {
+		line = trimwhitespace(buf);
+		if (line[0] == '\0' || line[0] == '[' || line[0] == ';' || line[0] == '#')
+			continue;
+		// find '='
+		char *s = strchr(line, '=');
+		if (!s) {
+			r = OPTION_INVALID;
+			goto load_option_close;
+		}
+		*s='\0';
+		key = trimwhitespace(line);
+		value = trimwhitespace(s+1);
+
+		// now handle all key-value pairs
+		if (strcmp(key, "osd_key") == 0) {
+			option_osd_key = atoi(value);
+			if (option_osd_key <= 0) {
+				r = OPTION_INVALID;
+				goto load_option_close;
+			}
+		} else {
+			// just ignore unknown keys
+		}
+	}
+
+load_option_close:
+	f_close(&f);
+	return r;
 }
 
-#define FILENAME "ActRaiser.smc"
-
-void cmd_read_test() {
+// return 0: success, 1: cannot save
+int save_option() {
 	FIL f;
-	if (f_open(&f, FILENAME, FA_READ) != FR_OK) {
-		printf("Cannot open %s\n", FILENAME);
-		goto read_test_end;
-	}
-
-	uint8_t buf[1024];
-	int total, c;
-	while (f_read(&f, buf, 1024, &c) == FR_OK) {
-		total += c;
-		// if (total % (64*1024) == 0)
-			print(".");
-		if (c < 1024) break;		// EOF
-	}
-	printf("\nTotal %d bytes read\n", total);
-
+	if (f_open(&f, OPTION_FILE, FA_CREATE_ALWAYS))
+		return 1;
+	f_puts("osd_key=", &f);
+	if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
+		f_puts("1\n", &f);
+	else
+		f_puts("2\n", &f);
 	f_close(&f);
-
-read_test_end:
-	return;
+	return 0;
 }
 
 void status(char *msg) {
@@ -223,7 +236,7 @@ int menu_loadrom(int *choice) {
 				}
 			}
 			while (1) {
-				int r = joy_choice(TOPLINE, file_len, &active);
+				int r = joy_choice(TOPLINE, file_len, &active, OSD_KEY_CODE);
 				if (r == 1) {
 					if (strcmp(pwd, "/") == 0 && page == 0 && active == 0) {
 						// return to main menu
@@ -265,18 +278,35 @@ int menu_loadrom(int *choice) {
 }
 
 void menu_options() {
-	clear();
-	cursor(2, 10);
-    print("--- Options ---");
+	while (1) {
+		clear();
+		cursor(2, 10);
+		print("--- Options ---");
 
-	cursor(2, 12);
-	print("Return to main menu");
-	delay(100);
+		cursor(2, 12);
+		print("<< Return to main menu");
+		cursor(2, 13);
+		print("OSD hot key:");
+		cursor(16, 13);
+		if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
+			print("SELECT&START");
+		else
+			print("SELECT&RB");
 
-	int choice = 0;
-	for (;;) {
-		if (joy_choice(12, 1, &choice) == 1)
-			break;
+		delay(100);
+
+		int choice = 0;
+		for (;;) {
+			if (joy_choice(12, 2, &choice, OSD_KEY_CODE) == 1) {
+				if (choice == 0) {
+					return;
+				} if (choice == 1) {
+					option_osd_key = 3-option_osd_key;
+					if (save_option())
+						message("Cannot save options to SD",1);
+				}
+			}
+		}
 	}
 }
 
@@ -393,6 +423,11 @@ int main() {
 	reg_uart_clkdiv = 94;       // 10800000 / 115200
 	overlay(1);
 
+	if (load_option() == 2) {	// file corrupt
+		clear();
+		message("Option file corrupt and is not loaded",1);
+	}
+
 	for (;;) {
 		// main menu
 		clear();
@@ -416,7 +451,7 @@ int main() {
 
 		int choice = 0;
 		for (;;) {
-			int r = joy_choice(12, 2, &choice);
+			int r = joy_choice(12, 2, &choice, OSD_KEY_CODE);
 			if (r == 1) break;
 		}
 

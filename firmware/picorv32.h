@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>     // for atoi()
 
 #define reg_textdisp (*(volatile uint32_t*)0x02000000)
 #define reg_uart_clkdiv (*(volatile uint32_t*)0x02000004)
@@ -24,6 +25,7 @@ extern void print_dec(int v);
 extern int  print(char *s);
 extern void clear();
 extern void overlay(int on);
+extern char *trimwhitespace(char *str);
 
 extern void delay(int ms);
 
@@ -33,7 +35,7 @@ extern void joy_get(int *joy1, int *joy2);
 // display cursor and let user choose using joystick. 
 // this returns immediately
 // 0: no choice from user, 1: user chose *active, 2: next page, 3: previous page
-extern int joy_choice(int start_line, int len, int *active);
+extern int joy_choice(int start_line, int len, int *active, int osd_key_code);
 
 // SD card access
 extern int sd_init();   /* Return 0 on success, non-zero on failure */

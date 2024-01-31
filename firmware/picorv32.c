@@ -1,5 +1,6 @@
 #include "picorv32.h"
 #include <stdarg.h>
+#include <limits.h>
 
 int curx, cury;
 
@@ -118,7 +119,8 @@ void joy_get(int *joy1, int *joy2) {
 }
 
 // (R L X A RT LT DN UP START SELECT Y B)
-int joy_choice(int start_line, int len, int *active) {
+// overlay_key_code: 0xC for SELECT&START, 0x84 for SELECT/RB
+int joy_choice(int start_line, int len, int *active, int overlay_key_code) {
    int joy1, joy2;
    int last = *active;
    joy_get(&joy1, &joy2);
@@ -127,8 +129,8 @@ int joy_choice(int start_line, int len, int *active) {
    // print(" ");
    // print_hex_digits(joy2, 2);
 
-   if ((joy1 == 0xC) || (joy2 == 0xC)) {
-      overlay(!overlay_status());    // SELECT & START to toggle OSD
+   if ((joy1 == overlay_key_code) || (joy2 == overlay_key_code)) {
+      overlay(!overlay_status());    // toggle OSD
       delay(300);
    }
    if (!overlay_status())           // stop responding when OSD is off
@@ -290,4 +292,57 @@ size_t strlen(const char *s) {
       s++;
    }
    return r;
+}
+
+int isspace(int c) {
+	return (c == '\t' || c == '\n' ||
+	    c == '\v' || c == '\f' || c == '\r' || c == ' ' ? 1 : 0);
+}
+
+char *trimwhitespace(char *str) {
+   char *end;
+   // Trim leading space
+   while(isspace((unsigned char)*str)) str++;
+
+   if(*str == 0)  // All spaces?
+      return str;
+
+   // Trim trailing space
+   end = str + strlen(str) - 1;
+   while(end > str && isspace((unsigned char)*end)) end--;
+
+   // Write new null terminator character
+   end[1] = '\0';
+
+   return str;
+}
+
+int atoi(const char *str) {
+   int sign = 1, base = 0, i = 0;
+ 
+   // if whitespaces then ignore.
+   while (str[i] == ' ') {
+      i++;
+   }
+ 
+   // sign of number
+   if (str[i] == '-' || str[i] == '+') {
+      if (str[i] == '-')
+         sign = -1;
+      i++;
+   }
+ 
+   // checking for valid input
+   while (str[i] >= '0' && str[i] <= '9') {
+      // handling overflow test case
+      if (base > INT_MAX / 10
+         || (base == INT_MAX / 10 && str[i] - '0' > 7)) {
+         if (sign == 1)
+            return INT_MAX;
+         else
+            return INT_MIN;
+      }
+      base = 10 * base + (str[i++] - '0');
+   }
+   return sign == -1 ? -base : base;
 }
