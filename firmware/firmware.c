@@ -249,6 +249,7 @@ int menu_loadrom(int *choice) {
 						print("/");
 				}
 			}
+			delay(300);
 			while (1) {
 				int r = joy_choice(TOPLINE, file_len, &active, OSD_KEY_CODE);
 				if (r == 1) {

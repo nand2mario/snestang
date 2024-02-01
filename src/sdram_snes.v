@@ -36,10 +36,10 @@
 // - Delayed write:       READ-WRITE
 //
 // Timings: 
-//    clkref  ‾‾‾‾\_______/‾‾‾‾‾‾‾‾‾\_
-//    cycle   |0|1|2|3|4|5|6|7|0|1|...
-//    request ======|    
-//    dout                      |=====
+//    clkref  ‾‾‾‾\_______/‾‾‾‾‾‾‾\____
+//    cycle   |0|1|2|3|4|5|6|7|0|1|2|3|
+//    request ==|    
+//    dout                          |==
 //
 // Tang SDRAM v1.2 - Winbond W9825G6KH-6 (166CL3, 133CL2). 8K rows, 512 words per row, 
 // 16 bits per word
