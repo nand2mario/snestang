@@ -224,6 +224,8 @@ int load_dir(char *dir, int start, int len, int *count) {
 	return 0;
 }
 
+int loadrom(int rom);
+
 // return 0: user chose a ROM (*choice), 1: no choice made, -1: error
 // file chosen: pwd / file_name[*choice]
 int menu_loadrom(int *choice) {
@@ -273,7 +275,10 @@ int menu_loadrom(int *choice) {
 					} else {
 						// actually load a ROM
 						*choice = active;
-						return 0;
+						if (loadrom(active) != 0) {
+							message("Cannot load rom",1);
+							break;
+						}
 					}
 				}
 				if (r == 2 && page < pages-1) {
@@ -338,21 +343,39 @@ int in_game;
 // typ 0: LoROM, 1: HiROM, 2: ExHiROM
 int parse_snes_header(FIL *fp, int pos, int file_size, int typ, int *map_ctrl, int *rom_size, int *ram_size) {
 	int br;
-	int mc, rom, ram;
 	if (f_lseek(fp, pos))
 		return 1;
-	uint8_t hdr[32];
-	f_read(fp, hdr, 32, &br);
-	if (br != 32) return 1;
-	mc = hdr[21];
-	rom = hdr[23];
-	ram = hdr[24];
+	uint8_t hdr[64];
+	f_read(fp, hdr, 64, &br);
+	if (br != 64) return 1;
+	int mc = hdr[21];
+	int rom = hdr[23];
+	int ram = hdr[24];
+	int checksum = (hdr[28] << 8) + hdr[29];
+	int checksum_compliment = (hdr[30] << 8) + hdr[31];
+	int reset = (hdr[61] << 8) + hdr[60];
 	int size2 = 1024 << rom;
+
 	status("");
 	printf("size=%d", size2);
-	// a lot of test ROMS have rom_size = 1...
-	if (rom < 14 && ram <= 7 && (size2 >= file_size || rom == 1) && (
-		(typ == 0 && (mc & 3) == 0) || 	// normal LoROM
+
+	// calc heuristics score
+	int score = 0;		
+	if (size2 >= file_size) score++;
+	if (rom == 1) score++;
+	if (checksum + checksum_compliment == 0xffff) score++;
+	int all_ascii = 1;
+	for (int i = 0; i < 21; i++)
+		if (hdr[i] < 32 || hdr[i] > 127)
+			all_ascii = 0;
+	score += all_ascii;
+
+	DEBUG("pos=%x, type=%d, map_ctrl=%d, rom=%d, ram=%d, checksum=%x, checksum_comp=%x, reset=%x, score=%d\n", 
+			pos, typ, mc, rom, ram, checksum, checksum_compliment, reset, score);
+
+	if (rom < 14 && ram <= 7 && score >= 1 && 
+		reset >= 0x8000 &&				// reset vector position correct
+	   ((typ == 0 && (mc & 3) == 0) || 	// normal LoROM
 		(typ == 0 && mc == 0x53)    ||	// contra 3 has 0x53 and LoROM
 		(typ == 1 && (mc & 3) == 1) ||	// HiROM
 		(typ == 2 && (mc & 3) == 2))) {	// ExHiROM
@@ -388,6 +411,7 @@ int loadrom(int rom) {
 	int map_ctrl, rom_size, ram_size;
 	// parse SNES header from ROM file
 	int off = size & 0x3ff;		// rom header (0 or 512)
+	DEBUG("off=%d\n", off);
 	r = parse_snes_header(&f, 0x7fc0 + off, size-off, 0, &map_ctrl, &rom_size, &ram_size) &&
 		parse_snes_header(&f, 0xffc0 + off, size-off, 1, &map_ctrl, &rom_size, &ram_size) &&
 		parse_snes_header(&f, 0x40ffc0 + off, size-off, 2, &map_ctrl, &rom_size, &ram_size);
@@ -487,10 +511,7 @@ int main() {
 		if (choice == 0) {
 			int rom;
 			delay(300);
-			if (menu_loadrom(&rom) == 0) {
-				if (loadrom(rom) == 0) {
-				}
-			}
+			menu_loadrom(&rom);
 		} else if (choice == 1) {
 			delay(300);
 			menu_options();
