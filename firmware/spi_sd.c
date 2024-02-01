@@ -17,25 +17,45 @@ uint8_t spi_send(uint8_t x) {
 	return reg_spimaster_byte;		// receive
 }
 
-uint8_t spi_receive() {
-    return spi_send(0xFF);
+uint32_t spi_send_word(uint32_t x) {
+    reg_spimaster_word = x;
+    return reg_spimaster_word;
 }
 
 uint8_t spi_sendrecv(uint8_t x) {
-    spi_send(x);
-    return spi_receive();
+    return spi_send(x);
+}
+
+uint32_t spi_receive_word() {
+    return spi_send_word(0xFFFFFFFF);
+}
+
+uint8_t spi_receive() {
+    return spi_send(0);
 }
 
 void spi_readblock(uint8_t *ptr, int length) {
-    int i;
-    for (i=0;i<length;i++) {
+    int i = 0;
+    if ((((uint32_t)ptr) & 3) == 0) {   // aligned on word boundaries
+        for (; i+4<=length; i+=4) {
+            *(uint32_t *)ptr = spi_receive_word();
+            ptr+=4;
+        }
+    }
+    for (; i<length; i++) {
         *ptr++ = spi_receive();
     }
 }
 
 void spi_writeblock(const uint8_t *ptr, int length) {
-    int i;
-    for (i=0;i<length;i++) {
+    int i = 0;
+    if ((((uint32_t)ptr) & 3) == 0) {   // aligned on word boundaries
+        for (; i+4<=length; i+=4) {
+            spi_send(*(uint32_t *)ptr);
+            ptr += 4;
+        }
+    }
+    for (; i<length; i++) {
         spi_send(*ptr++);
     }
 }
