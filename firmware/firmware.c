@@ -475,7 +475,7 @@ int main() {
 		// f_mount(&fs, "", 0);
 		// print("done");
 
-		delay(100);
+		delay(300);
 
 		int choice = 0;
 		for (;;) {
@@ -485,11 +485,13 @@ int main() {
 
 		if (choice == 0) {
 			int rom;
+			delay(300);
 			if (menu_loadrom(&rom) == 0) {
 				if (loadrom(rom) == 0) {
 				}
 			}
 		} else if (choice == 1) {
+			delay(300);
 			menu_options();
 			continue;
 		}

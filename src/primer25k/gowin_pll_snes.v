@@ -55,6 +55,11 @@ PLLA PLLA_inst (
     .MDWDI({gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd})
 );
 
+//defparam PLLA_inst.CLKOUT2_PE_COARSE = 5;           // 180
+//defparam PLLA_inst.CLKOUT2_PE_FINE = 0;
+defparam PLLA_inst.CLKOUT2_PE_COARSE = 6;           // 228 degrees is best value according to tests
+defparam PLLA_inst.CLKOUT2_PE_FINE = 3;
+
 defparam PLLA_inst.FCLKIN = "27";
 defparam PLLA_inst.IDIV_SEL = 1;
 defparam PLLA_inst.FBDIV_SEL = 1;
@@ -103,8 +108,6 @@ defparam PLLA_inst.CLKOUT0_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT0_PE_FINE = 0;
 defparam PLLA_inst.CLKOUT1_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT1_PE_FINE = 0;
-defparam PLLA_inst.CLKOUT2_PE_COARSE = 6;           // 228 degrees is best value according to tests
-defparam PLLA_inst.CLKOUT2_PE_FINE = 3;
 defparam PLLA_inst.CLKOUT3_PE_COARSE = 0;
 defparam PLLA_inst.CLKOUT3_PE_FINE = 0;
 defparam PLLA_inst.CLKOUT4_PE_COARSE = 0;

@@ -157,32 +157,34 @@ reg [31:0] ram_rdata;
 
 wire        textdisp_reg_char_sel /* synthesis syn_keep=1 */= mem_valid && (mem_addr == 32'h 0200_0000);
 
-wire        simpleuart_reg_div_sel = mem_valid && (mem_addr == 32'h 0200_0004);
+wire        simpleuart_reg_div_sel = mem_valid && (mem_addr == 32'h 0200_0010);
 wire [31:0] simpleuart_reg_div_do;
 
-wire        simpleuart_reg_dat_sel = mem_valid && (mem_addr == 32'h 0200_0008);
+wire        simpleuart_reg_dat_sel = mem_valid && (mem_addr == 32'h 0200_0014);
 wire [31:0] simpleuart_reg_dat_do;
 wire        simpleuart_reg_dat_wait;
 
-wire        simplespimaster_reg_sel = mem_valid && (mem_addr == 32'h0200_000C);
+wire        simplespimaster_reg_byte_sel = mem_valid && (mem_addr == 32'h0200_0020);
+wire        simplespimaster_reg_word_sel = mem_valid && (mem_addr == 32'h0200_0024);
 wire [31:0] simplespimaster_reg_do;
 wire        simplespimaster_reg_wait /* synthesis syn_keep=1 */;
 
-wire        romload_reg_ctrl_sel /* synthesis syn_keep=1 */ = mem_valid && (mem_addr == 32'h 0200_0010);       // write 1 to start loading, 0 to finish loading
-wire        romload_reg_data_sel /* synthesis syn_keep=1 */ = mem_valid && (mem_addr == 32'h 0200_0014);       // write once to load 4 bytes
+wire        romload_reg_ctrl_sel /* synthesis syn_keep=1 */ = mem_valid && (mem_addr == 32'h 0200_0030);       // write 1 to start loading, 0 to finish loading
+wire        romload_reg_data_sel /* synthesis syn_keep=1 */ = mem_valid && (mem_addr == 32'h 0200_0034);       // write once to load 4 bytes
 
-wire        joystick_reg_sel = mem_valid && (mem_addr == 32'h 0200_0018);
+wire        joystick_reg_sel = mem_valid && (mem_addr == 32'h 0200_0040);
 
 assign mem_ready = ram_ready || textdisp_reg_char_sel || simpleuart_reg_div_sel || 
             romload_reg_ctrl_sel || romload_reg_data_sel || joystick_reg_sel ||
             (simpleuart_reg_dat_sel && !simpleuart_reg_dat_wait) ||
-            (simplespimaster_reg_sel && !simplespimaster_reg_wait);
+            ((simplespimaster_reg_byte_sel || simplespimaster_reg_word_sel) && !simplespimaster_reg_wait);
 
 assign mem_rdata = ram_ready ? ram_rdata :
         joystick_reg_sel ? {4'b0, joy2, 4'b0, joy1} :
         simpleuart_reg_div_sel ? simpleuart_reg_div_do :
         simpleuart_reg_dat_sel ? simpleuart_reg_dat_do : 
-        simplespimaster_reg_sel ? simplespimaster_reg_do : 32'h 0000_0000;
+        (simplespimaster_reg_byte_sel | simplespimaster_reg_word_sel) ? simplespimaster_reg_do : 
+        32'h 0000_0000;
 
 picorv32 #(
     // .ENABLE_MUL(1),
@@ -250,11 +252,11 @@ assign sd_dat3 = 0;
 simplespimaster simplespi (
     .clk(wclk), .resetn(resetn),
     .sck(sd_clk), .mosi(sd_cmd), .miso(sd_dat0),
-    .reg_dat_we(simplespimaster_reg_sel ? mem_wstrb[0] : 1'b0),
-    .reg_dat_re(simplespimaster_reg_sel && !mem_wstrb),
-    .reg_dat_di(mem_wdata),
-    .reg_dat_do(simplespimaster_reg_do),
-    .reg_dat_wait(simplespimaster_reg_wait)
+    .reg_byte_we(simplespimaster_reg_byte_sel ? mem_wstrb[0] : 1'b0),
+    .reg_word_we(simplespimaster_reg_word_sel ? mem_wstrb[0] : 1'b0),
+    .reg_di(mem_wdata),
+    .reg_do(simplespimaster_reg_do),
+    .reg_wait(simplespimaster_reg_wait)
 );
 
 // rom loading I/O

@@ -8,15 +8,13 @@
 
 #include "picorv32.h"
 
-#define reg_spimaster (*(volatile uint32_t*)0x0200000C)
-
 // SD over SPI: https://onlinedocs.microchip.com/pr/GUID-F9FE1ABC-D4DD-4988-87CE-2AFD74DEA334-en-US-3/index.html?GUID-48879CB2-9C60-4279-8B98-E17C499B12AF
 // http://www.dejazzer.com/ee379/lecture_notes/lec12_sd_card.pdf
 // https://electronics.stackexchange.com/questions/77417/what-is-the-correct-command-sequence-for-microsd-card-initialization-in-spi
 // send and receive a byte over SPI to sd card
 uint8_t spi_send(uint8_t x) {
-	reg_spimaster = x;			// send
-	return reg_spimaster;		// receive
+	reg_spimaster_byte = x;			// send
+	return reg_spimaster_byte;		// receive
 }
 
 uint8_t spi_receive() {
