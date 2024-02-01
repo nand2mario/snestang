@@ -3342,9 +3342,10 @@ static UINT find_volume (	/* Returns BS status found in the hosting drive */
 	UINT fmt, i;
 	DWORD mbr_pt[4];
 
-	// print("find_volume\n");
+	DEBUG("find_volume: part=%d\n", part);
 
 	fmt = check_fs(fs, 0);				/* Load sector 0 and check if it is an FAT VBR as SFD format */
+	DEBUG("find_volume: part 0 is %d\n", fmt);
 	if (fmt != 2 && (fmt >= 3 || part == 0)) return fmt;	/* Returns if it is an FAT VBR as auto scan, not a BS or disk error */
 
 	/* Sector 0 is not an FAT VBR or forced partition number wants a partition */
@@ -3378,6 +3379,7 @@ static UINT find_volume (	/* Returns BS status found in the hosting drive */
 	i = part ? part - 1 : 0;		/* Table index to find first */
 	do {							/* Find an FAT volume */
 		fmt = mbr_pt[i] ? check_fs(fs, mbr_pt[i]) : 3;	/* Check if the partition is FAT */
+		DEBUG("find_volume: part %d is %d\n", i, fmt);
 	} while (part == 0 && fmt >= 2 && ++i < 4);
 	return fmt;
 }
@@ -3403,7 +3405,7 @@ static FRESULT mount_volume (	/* FR_OK(0): successful, !=0: an error occurred */
 	WORD nrsv;
 	UINT fmt;
 
-	// print("mount_volume\n");
+	DEBUG("start mount_volume\n");
 
 	/* Get logical drive number */
 	*rfs = 0;
@@ -4615,15 +4617,16 @@ FRESULT f_opendir (
 	FATFS *fs;
 	DEF_NAMBUF
 
-	// print("f_opendir\n");
+	DEBUG("f_opendir: path=%s\n", path);
+	// DEBUG("f_opendir\n");
 
 	if (!dp) return FR_INVALID_OBJECT;
 
 	/* Get logical drive */
 	res = mount_volume(&path, &fs, 0);
-	cursor(2, 0);
+	// cursor(2, 0);
 	// printf("mount_volume: %d\n", res);
-	delay(100);
+	// delay(100);
 	if (res == FR_OK) {
 		dp->obj.fs = fs;
 		INIT_NAMBUF(fs);
@@ -4666,7 +4669,7 @@ FRESULT f_opendir (
 		if (res == FR_NO_FILE) res = FR_NO_PATH;
 	}
 	if (res != FR_OK) dp->obj.fs = 0;		/* Invalidate the directory object if function failed */
-
+	DEBUG("f_opendir: %d\n", res);
 	LEAVE_FF(fs, res);
 }
 

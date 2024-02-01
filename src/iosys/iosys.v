@@ -73,6 +73,10 @@ module iosys (
     output flash_spi_wp_n,          // write protect
     output flash_spi_hold_n,        // hold operations
 
+    // UART
+    input uart_rx,
+    output uart_tx,
+
     // SD card
     output sd_clk,
     inout  sd_cmd,                  // MOSI
@@ -81,9 +85,6 @@ module iosys (
     output sd_dat2,                 // 1
     output sd_dat3                  // 0 for SPI mode
 
-    // UART
-    // input UART_RXD,
-    // output UART_TXD,
 );
 
 /* verilator lint_off PINMISSING */
@@ -224,23 +225,23 @@ always @(posedge wclk) begin
 end
 
 // uart @ 0x0200_0004 & 0x200_0008
-// simpleuart simpleuart (
-//     .clk         (wclk         ),
-//     .resetn      (resetn      ),
+//simpleuart simpleuart (
+//    .clk         (wclk         ),
+//    .resetn      (resetn       ),
 
-//     .ser_tx      (UART_TXD      ),
-//     .ser_rx      (UART_RXD      ),
+//    .ser_tx      (uart_tx      ),
+//    .ser_rx      (uart_rx      ),
 
-//     .reg_div_we  (simpleuart_reg_div_sel ? mem_wstrb : 4'b 0000),
-//     .reg_div_di  (mem_wdata),
-//     .reg_div_do  (simpleuart_reg_div_do),
+//    .reg_div_we  (simpleuart_reg_div_sel ? mem_wstrb : 4'b 0000),
+//    .reg_div_di  (mem_wdata),
+//    .reg_div_do  (simpleuart_reg_div_do),
 
-//     .reg_dat_we  (simpleuart_reg_dat_sel ? mem_wstrb[0] : 1'b 0),
-//     .reg_dat_re  (simpleuart_reg_dat_sel && !mem_wstrb),
-//     .reg_dat_di  (mem_wdata),
-//     .reg_dat_do  (simpleuart_reg_dat_do),
-//     .reg_dat_wait(simpleuart_reg_dat_wait)
-// );
+//    .reg_dat_we  (simpleuart_reg_dat_sel ? mem_wstrb[0] : 1'b 0),
+//    .reg_dat_re  (simpleuart_reg_dat_sel && !mem_wstrb),
+//    .reg_dat_di  (mem_wdata),
+//    .reg_dat_do  (simpleuart_reg_dat_do),
+//    .reg_dat_wait(simpleuart_reg_dat_wait)
+//);
 
 // spi sd card @ 0x0200_000c
 assign sd_dat1 = 1;

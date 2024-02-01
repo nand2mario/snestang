@@ -136,20 +136,16 @@ int sd_init() {
     do {
         response = sd_send_command(CMD0_GO_IDLE_STATE, 0);
         if(retries++ > 8) {
-            // CS_H();
+            DEBUG("SD init failure: CMD0\n");
             return -1;
         }
     } while(response != CMD_OK);
-    // printf("CMD0: %d\n", response);
 
     spi_send(0xff);
     spi_send(0xff);
 
     // Set to default to compliance with SD spec 2.x
     sd_version = 2; 
-    // print("Initial sd_version=");
-    // print_dec(sd_version);
-    // print("\n");
 
     // Send CMD8 to check for SD Ver2.00 or later card
     flag = 1;
@@ -157,39 +153,26 @@ int sd_init() {
     do {
         // Request 3.3V (with check pattern)
         response = sd_send_command(CMD8_SEND_IF_COND, CMD8_3V3_MODE_ARG);
-        // print("2: sd_version=");
-        // print_dec(sd_version);
-        // print("\n");
         if(retries++ > 8) {
             // No response then assume card is V1.x spec compatible
             sd_version = 1;
             break;
         }
     } while(response != CMD_OK);
-    // printf("CMD8: %d\n", response);
-    // print("3: sd_version=");
-    // print_dec(sd_version);
-    // print("\n");
    
     retries = 0;
     do {
         // Send CMD55 (APP_CMD) to allow ACMD to be sent
         response = sd_send_command(CMD55_APP_CMD,0);
-        // print("4: sd_version=");
-        // print_dec(sd_version);
-        // print("\n");
         // delay(100);
         // Inform attached card that SDHC support is enabled
         response = sd_send_command(ACMD41_SD_SEND_OP_COND, ACMD41_HOST_SUPPORTS_SDHC);
         if(retries++ > 8) {
 	        // CS_H(1);
+            DEBUG("SD init failure: ACMD41\n");
 	        return -2;
         }
     } while(response != 0x00);
-    // printf("CMD55: %d\n", response);
-    // print("Final sd_version=");
-    // print_dec(sd_version);
-    // print("\n");
 
     // Query card to see if it supports SDHC mode   
     if (sd_version == 2) {
@@ -204,7 +187,7 @@ int sd_init() {
        sdhc_card = 0;
     }
 
-    // printf("SD init complete. sdhc_card=%d, sd_version=%d\n", sdhc_card, sd_version);
+    DEBUG("SD init complete. sdhc_card=%d, sd_version=%d\n", sdhc_card, sd_version);
     return 0;
 }
 
@@ -213,14 +196,14 @@ int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) 
     uint32_t ctrl;
     int retries = 0;
     int i;
-    // printf("sd_readsector: %d %d\n", start_block, sector_count);
+    DEBUG("sd_readsector: %d %d\n", start_block, sector_count);
     if (sector_count == 0)
         return 0;
     while (sector_count--) {
         // Request block read
         response = sd_send_command(CMD17_READ_SINGLE_BLOCK, start_block++);
         if(response != 0x00) {
-            printf("sd_readsector: Bad response %x\n", response);
+            DEBUG("sd_readsector: Bad response %x\n", response);
             return 0;
         }
 
@@ -228,7 +211,7 @@ int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) 
         while(spi_receive() != CMD_START_OF_BLOCK) {
             // Timeout
             if(retries > 5000) {
-                printf("sd_readsector: Timeout\n");
+                DEBUG("sd_readsector: Timeout\n");
                 return 0;
             }
             ++retries;
@@ -254,11 +237,12 @@ int sd_writesector(uint32_t start_block, const uint8_t *buffer, uint32_t sector_
     int retries = 0;
     int i;
 
+    DEBUG("sd_writesector: %d %d\n", start_block, sector_count);
     while (sector_count--) {
         // Request block write
         response = sd_send_command(CMD24_WRITE_SINGLE_BLOCK, start_block++);
         if(response != 0x00) {
-            printf("sd_writesector: Bad response %x\n", response);
+            DEBUG("sd_writesector: Bad response %x\n", response);
             return 0;
         }
 
@@ -277,7 +261,7 @@ int sd_writesector(uint32_t start_block, const uint8_t *buffer, uint32_t sector_
         response = spi_receive(0xFF);
 
         if((response & 0x1f) != CMD_DATA_ACCEPTED) {
-            printf("sd_writesector: Data rejected %x\n", response);
+            DEBUG("sd_writesector: Data rejected %x\n", response);
             return 0;
         }
 
@@ -285,7 +269,7 @@ int sd_writesector(uint32_t start_block, const uint8_t *buffer, uint32_t sector_
         while(spi_sendrecv(0xFF) == 0) {
             // Timeout
 	        if(retries > 5000) {
-                printf("sd_writesector: Timeout\n");
+                DEBUG("sd_writesector: Timeout\n");
                 return 0;
             }
 	        ++retries;
@@ -300,7 +284,7 @@ int sd_writesector(uint32_t start_block, const uint8_t *buffer, uint32_t sector_
         while(spi_sendrecv(0xFF) == 0) {
             // Timeout
             if(retries > 5000) {
-                printf("sd_writesector: Timeout\n");
+                DEBUG("sd_writesector: Timeout\n");
                 return 0;
             }
             ++retries;

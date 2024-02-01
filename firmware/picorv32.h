@@ -5,29 +5,36 @@
 #include <string.h>
 #include <stdlib.h>     // for atoi()
 
+#define DEBUG(...) uart_printf(__VA_ARGS__)
+// #define DEBUG(...) do {} while(0)
+
 #define reg_textdisp (*(volatile uint32_t*)0x02000000)
 #define reg_uart_clkdiv (*(volatile uint32_t*)0x02000004)
-// #define reg_uart_data (*(volatile uint32_t*)0x02000008)
-// #define reg_uart_data (*(volatile uint32_t*)0x02000010)
+#define reg_uart_data (*(volatile uint32_t*)0x02000008)
 #define reg_romload_ctrl (*(volatile uint32_t*)0x02000010)
 #define reg_romload_data (*(volatile uint32_t*)0x02000014)
 #define reg_joystick (*(volatile uint32_t*)0x02000018)
 
 // Standard library for PicoRV32 RV32I softcore
 
-// printing
+// osd printing
 extern void cursor(int x, int y);
 extern int  printf(const char *fmt,...); /* supports %s, %d, %x */
 extern int  getchar();
 extern int  putchar(int c);
 extern void print_hex(uint32_t v);
 extern void print_dec(int v);
-extern int  print(char *s);
+extern int  print(const char *s);
 extern void clear();
 extern void overlay(int on);
 extern char *trimwhitespace(char *str);
-
 extern void delay(int ms);
+
+// uart
+extern void uart_init();    // set baud rate
+extern int uart_putchar(int c);
+extern int uart_print(const char *s);
+extern int uart_printf(const char *fmt,...);
 
 // joystick input
 extern void joy_get(int *joy1, int *joy2);

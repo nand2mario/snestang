@@ -2,6 +2,8 @@
 #include <stdarg.h>
 #include <limits.h>
 
+#define FREQ 10800000
+
 int curx, cury;
 
 void cursor(int x, int y) {
@@ -37,30 +39,50 @@ int putchar(int c)
    }
    return c;
 }
+int uart_putchar(int c);
+int _putchar(int c, int uart) {
+   if (uart)
+      uart_putchar(c);
+   else
+      putchar(c);
+}
 
-int print(char *p)
+int print(const char *p)
 {
 	while (*p)
 		putchar(*(p++));
    return 0;
 }
+int uart_print(const char *p);
+int _print(const char *p, int uart) {
+   if (uart)
+      uart_print(p);
+   else
+      print(p);
+}
 
-void print_hex_digits(uint32_t val, int nbdigits) {
+void _print_hex_digits(uint32_t val, int nbdigits, int uart) {
    for (int i = (4*nbdigits)-4; i >= 0; i -= 4) {
-      putchar("0123456789ABCDEF"[(val >> i) % 16]);
+      _putchar("0123456789ABCDEF"[(val >> i) % 16], uart);
    }
 }
-
-void print_hex(uint32_t val) {
-   print_hex_digits(val, 8);
+void print_hex_digits(uint32_t val, int nbdigits) {
+   _print_hex_digits(val, nbdigits, 0);
 }
 
-void print_dec(int val) {
+void _print_hex(uint32_t val, int uart) {
+   _print_hex_digits(val, 8, uart);
+}
+void print_hex(uint32_t val) {
+   _print_hex(val, 0);
+}
+
+void _print_dec(int val, int uart) {
    char buffer[255];
    char *p = buffer;
    if(val < 0) {
-      putchar('-');
-      print_dec(-val);
+      _putchar('-', uart);
+      _print_dec(-val, uart);
       return;
    }
    while (val || p == buffer) {
@@ -68,30 +90,38 @@ void print_dec(int val) {
       val = val / 10;
    }
    while (p != buffer) {
-      putchar('0' + *(--p));
+      _putchar('0' + *(--p), uart);
    }
 }
+void print_dec(int val) {
+   _print_dec(val, 0);
+}
+
+int _printf(const char *fmt, va_list ap, int uart) {
+    for(;*fmt;fmt++) {
+        if(*fmt=='%') {
+            fmt++;
+                 if(*fmt=='s') _print(va_arg(ap,char *), uart);
+            else if(*fmt=='x') _print_hex(va_arg(ap,int), uart);
+            else if(*fmt=='d') _print_dec(va_arg(ap,int), uart);
+            else if(*fmt=='c') _putchar(va_arg(ap,int), uart);	   
+            else if(*fmt=='b') _print_hex_digits(va_arg(ap,int), 2, uart);	      // byte
+            else if(*fmt=='w') _print_hex_digits(va_arg(ap,int), 4, uart);	      // 16-bit word
+            else _putchar(*fmt, uart);
+        } else 
+            _putchar(*fmt, uart);
+    }
+    return 0;
+}
+
 
 int printf(const char *fmt,...)
 {
-    va_list ap;
-
-    for(va_start(ap, fmt);*fmt;fmt++) {
-        if(*fmt=='%') {
-            fmt++;
-                 if(*fmt=='s') print(va_arg(ap,char *));
-            else if(*fmt=='x') print_hex(va_arg(ap,int));
-            else if(*fmt=='d') print_dec(va_arg(ap,int));
-            else if(*fmt=='c') putchar(va_arg(ap,int));	   
-            else if(*fmt=='b') print_hex_digits(va_arg(ap,int), 2);	      // byte
-            else if(*fmt=='w') print_hex_digits(va_arg(ap,int), 4);	      // 16-bit word
-            else putchar(*fmt);
-        } else 
-            putchar(*fmt);
-    }
-    va_end(ap);
-
-    return 0;
+   va_list ap;
+   va_start(ap, fmt);
+   _printf(fmt, ap, 0);
+   va_end(ap);
+   return 0;
 }
 
 void clear() {
@@ -101,6 +131,31 @@ void clear() {
          putchar(' ');
    }
 }
+
+void uart_init() {
+   // "system clock frequency divided by the baud rate"
+   reg_uart_clkdiv = 93; // FREQ / 115200;
+}
+
+int uart_putchar(int c) {
+   reg_uart_data = c;
+   return c;
+}
+
+int uart_print(const char *s) {
+	while (*s)
+		_putchar(*(s++), 1);   
+   return 0;
+}
+
+int uart_printf(const char *fmt,...) {
+   va_list ap;
+   va_start(ap, fmt);
+   _printf(fmt, ap, 1);
+   va_end(ap);
+   return 0;   
+}
+
 
 int delay_count;
 void delay(int ms) {
@@ -166,24 +221,6 @@ void snes_ctrl(uint32_t ctrl) {
 extern void snes_data(uint32_t data) {
    reg_romload_data = data;
 }
-
-// char getchar_prompt(char *prompt)
-// {
-// 	int32_t c = -1;
-
-// 	if (prompt)
-// 		print(prompt);
-
-// 	while (c == -1) {
-// 		c = reg_uart_data;
-// 	}
-// 	return c;
-// }
-
-// int getchar()
-// {
-// 	return getchar_prompt(0);
-// }
 
 /* 
  * Needed to prevent the compiler from recognizing memcpy in the

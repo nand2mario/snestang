@@ -444,14 +444,16 @@ int main() {
 	reg_uart_clkdiv = 94;       // 10800000 / 115200
 	overlay(1);
 
+	uart_init();		// init UART output for DEBUG(...)
+
 	f_mount(&fs, "", 0);
 	int r = load_option();
 	if (r == 2) {	// file corrupt
 		clear();
 		message("Option file corrupt and is not loaded",1);
-	} else if (r == 1) {
-		clear();
-		message("Cannot open option file",1);
+	} else if (r == 1) {	// file not exist
+		// clear();
+		// message("Cannot open option file",1);
 	}
 
 	for (;;) {
