@@ -105,7 +105,6 @@ reg [7:0] HDMAEN;
 reg MEMSEL;
 reg [15:0] RDDIV, RDMPY;
 
-reg IRQ_FLAG_RST, IRQ_FLAG_RSTr;
 reg NMI_FLAG, IRQ_FLAG;
 reg MUL_REQ, DIV_REQ;
 reg REFRESHED;
@@ -113,7 +112,8 @@ reg [3:0] MUL_CNT;
 reg [22:0] MATH_TEMP;
 reg HBLANKr, HBLANKrr;
 reg VBLANKr, VBLANKrr;
-reg IRQ_VALIDr;
+reg HIRQ_VALID, VIRQ_VALID, IRQ_VALID;
+reg IRQ_LOCK, IRQ_VALID_OLD;
 
 // DMA registers
 // Direction (D), indirect HDMA (I), address increment mode (A), transfer pattern (P).
@@ -326,7 +326,6 @@ assign IO_SEL = P65_EN == 1'b1 && P65_A[22] == 1'b0 && P65_A[15:10] == 6'b010000
             && (P65_VPA == 1'b1 || P65_VDA == 1'b1) ? 1'b1 : 1'b0;  //$00-$3F/$80-$BF:$4000-$43FF
 
 // NMI/IRQ
-
 always @(posedge WCLK) begin
     if(RST_N == 1'b0) begin
       HVIRQ_EN <= 2'b0;
@@ -344,7 +343,6 @@ always @(posedge WCLK) begin
       VTIME <= 9'b1_1111_1111;
       NMI_FLAG <= 1'b0;
       VBLANKrr <= 1'b0;
-      IRQ_FLAG_RST <= 1'b0;
       MUL_REQ <= 1'b0;
       DIV_REQ <= 1'b0;
       MUL_CNT <= 4'b0;
@@ -381,16 +379,12 @@ always @(posedge WCLK) begin
             DIV_REQ <= 1'b0;
         end
 
-        IRQ_FLAG_RST <= 1'b0;
-        if (P65_A[15:8] == 8'h42 && IO_SEL == 1'b1) begin
-          if(P65_WE_N == 1'b0) begin
+        if (P65_A[15:8] == 8'h42 && ~P65_WE_N && IO_SEL == 1'b1) begin
             case (P65_A[7:0])
             8'h00 : begin
               NMI_EN <= P65_DO[7];
               HVIRQ_EN <= P65_DO[5:4];
               AUTO_JOY_EN <= P65_DO[0];
-              if(P65_DO[5:4] == 2'b00)
-                IRQ_FLAG_RST <= 1'b1;
             end
             8'h01 :
               WRIO <= P65_DO;
@@ -432,11 +426,6 @@ always @(posedge WCLK) begin
               MEMSEL <= P65_DO[0];
             default : begin end
             endcase
-
-          end else begin
-            if (P65_A[7:0] == 8'h11)
-              IRQ_FLAG_RST <= 1'b1;
-          end
         end
     end
 end
@@ -589,30 +578,60 @@ end
 // IRQ
 // always @(negedge RST_N, negedge DOT_CLK) begin : P3
 always @(posedge WCLK) begin : P3
-    reg IRQ_VALID;
-
+    reg TIMEUP_READ, HVIRQ_DISABLE;
     if(RST_N == 1'b0) begin
-      IRQ_FLAG <= 1'b0;
-      IRQ_VALIDr <= 1'b0;
-      IRQ_FLAG_RSTr <= 1'b0;
+      IRQ_FLAG <= 0;
+      HIRQ_VALID <= 0;
+      VIRQ_VALID <= 0;
+      IRQ_VALID <= 0;
+      IRQ_VALID_OLD <= 0;
+      IRQ_LOCK <= 0;
     end else begin
-      if(ENABLE && DOT_CLK_CE) begin
-        if(HVIRQ_EN == 2'b01 && H_CNT == (HTIME))       //H-IRQ:  every scanline, H=HTIME+~3.5
-          IRQ_VALID = 1'b1;
-        else if(HVIRQ_EN == 2'b10 && V_CNT == (VTIME))  //V-IRQ:  V=VTIME, H=~2.5--H_CNT <= 4 and
-          IRQ_VALID = 1'b1;
-        else if(HVIRQ_EN == 2'b11 && H_CNT == (HTIME) && V_CNT == (VTIME))
-                                                        //HV-IRQ: V=VTIME, H=HTIME+~3.5
-          IRQ_VALID = 1'b1;
-        else
-          IRQ_VALID = 1'b0;
+      if (P65_WE_N && P65_A[15:0] == 16'h4211 && IO_SEL)
+        TIMEUP_READ = 1;
+      else
+        TIMEUP_READ = 0;
+      if (~P65_WE_N && P65_A[15:0] == 16'h4200 && IO_SEL && P65_DO[5:4] == 2'b00) 
+        HVIRQ_DISABLE = 1;
+      else
+        HVIRQ_DISABLE = 0;
+      
+      if (ENABLE) begin
+        if (DOT_CLK_CE) begin
+          if (H_CNT == HTIME+1 || HVIRQ_EN == 2'b10)
+            HIRQ_VALID <= 1;
+          else
+            HIRQ_VALID <= 0;
 
-        IRQ_VALIDr <= IRQ_VALID;
-        IRQ_FLAG_RSTr <= IRQ_FLAG_RST;
-        if(IRQ_FLAG == 1'b0 && IRQ_VALID == 1'b1 && IRQ_VALIDr == 1'b0)
-          IRQ_FLAG <= 1'b1;
-        else if(IRQ_FLAG == 1'b1 && IRQ_FLAG_RST == 1'b1 && IRQ_FLAG_RSTr == 1'b0)
-          IRQ_FLAG <= 1'b0;
+          if (V_CNT == VTIME)
+            VIRQ_VALID <= 1;
+          else
+            VIRQ_VALID <= 0;
+
+          if (HVIRQ_EN == 2'b01 && HIRQ_VALID)       //H-IRQ:  every scanline, H=HTIME+~3.5
+            IRQ_VALID <= 1'b1;
+          else if (HVIRQ_EN == 2'b10 && HIRQ_VALID && VIRQ_VALID)  //V-IRQ:  V=VTIME, H=~2.5--H_CNT <= 4 and
+            IRQ_VALID <= 1'b1;
+          else if (HVIRQ_EN == 2'b11 && HIRQ_VALID && V_CNT == VTIME)
+            IRQ_VALID <= 1'b1;                        //HV-IRQ: V=VTIME, H=HTIME+~3.5
+          else
+            IRQ_VALID <= 1'b0;
+
+          IRQ_VALID_OLD <= IRQ_VALID;
+          IRQ_LOCK <= 0;
+        end
+
+        if (HVIRQ_EN != 2'b00 && IRQ_VALID && ~IRQ_VALID_OLD && DOT_CLK_CE) begin
+          IRQ_FLAG <= 1;
+          IRQ_LOCK <= 1;
+        end else if (TIMEUP_READ && ~IRQ_LOCK && SYSCLKF_CE) 
+          IRQ_FLAG <= 0;
+      
+        if (HVIRQ_DISABLE && SYSCLKF_CE)
+          IRQ_FLAG <= 0;
+        
+        if (~HBLANK && HBLANKr)
+          VIRQ_VALID <= 1'b0;
       end
     end
 end

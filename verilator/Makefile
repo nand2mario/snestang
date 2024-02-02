@@ -48,7 +48,7 @@ trace: ./obj_dir/V$N
 trace2: ./obj_dir/V$N
 	@echo
 	@echo "### SIMULATION (trace) ###"
-	@cd obj_dir && ./V$N -t -c 30000000
+	@cd obj_dir && ./V$N -t -c 50000000
 
 gtkwave:
 	gtkwave obj_dir/waveform.vcd

@@ -8,7 +8,7 @@ parameter [8:0] LINE_VSYNC_NTSC = 9'b011101100; // 236
 parameter [8:0] LINE_VSYNC_PAL = 9'b100000100;  // 260
 
 parameter [8:0] HSYNC_START = 9'b100101000;     // 296
-parameter [8:0] VSYNC_I_HSTART = 9'b001111110;  // 136
+parameter [8:0] VSYNC_I_HSTART = 9'b001111110;  // 126
 
 parameter [1:0] BG1 = 0, BG2 = 1, BG3 = 2, BG4 = 3;
 
