@@ -10,7 +10,7 @@ module sdram_sim
 	input             cpu_port,
 	output reg [15:0] cpu_port0,    // output register for bank 0
 	output reg [15:0] cpu_port1,    // output register for bank 1
-	input      [23:1] cpu_addr,     // 16MB memory space
+	input      [22:1] cpu_addr,     // 16MB memory space
 	input             cpu_rd,
 	input             cpu_wr,
 	input       [1:0] cpu_ds,       // byte enable
@@ -32,11 +32,11 @@ module sdram_sim
     output reg        busy
 );
 
-reg [15:0] mem_cpu [8*1024*1024];       // max 16MB
+reg [15:0] mem_cpu [4*1024*1024];       // max 8MB
 reg [15:0] mem_aram [32*1024];          // 64KB
 reg [15:0] mem_bsram[64*1024];           // max 128KB
 
-initial $readmemh("random_8m_words.hex", mem_cpu);
+initial $readmemh("random_4m_words.hex", mem_cpu);
 
 always @(posedge clkref) begin
     if (cpu_wr) begin

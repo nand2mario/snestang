@@ -211,6 +211,7 @@ always @(posedge wclk) begin        // wait until memory initialize to start SNE
 end
 
 wire sysclkf_ce, sysclkr_ce;
+wire overlay;
 
 main main (
     .WCLK(wclk), .SMPCLK(smpclk), .RESET_N(resetn & ~loading), .ENABLE(enable), 
@@ -241,7 +242,7 @@ main main (
 	.DOTCLK(dotclk), .RGB_OUT(rgb_out), .HBLANKn(hblankn),
 	.VBLANKn(vblankn), .X_OUT(x_out), .Y_OUT(y_out),
 
-    .JOY1_DI(joy1_di | overlay), .JOY2_DI(joy2_di | overlay), .JOY_STRB(joy_strb), 
+    .JOY1_DI(overlay?2'b11:joy1_di), .JOY2_DI(overlay?2'b11:joy2_di), .JOY_STRB(joy_strb), 
     .JOY1_CLK(joy1_clk), .JOY2_CLK(joy2_clk), 
 
     .AUDIO_L(audio_l), .AUDIO_R(audio_r), .AUDIO_READY(audio_ready), .AUDIO_EN(audio_en),
@@ -358,7 +359,7 @@ assign sdram_busy = 0;
 sdram_sim sdram(
     .clkref(wclk), .resetn(resetn), .busy(),
     // CPU access
-    .cpu_addr(cpu_addr[23:1]), .cpu_din(cpu_din), .cpu_port(cpu_port), 
+    .cpu_addr(cpu_addr[22:1]), .cpu_din(cpu_din), .cpu_port(cpu_port), 
     .cpu_port0(cpu_port0), .cpu_port1(cpu_port1), .cpu_rd(cpu_rd), 
     .cpu_wr(cpu_wr), .cpu_ds(cpu_ds),
     // BSRAM accesses
@@ -470,7 +471,7 @@ test_loader test_loader (
     .map_ctrl(rom_type), .rom_size(rom_size),
     .rom_mask(rom_mask), .ram_mask(ram_mask),
     
-    .loading(loading), .fail(loader_fail)
+    .loading(loading), .fail()
 );
 
 // test audio sink: FIFO-like rate limiting to sound sample generation

@@ -32,7 +32,7 @@ verilate: ./obj_dir/V$N.cpp
 	cp -a $D/roms obj_dir
 #	cp -a $D/spc700/mcode.bin obj_dir
 #	cp -a $D/65C816/mcode_65c816*.bin obj_dir
-	test -s obj_dir/random_8m_words.hex || hexdump -vn16777216 -e '8/2 "%04x ""\n"' /dev/random > obj_dir/random_8m_words.hex
+	test -s obj_dir/random_4m_words.hex || hexdump -vn8388608 -e '8/2 "%04x ""\n"' /dev/random > obj_dir/random_4m_words.hex
 
 sim: ./obj_dir/V$N
 	@echo
