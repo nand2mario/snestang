@@ -18,11 +18,16 @@ module test_loader (
 // PeterLemon tests, 32KB
 // localparam SIZE = 33280;
 // localparam string FILE = "roms/CPUADC.hex";
+// localparam string FILE = "roms/SPC700ADC.hex";
 
 // 64KB ROMS
-// localparam SIZE=66048;
+localparam SIZE=66048;
 // localparam string FILE = "roms/sram_4.hex";
 // localparam string FILE = "roms/hvdma_max.hex";
+// localparam string FILE = "roms/div_behavior.hex";
+// localparam string FILE = "roms/div_timings.hex";
+localparam string FILE = "roms/mul_behavior.hex";
+// localparam string FILE = "roms/mul_timings.hex";
 
 // 96KB ROMS
 // localparam SIZE = 98816;
@@ -35,15 +40,19 @@ module test_loader (
 // localparam string FILE = "roms/hello2.hex";
 // localparam string FILE = "roms/textbuffer-hello-world.hex";  // not working
 // localparam string FILE = "roms/Perspective.hex";
+// localparam string FILE = "roms/test_dmavalid.hex";
+// localparam string FILE = "roms/test_irq4200.hex";
+// localparam string FILE = "roms/test_math.hex";
+// localparam string FILE = "roms/demo_irq.hex";
 
 // 512KB roms
 // localparam SIZE = 524800;
 // localparam string FILE = "roms/inidisp_extend_vblank.hex";
 
 // 256KB ROMS
-localparam SIZE = 262656;
+// localparam SIZE = 262656;
 // localparam string FILE = "roms/snes_10.hex";
-localparam string FILE = "roms/hdma-textbox-wipe.hex";
+// localparam string FILE = "roms/hdma-textbox-wipe.hex";
 // localparam string FILE = "roms/window-precalculated-symmetrical.hex";
 // localparam string FILE = "roms/gradient-test.hex";
 

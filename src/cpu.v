@@ -359,7 +359,7 @@ always @(posedge WCLK) begin
         else if(P65_WE_N == 1'b1 && P65_A[15:0] == 16'h4210 && IO_SEL == 1'b1)
           NMI_FLAG <= 1'b0;
 
-        if(MUL_REQ == 1'b1) begin
+        if(MUL_REQ == 1'b1) begin   // long multiplication (8 cycles)
           if(RDDIV[0] == 1'b1)
             RDMPY <= (RDMPY) + (MATH_TEMP[15:0]);
           RDDIV <= {1'b0, RDDIV[15:1]};
@@ -369,7 +369,7 @@ always @(posedge WCLK) begin
             MUL_REQ <= 1'b0;
         end
 
-        if (DIV_REQ == 1'b1) begin
+        if (DIV_REQ == 1'b1) begin  // long division (16 cycles)
           if ({7'b0, RDMPY} >= MATH_TEMP) begin
             RDMPY <= (RDMPY) - (MATH_TEMP[15:0]);
             RDDIV <= {RDDIV[14:0],1'b1};
@@ -397,24 +397,28 @@ always @(posedge WCLK) begin
             8'h02 :
               WRMPYA <= P65_DO;
             8'h03 : begin
-              WRMPYB <= P65_DO;
+              // WRMPYB <= P65_DO;
               RDMPY <= 16'b0;
-              RDDIV <= {P65_DO,WRMPYA};
-              MATH_TEMP <= {15'b0, P65_DO};
-              MUL_CNT <= 4'b0;
-              MUL_REQ <= 1'b1;
+              if (~MUL_REQ && ~DIV_REQ) begin
+                RDDIV <= {P65_DO,WRMPYA};
+                MATH_TEMP <= {15'b0, P65_DO};
+                MUL_CNT <= 4'b0;
+                MUL_REQ <= 1'b1;                
+              end
             end
             8'h04 :
               WRDIVA[7:0] <= P65_DO;
             8'h05 :
               WRDIVA[15:8] <= P65_DO;
             8'h06 : begin
-              WRDIVB <= P65_DO;
+              // WRDIVB <= P65_DO;
               RDMPY <= WRDIVA;
-              RDDIV <= 16'b0;
-              MATH_TEMP <= {P65_DO,15'b0};
-              MUL_CNT <= 4'b0;
-              DIV_REQ <= 1'b1;
+              if (~DIV_REQ && ~MUL_REQ) begin
+                // RDDIV <= 16'b0;
+                MATH_TEMP <= {P65_DO,15'b0};
+                MUL_CNT <= 4'b0;
+                DIV_REQ <= 1'b1;                
+              end
             end
             8'h07 :
               HTIME[7:0] <= P65_DO;
