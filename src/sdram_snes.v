@@ -252,7 +252,7 @@ always @(posedge clk) begin
                 end else if (bsram_rd | bsram_wr) begin
                     cmd_next <= CMD_BankActivate;
                     ba_next <= 2'b00;
-                    a_next <= {3'b111_000, bsram_addr[16:10]};  // BSRAM uses 128KB starting from 7MB
+                    a_next <= {6'b111_000, bsram_addr[16:10]};  // BSRAM uses 128KB starting from 7MB
                     is_read = bsram_rd;
                     channel0_active <= 1;
                 end else if (rv_rd | rv_wr) begin
