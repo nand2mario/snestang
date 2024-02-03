@@ -15,7 +15,7 @@ Detailed [step-by-step instructions](doc/installation.md).
 Quick instructions for experienced users:
 * Get a Tang Primer 25K with 4 modules: Tang sdram, DVI, Dualshock2, SD and a pair of dualshock controllers. Currently these should cost ~$60 in total. Plug in the modules as shown above. Also make sure the sdram module is in the right direction (The side labeled "this side faces outwards" should face away from the board).
 * Download a [SNESTang release](https://github.com/nand2mario/snestang/releases), and program `snestang.fs` to the board with Gowin programmer.
-* Since 0.3, a firmware program also needs to be program to the board. Program `firmware.bin` to address `0x500000` of the on-board flash. See [this screenshot](doc/images/programmer_firmware.png) for how to do it.
+* Since 0.3, a firmware program also needs to be programmed to the board. Program `firmware.bin` to address `0x500000` of the on-board flash. See [this screenshot](doc/images/programmer_firmware.png) for how to do it.
 * Put your .sfc or .smc roms on a MicroSD card. Note that 0.2 and earlier version only support FAT32. 0.3 and later supports FAT16, FAT32 and exFAT.
 * Connect one or two DualShock2 controllers to the DS2 pmod.
 * Insert the MicroSD card, connect an HDMI monitor or TV, and enjoy your games.
@@ -24,7 +24,7 @@ The project is still in early stages and some games do not work. Here are a few 
 
 ## Development
 
-You can build the code with Gowin IDE 1.9.9 Beta-4 Education version. The education version does not require a license. Just open the project file snestang_primer25k.gprj.
+I am developing with Gowin IDE 1.9.9 Pro version. It requires a free license. Just open the project file snestang_primer25k.gprj.
 
 Read the [design notes](doc/design.md) to understand the code or to add features.
 
