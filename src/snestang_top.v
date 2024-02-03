@@ -7,7 +7,7 @@
 
 module snestang_top (
     input sys_clk,
-    input s0,                       // s0 to switch to led group 2
+    input s0,                     
 
     // UART
     input UART_RXD,
@@ -26,9 +26,9 @@ module snestang_top (
     output sd_clk,
     inout  sd_cmd,      // MOSI
     input  sd_dat0,     // MISO
-    output sd_dat1,     // 1
-    output sd_dat2,     // 1
-    output sd_dat3,     // 1
+    output sd_dat1,
+    output sd_dat2,
+    output sd_dat3,
 
     // SPI flash
     output flash_spi_cs_n,          // chip select
@@ -57,7 +57,7 @@ module snestang_top (
     output O_sdram_wen_n,           // write enable
     inout [15:0] IO_sdram_dq,       // 16 bit bidirectional data bus
     output [12:0] O_sdram_addr,     // 13 bit multiplexed address bus
-    output [1:0] O_sdram_ba,         // 4 banks
+    output [1:0] O_sdram_ba,        // 4 banks
     output [3:0] O_sdram_dqm        // 32/4
 );
 
@@ -219,28 +219,28 @@ main main (
 
     .ROM_TYPE(rom_type), .ROM_MASK(rom_mask), .RAM_MASK(ram_mask),
 
- 	.ROM_ADDR(ROM_ADDR), .ROM_D(ROM_D), .ROM_Q(ROM_Q),
-	.ROM_CE_N(ROM_CE_N), .ROM_OE_N(ROM_OE_N), .ROM_WE_N(ROM_WE_N),
-	.ROM_WORD(ROM_WORD),
+     .ROM_ADDR(ROM_ADDR), .ROM_D(ROM_D), .ROM_Q(ROM_Q),
+    .ROM_CE_N(ROM_CE_N), .ROM_OE_N(ROM_OE_N), .ROM_WE_N(ROM_WE_N),
+    .ROM_WORD(ROM_WORD),
 
-	.BSRAM_ADDR(BSRAM_ADDR), .BSRAM_D(BSRAM_D),	.BSRAM_Q(BSRAM_Q),
-	.BSRAM_CE_N(BSRAM_CE_N), .BSRAM_OE_N(BSRAM_OE_N), .BSRAM_WE_N(BSRAM_WE_N),
-	.BSRAM_RD_N(BSRAM_RD_N),
+    .BSRAM_ADDR(BSRAM_ADDR), .BSRAM_D(BSRAM_D),	.BSRAM_Q(BSRAM_Q),
+    .BSRAM_CE_N(BSRAM_CE_N), .BSRAM_OE_N(BSRAM_OE_N), .BSRAM_WE_N(BSRAM_WE_N),
+    .BSRAM_RD_N(BSRAM_RD_N),
 
-	.WRAM_ADDR(WRAM_ADDR), .WRAM_D(WRAM_D),	.WRAM_Q(WRAM_SD_Q),
-	.WRAM_CE_N(WRAM_CE_N), .WRAM_OE_N(WRAM_OE_N), .WRAM_WE_N(WRAM_WE_N),
-	.WRAM_RD_N(WRAM_RD_N),
+    .WRAM_ADDR(WRAM_ADDR), .WRAM_D(WRAM_D),	.WRAM_Q(WRAM_SD_Q),
+    .WRAM_CE_N(WRAM_CE_N), .WRAM_OE_N(WRAM_OE_N), .WRAM_WE_N(WRAM_WE_N),
+    .WRAM_RD_N(WRAM_RD_N),
 
-	.VRAM1_ADDR(VRAM1_ADDR), .VRAM1_DI(VRAM1_Q), .VRAM1_DO(VRAM1_D),
-	.VRAM1_WE_N(VRAM1_WE_N), .VRAM2_ADDR(VRAM2_ADDR), .VRAM2_DI(VRAM2_Q),
-	.VRAM2_DO(VRAM2_D), .VRAM2_WE_N(VRAM2_WE_N), .VRAM_OE_N(VRAM_OE_N),
+    .VRAM1_ADDR(VRAM1_ADDR), .VRAM1_DI(VRAM1_Q), .VRAM1_DO(VRAM1_D),
+    .VRAM1_WE_N(VRAM1_WE_N), .VRAM2_ADDR(VRAM2_ADDR), .VRAM2_DI(VRAM2_Q),
+    .VRAM2_DO(VRAM2_D), .VRAM2_WE_N(VRAM2_WE_N), .VRAM_OE_N(VRAM_OE_N),
 
     .ARAM_ADDR(ARAM_ADDR), .ARAM_Q(ARAM_Q), .ARAM_D(ARAM_D), 
     .ARAM_CE_N(ARAM_CE_N), .ARAM_OE_N(ARAM_OE_N), .ARAM_WE_N(ARAM_WE_N),
 
-	.BLEND(BLEND), .PAL(PAL), .HIGH_RES(), .FIELD(), .INTERLACE(),
-	.DOTCLK(dotclk), .RGB_OUT(rgb_out), .HBLANKn(hblankn),
-	.VBLANKn(vblankn), .X_OUT(x_out), .Y_OUT(y_out),
+    .BLEND(BLEND), .PAL(PAL), .HIGH_RES(), .FIELD(), .INTERLACE(),
+    .DOTCLK(dotclk), .RGB_OUT(rgb_out), .HBLANKn(hblankn),
+    .VBLANKn(vblankn), .X_OUT(x_out), .Y_OUT(y_out),
 
     .JOY1_DI(overlay?2'b11:joy1_di), .JOY2_DI(overlay?2'b11:joy2_di), .JOY_STRB(joy_strb), 
     .JOY1_CLK(joy1_clk), .JOY2_CLK(joy2_clk), 
@@ -423,8 +423,8 @@ snes2hdmi s2h(
     .overlay_color(overlay_color), 
     .audio_l(audio_l), .audio_r(audio_r), .audio_ready(audio_ready), .audio_en(audio_en),
     .clk_pixel(hclk),.clk_5x_pixel(hclk5),.locked(1'b1),
-	.tmds_clk_n(tmds_clk_n), .tmds_clk_p(tmds_clk_p),
-	.tmds_d_n(tmds_d_n), .tmds_d_p(tmds_d_p)
+    .tmds_clk_n(tmds_clk_n), .tmds_clk_p(tmds_clk_p),
+    .tmds_d_n(tmds_d_n), .tmds_d_p(tmds_d_p)
 );
 
 // IOSys for menu, rom loading...
@@ -527,105 +527,35 @@ reg [11:0] reached;
 // LED control
 assign led = ~s0 ? ~(reached[9:5]) : ~{reached[4:0]};
 
-// PC markers for snes_10
-always @(posedge wclk) begin
-    if (loading) begin
-        if (cpu_addr == 24'h00000A)
-            reached[0] <= 1'b1; // reach_reset_vector <= 1'b1;
-        if (cpu_addr == 24'h000645)
-            reached[1] <= 1'b1; // MAIN
-        if (cpu_addr == 24'h0006BC)
-            reached[2] <= 1'b1; // draw_map_loop
-        if (cpu_addr == 24'h00072A)
-            reached[3] <= 1'b1; // init_music
-        if (cpu_addr == 24'h0003B8)
-            reached[4] <= 1'b1; // SPC_Load_Data
-        if (cpu_addr == 24'h00073B)
-            reached[5] <= 1'b1; // SPC_Stereo
-        if (cpu_addr == 24'h000747)
-            reached[6] <= 1'b1; // SPC_Play_Song
-        if (cpu_addr == 24'h000752)
-            reached[7] <= 1'b1; // INIDISP
-        if (cpu_addr == 24'h00075F)
-            reached[8] <= 1'b1; // infinite_loop
-        if (cpu_addr == 24'h0008A9)
-            reached[9] <= 1'b1; // draw_sprites
-        if (cpu_addr == 24'h000874)
-            reached[10] <= 1'b1;    // handle_collision
-        if (cpu_addr == 24'hcccccc)
-            reached[11] <= 1'b1;
-    end
-end
+// a simple memory access logger
+// localparam mlog_len = 16;
+// reg [23:0] mlog_a[0:mlog_len-1];
+// reg [7:0] mlog_q[0:mlog_len-1];
+// reg [$clog2(mlog_len)-1:0] mlog_i = 0;
+// reg mlog_active;
 
-// PC markers for roms/hello
-// always @(posedge wclk) begin
-//     case (ROM_ADDR)
-//     24'h007ffc: reached[0] <= 1; // reach_reset_vector <= 1'b1;
-//     24'h000016: reached[1] <= 1; // reach_start <= 1'b1;
-//     24'h00001C: reached[2] <= 1; // reach_ldx33 <= 1'b1;
-//     24'h0000B9: reached[3] <= 1; // reach_clearvram <= 1'b1;
-//     24'h0000E3: reached[4] <= 1; // reach_startdma <= 1'b1;
-//     24'h0000E9: reached[5] <= 1; // reach_enddma <= 1'b1;
-//     24'h0000EC: reached[6] <= 1; // reach_rts <= 1'b1;
-//     24'h000030: reached[7] <= 1; // reach_set_palette <= 1'b1;
-//     24'h00006E: reached[8] <= 1; // reach_charset_loop <= 1'b1;
-//     24'h00007D: reached[9] <= 1; // reach_string_loop <= 1'b1;
-//     24'h0000A5: reached[10] <= 1; // reach_wai <= 1'b1;
-//     default: ;
-//     endcase
-// end
+// reg cpu_rd_r;
+// reg [23:0] cpu_addr_r;
 
-// PC markers for roms/effects/hdma-textbox-wipe
 // always @(posedge wclk) begin
-//     if (sysclkf_ce) begin
-//     case (ROM_ADDR)
-//     24'h007ffc: reached[0] <= 1; // reach_reset_vector <= 1'b1;
-//     24'h000000: reached[1] <= 1; // resethandler
-//     24'h000049: reached[2] <= 1; // ClearVramAndCgram
-//     24'h00003C: reached[3] <= 1; // dma
-//     24'h000045: reached[4] <= 1; // end of dma
-//     24'h0003A2: reached[5] <= 1; // main
-//     24'h0003AB: reached[6] <= 1; // SetupPpu
-//     24'h0003B4: reached[7] <= 1; // Finished SetupHdma
-//     24'h000236: reached[8] <= 1; // WaitFrame
-//     24'h0003C4: reached[9] <= 1; // MainLoop
-//     24'h00027F: reached[10] <= 1; // Process
-//     24'h0003CA: reached[11] <= 1; // JMP MainLoop
-//     default: ;
-//     endcase
+//     cpu_rd_r <= cpu_rd;
+//     cpu_addr_r <= cpu_addr;
+//     if (~loading) begin
+//         // result from active read
+//         if (mlog_active) begin
+//             mlog_q[mlog_i] <= ROM_Q[7:0];
+//             mlog_active <= 0;
+//             if (mlog_i != mlog_len - 1)
+//                 mlog_i <= mlog_i + 1;
+//         end
+
+//         // start next read
+//         if (cpu_rd && (~cpu_rd_r || cpu_addr != cpu_addr_r) && mlog_i != mlog_len - 1) begin
+//             mlog_active <= 1;
+//             mlog_a[mlog_i] <= cpu_addr;
+//         end
 //     end
 // end
-
-
-// a simple memory access logger
-localparam mlog_len = 16;
-reg [23:0] mlog_a[0:mlog_len-1];
-reg [7:0] mlog_q[0:mlog_len-1];
-reg [$clog2(mlog_len)-1:0] mlog_i = 0;
-reg mlog_active;
-
-reg cpu_rd_r;
-reg [23:0] cpu_addr_r;
-
-always @(posedge wclk) begin
-    cpu_rd_r <= cpu_rd;
-    cpu_addr_r <= cpu_addr;
-    if (~loading) begin
-        // result from active read
-        if (mlog_active) begin
-            mlog_q[mlog_i] <= ROM_Q[7:0];
-            mlog_active <= 0;
-            if (mlog_i != mlog_len - 1)
-                mlog_i <= mlog_i + 1;
-        end
-
-        // start next read
-        if (cpu_rd && (~cpu_rd_r || cpu_addr != cpu_addr_r) && mlog_i != mlog_len - 1) begin
-            mlog_active <= 1;
-            mlog_a[mlog_i] <= cpu_addr;
-        end
-    end
-end
 
 // end of memory access logger
 

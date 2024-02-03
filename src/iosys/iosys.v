@@ -4,8 +4,8 @@
 // IOSys provides the following functionality,
 // - Menu system
 // - ROM file loading
+// - Configuration options
 // - (Future) USB controller handling
-// - (Future) Configuration options
 // - (Future) Savestate handling
 //
 // This is similar to the IO controller of MIST, or HPS of MiSTer.

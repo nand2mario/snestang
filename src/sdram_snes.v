@@ -70,18 +70,18 @@ module sdram_snes
     
     // Logic side interface
     input             clkref,       // main reference clock, requests are sampled on its rising edge
-    input             clk,          // sdram clock, max 66.7Mhz
+    input             clk,          // sdram clock
     input             resetn,
 
     // CPU access (ROM and WRAM) uses bank 0 and 1 (total 16MB)
-	input      [15:0] cpu_din /* synthesis syn_keep=1 */,
-	input             cpu_port,
-	output reg [15:0] cpu_port0,    // output register for ROM
-	output reg [15:0] cpu_port1,    // output register for WRAM
-	input      [22:1] cpu_addr,     // 8MB memory
-	input             cpu_rd /* synthesis syn_keep=1 */,
-	input             cpu_wr /* synthesis syn_keep=1 */,
-	input       [1:0] cpu_ds,       // byte enable
+    input      [15:0] cpu_din /* synthesis syn_keep=1 */,
+    input             cpu_port,
+    output reg [15:0] cpu_port0,    // output register for ROM
+    output reg [15:0] cpu_port1,    // output register for WRAM
+    input      [22:1] cpu_addr,     // 8MB memory
+    input             cpu_rd /* synthesis syn_keep=1 */,
+    input             cpu_wr /* synthesis syn_keep=1 */,
+    input       [1:0] cpu_ds,       // byte enable
 
     input      [16:0] bsram_addr,
     input       [7:0] bsram_din,
@@ -90,11 +90,11 @@ module sdram_snes
     input             bsram_wr,
 
     // ARAM access uses bank 2
-	input             aram_16,      // 16-bit access
-	input      [15:0] aram_addr,
-	input      [15:0] aram_din,
-	output reg [15:0] aram_dout,
-	input             aram_rd,
+    input             aram_16,      // 16-bit access
+    input      [15:0] aram_addr,
+    input      [15:0] aram_din,
+    output reg [15:0] aram_dout,
+    input             aram_rd,
     input             aram_wr,
 
     // Risc-V softcore uses bank 0-1 of 2nd chip

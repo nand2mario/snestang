@@ -38,6 +38,7 @@ uint8_t spi_sendrecv(uint8_t x) {
 void spi_readblock(uint8_t *ptr, int length) {
     int i = 0;
     if ((((uint32_t)ptr) & 3) == 0) {   // aligned on word boundaries
+        // transfer in 4-byte words. this is about twice as fast
         for (; i+4<=length; i+=4) {
             *(uint32_t *)ptr = spi_receive_word();
             ptr+=4;

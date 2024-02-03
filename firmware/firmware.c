@@ -1,9 +1,9 @@
 
-// Simple firmware for socdemo
-// nand2mario, 1/2024
+// Simple firmware for SNESTang
+// nand2mario, 2024.1
 //
-// Need xpack-gcc risc-v gcc: https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/
-// Use build.bat to build. Then burn firmware.bin to NOR flash address 0x100000 with Gowin programmer.
+// Needs xpack-gcc risc-v gcc: https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/
+// Use build.bat to build. Then burn firmware.bin to SPI flash address 0x500000 with Gowin programmer.
 
 #include "picorv32.h"
 #include "fatfs/ff.h"
@@ -466,8 +466,6 @@ loadrom_end:
 }
 
 int main() {
-	uint8_t a, b, c, d;
-	a = 1; b = 2; c = 3; d = 4;
 	reg_uart_clkdiv = 94;       // 10800000 / 115200
 	overlay(1);
 
@@ -507,11 +505,6 @@ int main() {
 		cursor(2, 15);
 		print("Version: ");
 		print(__DATE__);
-
-		// cursor(2, 27);
-		// print("Init SD card... ");
-		// f_mount(&fs, "", 0);
-		// print("done");
 
 		delay(300);
 
