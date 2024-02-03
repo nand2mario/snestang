@@ -68,18 +68,20 @@ load_option_close:
 // return 0: success, 1: cannot save
 int save_option() {
 	FIL f;
-	if (f_open(&f, OPTION_FILE, FA_WRITE | FA_CREATE_ALWAYS)) {
+	if (f_open(&f, OPTION_FILE, FA_READ | FA_WRITE | FA_CREATE_ALWAYS)) {
 		message("f_open failed",1);
 		return 1;
 	}
 	if (f_puts("osd_key=", &f) < 0) {
 		message("f_puts failed",1);
-		return 1;
+		goto save_options_close;
 	}
 	if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
 		f_puts("1\n", &f);
 	else
 		f_puts("2\n", &f);
+		
+save_options_close:
 	f_close(&f);
 	// hide snestang.ini in dir list
 	f_chmod(OPTION_FILE, AM_HID, AM_HID);
@@ -471,7 +473,18 @@ int main() {
 
 	uart_init();		// init UART output for DEBUG(...)
 
-	f_mount(&fs, "", 0);
+	int mounted = 0;
+	while(!mounted) {
+		for (int attempts = 0; attempts < 255; attempts++) {
+			if (f_mount(&fs, "", 0) == FR_OK) {
+				mounted = 1;
+				break;
+			}
+		}
+		if (!mounted)
+			message("Insert SD card and press any key", 1);
+	}
+
 	int r = load_option();
 	if (r == 2) {	// file corrupt
 		clear();

@@ -22,16 +22,17 @@ uint32_t spi_send_word(uint32_t x) {
     return reg_spimaster_word;
 }
 
-uint8_t spi_sendrecv(uint8_t x) {
-    return spi_send(x);
+uint8_t spi_receive() {
+    return spi_send(0xff);
 }
 
 uint32_t spi_receive_word() {
     return spi_send_word(0xFFFFFFFF);
 }
 
-uint8_t spi_receive() {
-    return spi_send(0);
+uint8_t spi_sendrecv(uint8_t x) {
+    spi_send(x);
+    return spi_receive();
 }
 
 void spi_readblock(uint8_t *ptr, int length) {
@@ -51,7 +52,7 @@ void spi_writeblock(const uint8_t *ptr, int length) {
     int i = 0;
     if ((((uint32_t)ptr) & 3) == 0) {   // aligned on word boundaries
         for (; i+4<=length; i+=4) {
-            spi_send(*(uint32_t *)ptr);
+            spi_send_word(*(uint32_t *)ptr);
             ptr += 4;
         }
     }
