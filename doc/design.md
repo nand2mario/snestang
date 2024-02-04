@@ -24,7 +24,7 @@ This documents the design of SNESTang for my own reference and others who want t
 ```
 
 Several things are worth pointing out,
-* The 16-bit CPU runs the main game program. The cartridge ROM, cartridge SRAM and WRAM (work RAM) live in the same 24-bit address space (max 16MB). The CPU reads or writes at most one byte of this memory space per cycle for normal operations, or up to 2 bytes (one read and one write) when doing DMA.
+* The 16-bit CPU runs the main game program. The cartridge ROM, cartridge SRAM and WRAM (work RAM) live in the same 24-bit address space (max 16MB). The CPU reads or writes at most one word of this memory space per cycle for normal operations, or up to 2 words (one read and one write) when doing DMA.
 * The PPU graphics processor operates stand-alone, with no access to the CPU address space. The CPU can access VRAM through memory-mapped registers or DMA, but not the other way around.
 * The SMP/APU audio processor also operates independently from the CPU, with its own memory (64KB of ARAM). The audio DSP does not run code. It is driven by voice tables in ARAM written by the APU.
 
