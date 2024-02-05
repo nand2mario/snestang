@@ -188,8 +188,22 @@ SPC700_AddrGen AddrGen(
 
 assign BitToC = (D_IN) >> nBit;
 assign CToBit = (PSW & 8'h01) << nBit;
-assign SB = MC.BUS_CTRL[4:2] == 3'b000 ? A : MC.BUS_CTRL[4:2] == 3'b001 ? X : MC.BUS_CTRL[4:2] == 3'b010 ? Y : MC.BUS_CTRL[4:2] == 3'b011 ? T : MC.BUS_CTRL[4:2] == 3'b100 ? D_IN : MC.BUS_CTRL[4:2] == 3'b101 ? {7'b0000000,PSW[0]} : MC.BUS_CTRL[4:2] == 3'b110 ? MulDivR[7:0] : MC.BUS_CTRL[4:2] == 3'b111 ? SP : 8'h00;
-assign DB = MC.BUS_CTRL[1:0] == 2'b00 && MC.BUS_CTRL[4] == 1'b0 ? D_IN : MC.BUS_CTRL[1:0] == 2'b00 && MC.BUS_CTRL[4] == 1'b1 ? T : MC.BUS_CTRL[1:0] == 2'b01 ? SB : MC.BUS_CTRL[1:0] == 2'b10 ? BitMask : MC.BUS_CTRL[1:0] == 2'b11 && MC.BUS_CTRL[4:2] != 3'b111 ? BitToC : MC.BUS_CTRL[1:0] == 2'b11 && MC.BUS_CTRL[4:2] == 3'b111 ? CToBit : 8'h00;
+assign SB = MC.BUS_CTRL[4:2] == 3'b000 ? A : 
+            MC.BUS_CTRL[4:2] == 3'b001 ? X : 
+            MC.BUS_CTRL[4:2] == 3'b010 ? Y : 
+            MC.BUS_CTRL[4:2] == 3'b011 ? T : 
+            MC.BUS_CTRL[4:2] == 3'b100 ? D_IN : 
+            MC.BUS_CTRL[4:2] == 3'b101 ? {7'b0000000,PSW[0]} :    // C
+            MC.BUS_CTRL[4:2] == 3'b110 ? MulDivR[7:0] : 
+            MC.BUS_CTRL[4:2] == 3'b111 ? SP : 
+            8'h00;
+assign DB = MC.BUS_CTRL[1:0] == 2'b00 && MC.BUS_CTRL[4] == 1'b0 ? D_IN : 
+            MC.BUS_CTRL[1:0] == 2'b00 && MC.BUS_CTRL[4] == 1'b1 ? T : 
+            MC.BUS_CTRL[1:0] == 2'b01 ? SB : 
+            MC.BUS_CTRL[1:0] == 2'b10 ? BitMask : 
+            MC.BUS_CTRL[1:0] == 2'b11 && MC.BUS_CTRL[4:2] != 3'b111 ? BitToC : 
+            MC.BUS_CTRL[1:0] == 2'b11 && MC.BUS_CTRL[4:2] == 3'b111 ? CToBit : 
+            8'h00;
 assign w16 = (IR == 8'hBA && STATE == 4'b0100) || (IR == 8'h3A && STATE == 4'b0100) || (IR == 8'h1A && STATE == 4'b0100) || (IR == 8'h7A && STATE == 4'b0100) || (IR == 8'h5A && STATE == 4'b0100) || (IR == 8'hDA && STATE == 4'b0100) || (IR == 8'h9A && STATE == 4'b0100) ? 1'b1 : 1'b0;
 SPC700_ALU ALU(
     .CLK(CLK), .RST_N(RST_N), .EN(EN),
@@ -349,7 +363,7 @@ always @* begin
       A_OUT = PC;
 
     2'b01 : begin
-      if (IR == 8'h0A || IR == 8'h4A || IR == 8'h8A || IR == 8'hAA || IR == 8'hCA || IR == 8'hEA) 
+      if (IR == 8'h0A || IR == 8'h2A || IR == 8'h4A || IR == 8'h6A || IR == 8'h8A || IR == 8'hAA || IR == 8'hCA || IR == 8'hEA) 
         A_OUT = AX & 16'h1FFF;
       else 
         A_OUT = AX;

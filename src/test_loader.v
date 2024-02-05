@@ -18,7 +18,9 @@ module test_loader (
 // PeterLemon tests, 32KB
 localparam SIZE = 33280;
 // localparam string FILE = "roms/CPUADC.hex";
-localparam string FILE = "roms/SPC700ADC.hex";
+// localparam string FILE = "roms/SPC700ADC.hex";
+// localparam string FILE = "roms/SPC700AND.hex";
+localparam string FILE = "roms/SPC700ORA.hex";
 
 // 64KB ROMS
 // localparam SIZE=66048;
