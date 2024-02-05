@@ -36,9 +36,10 @@ wire SPC700_WE_N;
 
 reg [7:0] CPUI[0:3];
 reg [7:0] CPUO[0:3];
-// reg [31:0] CPUI0_history;     // last 4 values of CPUI[0] for debug
-
 reg [7:0] TEST;
+reg [1:0] CLK_SPEED;
+reg [1:0] TM_SPEED;
+reg TIMERS_ENABLE, TIMERS_DISABLE;
 reg [2:0] TM_EN;
 reg IPL_EN;
 reg [7:0] T0DIV;
@@ -48,7 +49,8 @@ reg [3:0] T0OUT;
 reg [3:0] T1OUT;
 reg [3:0] T2OUT;
 reg [1:0] RESET_PORT;
-reg [6:0] TM_CNT = 7'b0;
+reg [8:0] TM01_CNT;
+reg [5:0] TM2_CNT;
 reg [7:0] T0_CNT, T1_CNT, T2_CNT;
 wire RESET01, RESET23;
 localparam [7:0] IPLROM[0:63] = '{
@@ -134,8 +136,16 @@ SPC700 SPC700(
     .DBG_DAT_WR(DBG_CPU_DAT_WR),
     .BRK_OUT(BRK_OUT));
 
-always @(posedge CLK) begin
+always @(posedge CLK) begin : spc_timers
+    reg [4:0] TM_STEP;
+    reg [8:0] NEW_TM01_CNT;
+    reg [5:0] NEW_TM2_CNT;
+    
     if(RST_N == 1'b0) begin
+      CLK_SPEED <= 0;
+      TM_SPEED <= 0;
+      TIMERS_ENABLE <= 1'b1;
+      TIMERS_DISABLE <= 1'b0;
       TEST <= 8'h0A;
       IPL_EN <= 1'b1;
       // synthesis translate_off
@@ -150,7 +160,8 @@ always @(posedge CLK) begin
       T0DIV <= 8'b1111_1111;
       T1DIV <= 8'b1111_1111;
       T2DIV <= 8'b1111_1111;
-      TM_CNT <= 7'b0;
+      TM01_CNT <= 0;
+      TM2_CNT <= 0;
       T0_CNT <= 8'b0;
       T1_CNT <= 8'b0;
       T2_CNT <= 8'b0;
@@ -179,32 +190,6 @@ always @(posedge CLK) begin
       end
       else begin
         RESET_PORT <= 2'b00;
-        TM_CNT <= TM_CNT + 1;
-        if(TM_CNT == 127) begin
-          if(TM_EN[0] == 1'b1) begin
-            T0_CNT <= T0_CNT + 1;
-            if((T0_CNT + 1) == (T0DIV)) begin
-              T0_CNT <= 8'b0;
-              T0OUT <= (T0OUT) + 1;
-            end
-          end
-          if(TM_EN[1] == 1'b1) begin
-            T1_CNT <= T1_CNT + 1;
-            if((T1_CNT + 1) == (T1DIV)) begin
-              T1_CNT <= 8'b0;
-              T1OUT <= (T1OUT) + 1;
-            end
-          end
-        end
-        if(TM_CNT[3:0] == 15) begin
-          if(TM_EN[2] == 1'b1) begin
-            T2_CNT <= T2_CNT + 1;
-            if((T2_CNT + 1) == (T2DIV)) begin
-              T2_CNT <= 8'b0;
-              T2OUT <= (T2OUT) + 1;
-            end
-          end
-        end
         if(SPC700_A[15:4] == 12'h00F) begin
           if(SPC700_WE_N == 1'b0) begin
             case(SPC700_A[3:0])
@@ -244,29 +229,49 @@ always @(posedge CLK) begin
             default : begin
             end
             endcase
-          end
-          else begin
+          end else begin
             case(SPC700_A[3:0])
-            4'hD : begin
-              if((T0_CNT + 1) != T0DIV) begin
-                T0OUT <= 4'b0;
-              end
-            end
-            4'hE : begin
-              if((T1_CNT + 1) != T1DIV) begin
-                T1OUT <= 4'b0;
-              end
-            end
-            4'hF : begin
-              if((T2_CNT + 1) != T2DIV) begin
-                T2OUT <= 4'b0;
-              end
-            end
-            default : begin
-            end
+            4'hD : T0OUT <= 4'b0;
+            4'hE : T1OUT <= 4'b0;
+            4'hF : T2OUT <= 4'b0;
+            default : ;
             endcase
           end
         end
+
+        TM_STEP = (5'b00001 << CLK_SPEED) + (5'b00010 << TM_SPEED);
+        NEW_TM01_CNT = TM01_CNT + 9'(TM_STEP);
+        if (NEW_TM01_CNT[8:7] == 2'b11) begin
+          TM01_CNT <= NEW_TM01_CNT & 9'b001111111;
+          if (TM_EN[0] && TIMERS_ENABLE && ~TIMERS_DISABLE) begin
+            T0_CNT <= T0_CNT + 1;
+            if ((T0_CNT + 1) == T0DIV) begin
+              T0_CNT <= 0;
+              T0OUT <= T0OUT + 1;
+            end
+          end
+          if (TM_EN[1] && TIMERS_ENABLE  && ~TIMERS_DISABLE) begin
+            T1_CNT <= T1_CNT + 1;
+            if ((T1_CNT + 1) == T1DIV) begin
+              T1_CNT <= 0;
+              T1OUT <= T1OUT + 1;
+            end
+          end
+        end else 
+          TM01_CNT <= NEW_TM01_CNT;
+
+        NEW_TM2_CNT = TM2_CNT + TM_STEP;
+        if (NEW_TM2_CNT[5:4] == 2'b11) begin
+          TM2_CNT <= NEW_TM2_CNT & 6'b001111;
+          if (TM_EN[2] && TIMERS_ENABLE && ~TIMERS_DISABLE) begin
+            T2_CNT <= T2_CNT + 1;
+            if ((T2_CNT + 1) == T2DIV) begin
+              T2_CNT <= 0;
+              T2OUT <= T2OUT + 1;
+            end
+          end
+        end else 
+          TM2_CNT <= NEW_TM2_CNT;
       end
     end
 end

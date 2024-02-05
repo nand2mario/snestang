@@ -58,141 +58,61 @@ reg [7:0] DBG_CTRL = 8'b0;
 
 assign EN = RDY &  ~STPExec;
 assign NextIR = (STATE != 4'b0000) ? IR : GotInterrupt == 1'b1 ? 8'h0F : D_IN;
-always @(posedge CLK) begin
-    if(RST_N == 1'b0) begin
-      JumpTaken <= 1'b0;
-      BitMask <= {8{1'b0}};
+always @(posedge CLK) begin : spc_jumps
+    if (~RST_N) begin
+      JumpTaken <= 0;
+      BitMask <= 0;
       nBit <= 0;
     end else begin
       if(EN == 1'b1) begin
-        JumpTaken <= 1'b0;
-        if(STATE == 4'b0000 && D_IN[3:0] == 4'h0) begin
+        if (STATE == 4'b0000 && D_IN[3:0] == 4'h0) begin
           case(D_IN[7:4])
-          4'h1 : begin
-            JumpTaken <=  ~PSW[7];
-            // BPL
-          end
-          4'h3 : begin
-            JumpTaken <= PSW[7];
-            // BMI
-          end
-          4'h5 : begin
-            JumpTaken <=  ~PSW[6];
-            // BVC
-          end
-          4'h7 : begin
-            JumpTaken <= PSW[6];
-            // BVS
-          end
-          4'h9 : begin
-            JumpTaken <=  ~PSW[0];
-            // BCC
-          end
-          4'hB : begin
-            JumpTaken <= PSW[0];
-            // BCS
-          end
-          4'hD : begin
-            JumpTaken <=  ~PSW[1];
-            // BNE
-          end
-          4'hF : begin
-            JumpTaken <= PSW[1];
-            // BEQ
-          end
-          default : begin
-          end
+          4'h1 : JumpTaken <=  ~PSW[7];   // BPL
+          4'h3 : JumpTaken <= PSW[7];     // BMI
+          4'h5 : JumpTaken <=  ~PSW[6];   // BVC
+          4'h7 : JumpTaken <= PSW[6];     // BVS
+          4'h9 : JumpTaken <=  ~PSW[0];   // BCC
+          4'hB : JumpTaken <= PSW[0];     // BCS
+          4'hD : JumpTaken <=  ~PSW[1];   // BNE
+          4'hF : JumpTaken <= PSW[1];     // BEQ
+          default : ;
           endcase
-        end
-        else if(STATE == 4'b0011 && IR[3:0] == 4'h3) begin
+        end else if (STATE == 4'b0010 && IR[3:0] == 4'h3) begin
           case(IR[7:4])
-          4'h0 : begin
-            JumpTaken <= D_IN[0];
-            // BBS0
-          end
-          4'h1 : begin
-            JumpTaken <=  ~D_IN[0];
-            // BBC0
-          end
-          4'h2 : begin
-            JumpTaken <= D_IN[1];
-            // BBS1
-          end
-          4'h3 : begin
-            JumpTaken <=  ~D_IN[1];
-            // BBC1
-          end
-          4'h4 : begin
-            JumpTaken <= D_IN[2];
-            // BBS1
-          end
-          4'h5 : begin
-            JumpTaken <=  ~D_IN[2];
-            // BBC2
-          end
-          4'h6 : begin
-            JumpTaken <= D_IN[3];
-            // BBS3
-          end
-          4'h7 : begin
-            JumpTaken <=  ~D_IN[3];
-            // BBC3
-          end
-          4'h8 : begin
-            JumpTaken <= D_IN[4];
-            // BBS4
-          end
-          4'h9 : begin
-            JumpTaken <=  ~D_IN[4];
-            // BBC4
-          end
-          4'hA : begin
-            JumpTaken <= D_IN[5];
-            // BBS5
-          end
-          4'hB : begin
-            JumpTaken <=  ~D_IN[5];
-            // BBC5
-          end
-          4'hC : begin
-            JumpTaken <= D_IN[6];
-            // BBS6
-          end
-          4'hD : begin
-            JumpTaken <=  ~D_IN[6];
-            // BBC6
-          end
-          4'hE : begin
-            JumpTaken <= D_IN[7];
-            // BBS7
-          end
-          4'hF : begin
-            JumpTaken <=  ~D_IN[7];
-            // BBC7
-          end
-          default : begin
-          end
+          4'h0 : JumpTaken <= D_IN[0];    // BBS0
+          4'h1 : JumpTaken <=  ~D_IN[0];  // BBC0
+          4'h2 : JumpTaken <= D_IN[1];    // BBS1
+          4'h3 : JumpTaken <=  ~D_IN[1];  // BBC1
+          4'h4 : JumpTaken <= D_IN[2];    // BBS1
+          4'h5 : JumpTaken <=  ~D_IN[2];  // BBC2
+          4'h6 : JumpTaken <= D_IN[3];    // BBS3
+          4'h7 : JumpTaken <=  ~D_IN[3];  // BBC3
+          4'h8 : JumpTaken <= D_IN[4];    // BBS4
+          4'h9 : JumpTaken <=  ~D_IN[4];  // BBC4
+          4'hA : JumpTaken <= D_IN[5];    // BBS5
+          4'hB : JumpTaken <=  ~D_IN[5];  // BBC5
+          4'hC : JumpTaken <= D_IN[6];    // BBS6
+          4'hD : JumpTaken <=  ~D_IN[6];  // BBC6
+          4'hE : JumpTaken <= D_IN[7];    // BBS7
+          4'hF : JumpTaken <=  ~D_IN[7];  // BBC7
+          default : ;
           endcase
         end
-        else if(STATE == 4'b0010 && IR == 8'hFE) begin
-          // DBNZ
+        else if(STATE == 4'b0010 && IR == 8'hFE) 
+          JumpTaken <=  ~ZO;              // DBNZ
+        else if(STATE == 4'b0010 && IR == 8'h6E)
           JumpTaken <=  ~ZO;
-        end
-        else if(STATE == 4'b0011 && IR == 8'h6E) begin
+        else if(STATE == 4'b0010 && IR == 8'h2E)
+          JumpTaken <=  ~ZO;              // CBNE
+        else if(STATE == 4'b0011 && IR == 8'hDE)
           JumpTaken <=  ~ZO;
-        end
-        else if(STATE == 4'b0011 && IR == 8'h2E) begin
-          // CBNE
-          JumpTaken <=  ~ZO;
-        end
-        else if(STATE == 4'b0100 && IR == 8'hDE) begin
-          JumpTaken <=  ~ZO;
-        end
-        if(STATE == 4'b0001 && IR[3:0] == 4'h2) begin
+        else if (MC.STATE_CTRL == 2'b10)
+          JumpTaken <= 0;
+
+        if(STATE == 4'b0001 && IR[3:0] == 4'h2)
           BitMask <= ONE << (IR[7:5]);
-        end
         else if(STATE == 4'b0010 && IR[4:0] == {1'b0,4'hA}) begin
-          BitMask <= ONE << (D_IN[7:5]);
+          BitMask <= ONE << D_IN[7:5];
           nBit <= D_IN[7:5];
         end
       end
@@ -295,7 +215,6 @@ MulDiv MulDiv(
 
 assign AYLoad = IR == 8'hCF || IR == 8'h9E ? 1'b1 : 1'b0;
 
-//MUL/DIV
 always @(posedge CLK) begin
     if(RST_N == 1'b0) begin
       A <= 8'b0;
@@ -346,8 +265,8 @@ always @(posedge CLK) begin
       SP <= 8'b0;
       T <= 8'b0;
     end else begin
-      if(EN == 1'b0) begin
-        if(DBG_DAT_WR == 1'b1) begin
+      if (EN == 1'b0) begin
+        if (DBG_DAT_WR == 1'b1) begin
           case(DBG_REG)
           8'h05 : begin
             PSW <= DBG_DAT_IN;
@@ -361,98 +280,61 @@ always @(posedge CLK) begin
           end
           endcase
         end
-      end
-      else begin
+      end else begin
         case(MC.LOAD_SP)
-        2'b00 : begin
-        end
-        2'b01 : begin
-          SP <= (SP) + 1;
-        end
-        2'b10 : begin
-          SP <= (SP) - 1;
-        end
-        2'b11 : begin
-          SP <= X;
-        end
-        default : begin
-        end
+          2'b00 : ;
+          2'b01 : SP <= (SP) + 1;
+          2'b10 : SP <= (SP) - 1;
+          2'b11 : SP <= X;
+          default : ;
         endcase
+        
         case(MC.LOAD_T)
-        2'b01 : begin
-          T <= D_IN;
-        end
-        2'b10 : begin
-          T <= AluR;
-        end
-        default : begin
-        end
+          2'b01 : T <= D_IN;
+          2'b10 : T <= AluR;
+          default : ;
         endcase
+
         case(MC.LOAD_P)
-        3'b000 : begin
-          // No Op
-        end
-        3'b001 : begin
-          PSW[1:0] <= {ZO,CO};
-          PSW[3] <= HO;
-          PSW[7:6] <= {SO,VO};
-          // ALU
-          //					when "010" => PSW(2) <= '1';     -- BRK
-        end
-        3'b011 : begin
-          PSW <= {D_IN[7:5],1'b0,D_IN[3:0]};
-          // RETI/POP PSW
-        end
-        3'b100 : begin
-          case(IR[7:5])
-          3'b001 : begin
-            PSW[5] <= 1'b0;
-            // CLRP 20
+          3'b000 : PSW <= PSW;          // No Op
+          3'b001 : begin                // ALU
+            PSW[1:0] <= {ZO,CO};
+            PSW[3] <= HO;
+            PSW[7:6] <= {SO,VO};    
           end
-          3'b010 : begin
-            PSW[5] <= 1'b1;
-            // SETP 40
+          3'b010: begin                 // BRK
+            PSW[2] <= 0;
+            PSW[4] <= ~IsResetInterrupt;
           end
-          3'b011 : begin
-            PSW[0] <= 1'b0;
-            // CLRC 60
-          end
+          3'b011 : PSW <= D_IN;         // RETI/POP PSW
           3'b100 : begin
-            PSW[0] <= 1'b1;
-            // SETC 80
+            case(IR[7:5])
+              3'b001 : PSW[5] <= 1'b0;  // CLRP 20
+              3'b010 : PSW[5] <= 1'b1;  // SETP 40
+              3'b011 : PSW[0] <= 1'b0;  // CLRC 60
+              3'b100 : PSW[0] <= 1'b1;  // SETC 80
+              3'b101 : PSW[2] <= 1'b1;  // EI A0
+              3'b110 : PSW[2] <= 1'b0;  // DI C0
+              3'b111 : begin            // CLRV E0
+                PSW[6] <= 1'b0;
+                PSW[3] <= 1'b0;
+              end
+              default : begin end
+            endcase
           end
-          3'b101 : begin
-            PSW[2] <= 1'b1;
-            // EI A0
-          end
-          3'b110 : begin
-            PSW[2] <= 1'b0;
-            // DI C0
-          end
-          3'b111 : begin
-            PSW[6] <= 1'b0;
-            // CLRV E0
-            PSW[3] <= 1'b0;
-          end
-          default : begin
-          end
-          endcase
-        end
-        3'b101 : begin
-          PSW[0] <= AluR[0];
-        end
-        default : ;
+          3'b101 : PSW[0] <= AluR[0];
+          default : PSW <= PSW;
         endcase
       end
     end
 end
 
-assign D_OUT = MC.OUT_BUS == 3'b001 ? SB : 
-       MC.OUT_BUS == 3'b010 ? AluR : 
-       MC.OUT_BUS == 3'b011 ? {PSW[7:5], ~GotInterrupt,PSW[3:0]} : 
-       MC.OUT_BUS == 3'b100 ? PC[7:0] : 
-       MC.OUT_BUS == 3'b101 ? PC[15:8] : 
-       8'hFF;
+assign D_OUT =  MC.OUT_BUS == 3'b001 ? SB : 
+                MC.OUT_BUS == 3'b010 ? AluR : 
+                MC.OUT_BUS == 3'b011 ? PSW : 
+                MC.OUT_BUS == 3'b100 ? PC[7:0] : 
+                MC.OUT_BUS == 3'b101 ? PC[15:8] : 
+                8'hFF;
        
 always @* begin
     WE_N = 1'b1;
@@ -466,7 +348,7 @@ always @* begin
       A_OUT = PC;
 
     2'b01 : begin
-      if(IR == 8'h0A || IR == 8'h4A || IR == 8'h8A || IR == 8'hAA || IR == 8'hCA || IR == 8'hEA) 
+      if (IR == 8'h0A || IR == 8'h4A || IR == 8'h8A || IR == 8'hAA || IR == 8'hCA || IR == 8'hEA) 
         A_OUT = AX & 16'h1FFF;
       else 
         A_OUT = AX;
@@ -476,13 +358,13 @@ always @* begin
       A_OUT = {8'h01,SP};
 
     2'b11 : begin
-      if(IR[3:0] == 4'h1)
+      if (IR[3:0] == 4'h1)
         A_OUT = {8'hFF,3'b110, ~IR[7:4],STATE[0]};        //FFC0-FFDF
       else begin
-        if(GotInterrupt == 1'b1) 
-          A_OUT = {8'hFF,2'b11, ~IsIRQInterrupt,4'b1111,STATE[0]}; //FFFE/F
+        if (GotInterrupt == 1'b1) 
+          A_OUT = {8'hFF, 2'b11, ~IsIRQInterrupt, 4'b1111, STATE[0]}; //FFFE/F
         else 
-          A_OUT = {8'hFF,3'b110, ~IR[7:4],STATE[0]};
+          A_OUT = {8'hFF, 3'b110, ~IR[7:4], STATE[0]};
       end
     end
     default : ;
@@ -505,18 +387,18 @@ always @(posedge CLK) begin
         end
       end
       else begin
-        if(LAST_CYCLE == 1'b1) begin
+        if (LAST_CYCLE) begin
           GotInterrupt <= IrqActive;
           IsResetInterrupt <= 1'b0;
-          if(IrqActive == 1'b1 && IsIRQInterrupt == 1'b0) begin
+
+          if (IrqActive == 1'b1 && IsIRQInterrupt == 1'b0) 
             IsIRQInterrupt <= 1'b1;
-          end
-          else begin
+          else 
             IsIRQInterrupt <= 1'b0;
-          end
         end
-        if(STATE == 4'b0000 && ~IsResetInterrupt) begin   // nand2mario: when resetting, ignore SLEEP/STP
-          if(D_IN == 8'hEF || D_IN == 8'hFF) begin
+
+        if (STATE == 4'b0000 && ~IsResetInterrupt) begin   // nand2mario: when resetting, ignore SLEEP/STP
+          if (D_IN == 8'hEF || D_IN == 8'hFF) begin
             // SLEEP, STP
             STPExec <= 1'b1;
           end
@@ -560,56 +442,6 @@ always @* begin
     end
     endcase
 end
-
-/*
-always @(posedge CLK) begin
-    if(RST_N == 1'b0) begin
-      BRK_OUT <= 1'b0;
-      DBG_RUN_LAST <= 1'b0;
-    end else begin
-      if(EN == 1'b1) begin
-        BRK_OUT <= 1'b0;
-        if(DBG_CTRL[0] == 1'b1 && LAST_CYCLE == 1'b1) begin
-          //step
-          BRK_OUT <= 1'b1;
-        end
-        else if(DBG_CTRL[2] == 1'b1 && LAST_CYCLE == 1'b1 && DBG_BRK_ADDR == DBG_NEXT_PC) begin
-          //opcode address break
-          BRK_OUT <= 1'b1;
-        end
-      end
-      DBG_RUN_LAST <= DBG_CTRL[7];
-      if(DBG_CTRL[7] == 1'b1 && DBG_RUN_LAST == 1'b0) begin
-        BRK_OUT <= 1'b0;
-      end
-    end
-end
-
-always @(posedge CLK) begin
-    if(RST_N == 1'b0) begin
-      DBG_DAT_WRr <= 1'b0;
-    end else begin
-      DBG_DAT_WRr <= DBG_DAT_WR;
-      if(DBG_DAT_WR == 1'b1 && DBG_DAT_WRr == 1'b0) begin
-        case(DBG_REG)
-        8'h80 : begin
-          DBG_BRK_ADDR[7:0] <= DBG_DAT_IN;
-        end
-        8'h81 : begin
-          DBG_BRK_ADDR[15:8] <= DBG_DAT_IN;
-        end
-        8'h82 : begin
-        end
-        8'h83 : begin
-          DBG_CTRL <= DBG_DAT_IN;
-        end
-        default : begin
-        end
-        endcase
-      end
-    end
-end
-*/
 
 `ifdef VERILATOR
 

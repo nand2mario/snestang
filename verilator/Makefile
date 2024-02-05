@@ -23,7 +23,8 @@ verilate: ./obj_dir/V$N.cpp
 	@echo
 	@echo "### VERILATE ####"
 	mkdir -p obj_dir
-	verilator --top-module $N --trace -cc -O3 --exe -CFLAGS "$(CFLAGS_SDL)" -LDFLAGS "$(LIBS_SDL)" $(INCLUDES) $(SRCS) sim_main.cpp
+	#verilator --top-module $N --trace -cc -O3 --exe -CFLAGS "$(CFLAGS_SDL)" -LDFLAGS "$(LIBS_SDL)" $(INCLUDES) $(SRCS) sim_main.cpp
+	verilator --top-module $N --trace-fst -cc -O3 --exe -CFLAGS "$(CFLAGS_SDL)" -LDFLAGS "$(LIBS_SDL)" $(INCLUDES) $(SRCS) sim_main.cpp
 
 ./obj_dir/V$N: verilate
 	@echo
@@ -48,7 +49,7 @@ trace: ./obj_dir/V$N
 trace2: ./obj_dir/V$N
 	@echo
 	@echo "### SIMULATION (trace) ###"
-	@cd obj_dir && ./V$N -t -c 50000000
+	@cd obj_dir && ./V$N -t -c 120000000
 
 gtkwave:
 	gtkwave obj_dir/waveform.vcd

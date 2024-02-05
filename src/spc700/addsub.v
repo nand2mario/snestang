@@ -27,7 +27,7 @@ end
 
 assign S = res;
 assign VO = ( ~(A[7] ^ tempB[7])) & (A[7] ^ res[7]);
-assign HO = ( ~(A[3] ^ tempB[3])) & (A[3] ^ res[3]);
+assign HO = (A[4] ^ B[4] ^ res[4]) ^ ~ADD;
 assign CO = C7;
 
 endmodule

@@ -7,7 +7,8 @@
 #include "Vsnestang_top.h"
 #include "Vsnestang_top_snestang_top.h"
 #include "verilated.h"
-#include <verilated_vcd_c.h>
+//#include <verilated_vcd_c.h>
+#include <verilated_fst_c.h>
 
 #define TRACE_ON
 
@@ -96,12 +97,15 @@ int main(int argc, char** argv, char** env) {
         return 1;
     }
 
-	VerilatedVcdC *m_trace;
+	//VerilatedVcdC *m_trace;
+	VerilatedFstC *m_trace;
 	if (trace) {
-		m_trace = new VerilatedVcdC;
+		//m_trace = new VerilatedVcdC;
+		m_trace = new VerilatedFstC;
 		Verilated::traceEverOn(true);
 		top->trace(m_trace, 5);
-		m_trace->open("waveform.vcd");
+		//m_trace->open("waveform.vcd");
+		m_trace->open("waveform.fst");
 	} 
 
 	int audio_ready_r = 0;
