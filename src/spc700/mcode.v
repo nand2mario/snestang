@@ -12,13 +12,10 @@ module SPC700_MCode(
 );
 
 // 31 bits
-//   stateCtrl,  addrCtrl, regMode, regAXY,        ALUCtrl,  outBus
-//         addrBus                        busCtrl
-// reg [30:0] M_TAB[0:4095];
-// initial begin
-// 	$readmemb("mcode.bin", M_TAB);
-// end
-
+// stateCtrl[2], addrBus[2], addrCtrl[6], regMode[5], regAXY[2], busCtrl[5], ALUCtrl[6], outBus[3]
+// 		ALUCtrl expands to 10 bits
+//		regMode expands to 10 bits (loadPC, loadSP, loadP, loadT)
+// TODO: MIST SNES has 6-bit busCtrl
 `include "mcode.vh"
 
 SpcMicroInst_r MI;
@@ -39,46 +36,48 @@ end
 
 always @* begin
 	case (MI.ALUCtrl)
-	0: ALUFlags = {3'b110,4'b0011,1'b0,1'b0,1'b0};// 000000 LOAD
-	1: ALUFlags = {3'b100,4'b1011,1'b0,1'b1,1'b0};// 000001 DECW
-	2: ALUFlags = {3'b101,4'b1011,1'b0,1'b0,1'b0};// 000010 DEC 
-	3: ALUFlags = {3'b101,4'b1001,1'b0,1'b0,1'b0};// 000011 INC
-	4: ALUFlags = {3'b110,4'b0000,1'b0,1'b0,1'b0};// 000100 OR
-	5: ALUFlags = {3'b110,4'b0001,1'b0,1'b0,1'b0};// 000101 AND
-	6: ALUFlags = {3'b110,4'b0010,1'b0,1'b0,1'b0};// 000110 EOR
-	7: ALUFlags = {3'b110,4'b1000,1'b1,1'b0,1'b1};// 000111 ADC
-	8: ALUFlags = {3'b110,4'b1010,1'b1,1'b0,1'b1};// 001000 SBC
-	9: ALUFlags = {3'b100,4'b1001,1'b0,1'b1,1'b0};// 001001 INCW
-	10: ALUFlags = {3'b000,4'b0011,1'b0,1'b0,1'b1};// 001010 ASL
-	11: ALUFlags = {3'b010,4'b0011,1'b0,1'b0,1'b1};// 001011 LSR
-	12: ALUFlags = {3'b001,4'b0011,1'b0,1'b0,1'b1};// 001100 ROL
-	13: ALUFlags = {3'b011,4'b0011,1'b0,1'b0,1'b1};// 001101 ROR
-	14: ALUFlags = {3'b110,4'b0100,1'b0,1'b0,1'b0};// 001110 TCLR1
-	15: ALUFlags = {3'b110,4'b0101,1'b0,1'b0,1'b0};// 001111 TSET1
-	16: ALUFlags = {3'b110,4'b1011,1'b0,1'b1,1'b1};// 010000 CMPW
-	17: ALUFlags = {3'b110,4'b1001,1'b0,1'b0,1'b1};// 010001 ADD
-	18: ALUFlags = {3'b110,4'b1001,1'b1,1'b1,1'b1};// 010010 ADDW
-	19: ALUFlags = {3'b110,4'b1011,1'b0,1'b0,1'b1};// 010011 SUB/CMP
-	20: ALUFlags = {3'b110,4'b1011,1'b1,1'b1,1'b1};// 010100 SUBW
-	21: ALUFlags = {3'b111,4'b0001,1'b0,1'b0,1'b0};// 010101 CLR1
-	22: ALUFlags = {3'b110,4'b0000,1'b0,1'b0,1'b0};// 010110 SET1
-	23: ALUFlags = {3'b110,4'b0001,1'b0,1'b0,1'b0};// 010111 AND1
-	24: ALUFlags = {3'b111,4'b0001,1'b0,1'b0,1'b0};// 011000 NOT AND1
-	25: ALUFlags = {3'b110,4'b0000,1'b0,1'b0,1'b0};// 011001 OR1
-	26: ALUFlags = {3'b111,4'b0000,1'b0,1'b0,1'b0};// 011010 NOT OR1
-	27: ALUFlags = {3'b110,4'b0010,1'b0,1'b0,1'b0};// 011011 EOR1
-	28: ALUFlags = {3'b101,4'b0010,1'b0,1'b0,1'b0};// 011100 NOTC {C ^ 1}
-	29: ALUFlags = {3'b110,4'b0110,1'b0,1'b0,1'b0};// 011101 XCN
-	30: ALUFlags = {3'b110,4'b1100,1'b0,1'b0,1'b1};// 011110 DAA 
-	31: ALUFlags = {3'b110,4'b1101,1'b0,1'b0,1'b1};// 011111 DAS
-	32: ALUFlags = {3'b110,4'b1110,1'b0,1'b0,1'b0};// 100000 MUL 
-	33: ALUFlags = {3'b110,4'b1111,1'b1,1'b0,1'b0};// 100001 DIV
-	default: ALUFlags = 10'b0;
+	//             fstOp   secOp chgVO chgHO intC chgCO
+	0: ALUFlags =  {3'b110,4'b0011,1'b0,1'b0,1'b0,1'b0};// 000000 LOAD
+	1: ALUFlags =  {3'b100,4'b1011,1'b0,1'b0,1'b1,1'b0};// 000001 DECW
+	2: ALUFlags =  {3'b101,4'b1011,1'b0,1'b0,1'b0,1'b0};// 000010 DEC 
+	3: ALUFlags =  {3'b101,4'b1001,1'b0,1'b0,1'b0,1'b0};// 000011 INC
+	4: ALUFlags =  {3'b110,4'b0000,1'b0,1'b0,1'b0,1'b0};// 000100 OR
+	5: ALUFlags =  {3'b110,4'b0001,1'b0,1'b0,1'b0,1'b0};// 000101 AND
+	6: ALUFlags =  {3'b110,4'b0010,1'b0,1'b0,1'b0,1'b0};// 000110 EOR
+	7: ALUFlags =  {3'b110,4'b1000,1'b1,1'b1,1'b0,1'b1};// 000111 ADC
+	8: ALUFlags =  {3'b110,4'b1010,1'b1,1'b1,1'b0,1'b1};// 001000 SBC
+	9: ALUFlags =  {3'b100,4'b1001,1'b0,1'b0,1'b1,1'b0};// 001001 INCW
+	10: ALUFlags = {3'b000,4'b0011,1'b0,1'b0,1'b0,1'b1};// 001010 ASL
+	11: ALUFlags = {3'b010,4'b0011,1'b0,1'b0,1'b0,1'b1};// 001011 LSR
+	12: ALUFlags = {3'b001,4'b0011,1'b0,1'b0,1'b0,1'b1};// 001100 ROL
+	13: ALUFlags = {3'b011,4'b0011,1'b0,1'b0,1'b0,1'b1};// 001101 ROR
+	14: ALUFlags = {3'b110,4'b0100,1'b0,1'b0,1'b0,1'b0};// 001110 TCLR1
+	15: ALUFlags = {3'b110,4'b0101,1'b0,1'b0,1'b0,1'b0};// 001111 TSET1
+	16: ALUFlags = {3'b110,4'b1011,1'b0,1'b0,1'b1,1'b1};// 010000 CMPW
+	17: ALUFlags = {3'b110,4'b1001,1'b0,1'b0,1'b0,1'b1};// 010001 ADD
+	18: ALUFlags = {3'b110,4'b1001,1'b1,1'b1,1'b1,1'b1};// 010010 ADDW
+	19: ALUFlags = {3'b110,4'b1011,1'b0,1'b0,1'b0,1'b1};// 010011 SUB/CMP
+	20: ALUFlags = {3'b110,4'b1011,1'b1,1'b1,1'b1,1'b1};// 010100 SUBW
+	21: ALUFlags = {3'b111,4'b0001,1'b0,1'b0,1'b0,1'b0};// 010101 CLR1
+	22: ALUFlags = {3'b110,4'b0000,1'b0,1'b0,1'b0,1'b0};// 010110 SET1
+	23: ALUFlags = {3'b110,4'b0001,1'b0,1'b0,1'b0,1'b0};// 010111 AND1
+	24: ALUFlags = {3'b111,4'b0001,1'b0,1'b0,1'b0,1'b0};// 011000 NOT AND1
+	25: ALUFlags = {3'b110,4'b0000,1'b0,1'b0,1'b0,1'b0};// 011001 OR1
+	26: ALUFlags = {3'b111,4'b0000,1'b0,1'b0,1'b0,1'b0};// 011010 NOT OR1
+	27: ALUFlags = {3'b110,4'b0010,1'b0,1'b0,1'b0,1'b0};// 011011 EOR1
+	28: ALUFlags = {3'b101,4'b0010,1'b0,1'b0,1'b0,1'b0};// 011100 NOTC {C ^ 1}
+	29: ALUFlags = {3'b110,4'b0110,1'b0,1'b0,1'b0,1'b0};// 011101 XCN
+	30: ALUFlags = {3'b110,4'b1100,1'b0,1'b0,1'b0,1'b1};// 011110 DAA 
+	31: ALUFlags = {3'b110,4'b1101,1'b0,1'b0,1'b0,1'b1};// 011111 DAS
+	32: ALUFlags = {3'b110,4'b1110,1'b0,1'b0,1'b0,1'b0};// 100000 MUL 
+	33: ALUFlags = {3'b110,4'b1111,1'b1,1'b1,1'b0,1'b0};// 100001 DIV
+	default: ALUFlags = 11'b0;
 	endcase
 end
 
 always @* begin
 	case (MI.regMode)
+	//      loadPC loadSP loadP loadT
 	0: R = {3'b000,2'b00,3'b000,2'b00};//00000
 	1: R = {3'b001,2'b00,3'b000,2'b00};//00001 PC++
 	2: R = {3'b001,2'b00,3'b001,2'b00};//00010 PC++, Flags

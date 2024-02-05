@@ -43,7 +43,7 @@ wire ALCarry;
 // ALU
 wire [7:0] AluR;
 wire [15:0] MulDivR;
-wire CO; wire VO; wire SO; wire ZO; wire HO; wire DivZO; wire DivVO; wire DivHO;
+wire CO, VO, SO, ZO, HO, DivZO, DivVO, DivHO, DivSO;
 wire w16;
 reg [7:0] BitMask;
 reg [2:0] nBit;
@@ -196,7 +196,7 @@ SPC700_ALU ALU(
     
     .L(SB), .R(DB), .CTRL(MC.ALU_CTRL), .w16(w16), 
     .CI(PSW[0]), .VI(PSW[6]),.SI(PSW[7]), .ZI(PSW[1]), 
-    .HI(PSW[3]), .DivZI(DivZO), .DivVI(DivVO), .DivHI(DivHO),
+    .HI(PSW[3]), .DivZI(DivZO), .DivVI(DivVO), .DivHI(DivHO), .DivSI(DivSO),
 
     .RES(AluR), .CO(CO), .VO(VO), .SO(SO), .ZO(ZO), .HO(HO));
 
@@ -211,7 +211,8 @@ MulDiv MulDiv(
     .RES(MulDivR),
     .ZO(DivZO),
     .VO(DivVO),
-    .HO(DivHO));
+    .HO(DivHO),
+    .SO(DivSO));
 
 assign AYLoad = IR == 8'hCF || IR == 8'h9E ? 1'b1 : 1'b0;
 

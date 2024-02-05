@@ -17,6 +17,7 @@ module SPC700_ALU(
     input wire DivZI,
     input wire DivVI,
     input wire DivHI,
+    input wire DivSI,
     output wire CO,
     output reg VO,
     output reg SO,
@@ -27,11 +28,10 @@ module SPC700_ALU(
 
 
 reg [7:0] tIntR;
-reg CR; reg COut; reg HOut; wire tZ; reg SaveC;
-wire CIIn; wire ADDIn;
-wire [7:0] AddR; wire [7:0] BCDR;
-wire AddCO; wire AddVO; wire AddHO;
-wire BCDCO;
+reg CR, COut, HOut, VOut, SOut, tZ, SaveC; 
+wire CIIn, ADDIn;
+wire [7:0] AddR, BCDR;
+wire AddCO, AddVO, AddHO, BCDCO;
 reg [7:0] tResult;
 
 always @* begin
@@ -158,30 +158,31 @@ always @* begin
   end
 
   always @* begin
-    VO = VI;
-    SO = tResult[7];
+    VOut = VI;
     case(CTRL.secOp)
-    4'b1000 : begin
-      VO = AddVO;
-      //ADC
-    end
-    4'b1010 : begin
-      VO = AddVO;
-      //SBC 
-    end
-    4'b1111 : begin
-      //DIV
-      VO = DivVI;
-    end
-    default : begin
-    end
+      4'b1000, 4'b1001: VOut = AddVO;   //ADC,ADD
+      4'b1010, 4'b1011: VOut = AddVO;   //SBC,SUB
+      4'b1111:          VOut = DivVI;   //DIV
+      default : ;
     endcase
   end
 
+  always @* begin
+    SOut = SI;
+    case (CTRL.secOp)
+    4'b1110: SOut = DivSI;          // MUL
+    4'b1111: SOut = DivSI;          // DIV
+    default: SOut = tResult[7];
+    endcase
+
+  end
+
   assign tZ = CTRL.secOp[3:1] == 3'b111 ? DivZI : tResult == 8'h00 ? 1'b1 : 1'b0;
-  assign ZO = w16 == 1'b1 ? ZI & tZ : tZ;
-  assign CO = CTRL.chgCO == 1'b1 ? COut : CI;
-  assign HO = CTRL.chgHO == 1'b1 ? HOut : HI;
+  assign ZO = w16 ? ZI & tZ : tZ;
+  assign CO = CTRL.chgCO ? COut : CI;
+  assign VO = CTRL.chgVO ? VOut : VI;
+  assign HO = CTRL.chgHO ? HOut : HI;
+  assign SO = SOut;
   assign RES = tResult;
 
 endmodule

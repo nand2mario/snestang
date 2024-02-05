@@ -15,7 +15,7 @@ wire [7:0] tempB;
 reg [7:0] res;
 reg C7;
 
-assign tempB = ADD == 1'b1 ? B : B ^ 8'hFF;
+assign tempB = ADD ? B : B ^ 8'hFF;
 always @* begin : P1
     reg [4:0] temp0, temp1;
 

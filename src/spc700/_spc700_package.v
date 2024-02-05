@@ -17,6 +17,7 @@ typedef struct packed {
 typedef struct packed {
     logic [2:0] fstOp;
     logic [3:0] secOp;
+    logic chgVO;
     logic chgHO;
     logic intC;
     logic chgCO;

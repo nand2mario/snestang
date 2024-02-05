@@ -2,22 +2,23 @@
 import spc700::*;
 
 module MulDiv(
-    input wire CLK,
-    input wire RST_N,
-    input wire EN,
+    input CLK,
+    input RST_N,
+    input EN,
     input SpcALUCtrl_r CTRL,
-    input wire [7:0] A,
-    input wire [7:0] X,
-    input wire [7:0] Y,
-    output wire [15:0] RES,
-    output wire ZO,
-    output wire VO,
-    output wire HO
+    input [7:0] A,
+    input [7:0] X,
+    input [7:0] Y,
+    output [15:0] RES,
+    output ZO,
+    output VO,
+    output HO,
+    output SO
 );
 
 reg [15:0] tResult;
-reg tV; reg tZ;
-reg [15:0] mulRes; reg [15:0] mulTemp;
+reg tV, tZ, tS;
+reg [15:0] mulRes, mulTemp;
 reg [15:0] mulA;
 reg [7:0] mulY;
 reg [15:0] divt;
@@ -78,6 +79,7 @@ always @* begin
         tZ = 1'b0;
       end
       tV = 1'b0;
+      tS = mulTemp[15];
     end
     else if(CTRL.secOp == 4'b1111) begin
       tResult = {remainder[7:0],quotient[7:0]};
@@ -88,17 +90,20 @@ always @* begin
         tZ = 1'b0;
       end
       tV = quotient[8];
+      tS = quotient[7];
     end
     else begin
       tResult = {16{1'b0}};
       tZ = 1'b0;
       tV = 1'b0;
+      tS = 1'b0;
     end
 end
 
 assign RES = tResult;
 assign ZO = tZ;
 assign VO = tV;
+assign SO = tS;
 assign HO = Y[3:0] >= X[3:0] ? 1'b1 : 1'b0;
 
 endmodule
