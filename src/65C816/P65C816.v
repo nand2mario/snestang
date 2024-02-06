@@ -16,9 +16,9 @@ module P65C816(CLK, RST_N, CE, RDY_IN, NMI_N, IRQ_N, ABORT_N, D_IN,
    input         NMI_N;    // non-maskable interrupt
    input         IRQ_N;    // interrupt
    input         ABORT_N;  // abort input
-   input [7:0]   D_IN;
-   output [7:0]  D_OUT;
-   output [23:0] A_OUT;
+   input [7:0]   D_IN /*X synthesis syn_keep=1 */;
+   output [7:0]  D_OUT/*X synthesis syn_keep=1 */;
+   output [23:0] A_OUT/*X synthesis syn_keep=1 */;
    output        WE_N;     // 0: write ENABLE 
    reg           WE_N;
    output        RDY_OUT;  // ready out
@@ -62,7 +62,7 @@ module P65C816(CLK, RST_N, CE, RDY_IN, NMI_N, IRQ_N, ABORT_N, D_IN,
    MCode_r       MC;    // micro code
    reg [7:0]     IR;    // instruction
    wire [7:0]    NextIR;
-   reg [3:0]     STATE;
+   reg [3:0]     STATE /*X synthesis syn_keep=1 */;
    reg [3:0]     NextState;
    reg           GotInterrupt;
    reg           IsResetInterrupt;

@@ -62,13 +62,15 @@ always @(posedge clkref) begin
 end
 
 always @(posedge clkref) begin
-    if (bsram_wr) begin
-        if (bsram_addr[0])
-            mem_bsram[bsram_addr[16:1]][15:8] <= bsram_din;
-        else
-            mem_bsram[bsram_addr[16:1]][7:0] <= bsram_din;
-    end else if (bsram_rd) begin
-        bsram_dout <= bsram_addr[0] ? mem_bsram[bsram_addr[16:1]][15:8] : mem_bsram[bsram_addr[16:1]][7:0]; 
+    if (~cpu_rd & ~cpu_wr) begin    // simulate cpu access takes precedence
+        if (bsram_wr) begin
+            if (bsram_addr[0])
+                mem_bsram[bsram_addr[16:1]][15:8] <= bsram_din;
+            else
+                mem_bsram[bsram_addr[16:1]][7:0] <= bsram_din;
+        end else if (bsram_rd) begin
+            bsram_dout <= bsram_addr[0] ? mem_bsram[bsram_addr[16:1]][15:8] : mem_bsram[bsram_addr[16:1]][7:0]; 
+        end
     end
 end
 

@@ -64,7 +64,7 @@ module snestang_top (
 // Clock signals
 // wire mclk;                      // SNES master clock at 21.6Mhz (~21.477), not actually instantiated
 wire fclk;                          // Fast clock for sdram, and 180-degree shifted, for SDRAM
-wire fclk_p /* synthesis syn_keep=1 */;              
+wire fclk_p /*XXX synthesis syn_keep=1 */;              
 wire wclk;                      // Actual work clock for SNES, 1/6 of fclk and 1/2 of mclk
 // wire smpclk;                    // same as wclk, for timing constratins
 wire clk27;                     // 27Mhz for hdmi clock generation
@@ -168,7 +168,7 @@ wire       hblankn,vblankn;
 
 wire [15:0] audio_l /*verilator public*/, audio_r /*verilator public*/;
 wire audio_ready /*verilator public*/;
-wire audio_en /* synthesis syn_keep=1 */;
+wire audio_en /*XXX synthesis syn_keep=1 */;
 
 //     .JOY1_DI(), .JOY2_DI(), .JOY_STRB(), .JOY1_CLK(), .JOY2_CLK(), 
 wire [1:0] joy1_di, joy2_di;
@@ -219,7 +219,7 @@ main main (
 
     .ROM_TYPE(rom_type), .ROM_MASK(rom_mask), .RAM_MASK(ram_mask),
 
-     .ROM_ADDR(ROM_ADDR), .ROM_D(ROM_D), .ROM_Q(ROM_Q),
+    .ROM_ADDR(ROM_ADDR), .ROM_D(ROM_D), .ROM_Q(ROM_Q),
     .ROM_CE_N(ROM_CE_N), .ROM_OE_N(ROM_OE_N), .ROM_WE_N(ROM_WE_N),
     .ROM_WORD(ROM_WORD),
 
@@ -285,11 +285,12 @@ wire [7:0] bsram_dout;
 
 wire rv_rd, rv_wr;
 wire [15:0] rv_din, rv_dout;
-wire [22:0] rv_addr /* systhesis syn_keep=1 */;
+wire [22:0] rv_addr /*XXX systhesis syn_keep=1 */;
 wire [1:0] rv_ds;
 
 // Generate SDRAM signals
 always @(posedge wclk) begin
+    reg bsram_rd_t = ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC) & f2;
     f2 <= sysclkf_ce && enable;
     r2 <= sysclkr_ce && enable;
     cpu_rd <= 0;
@@ -303,7 +304,7 @@ always @(posedge wclk) begin
         cpu_wr <= 1;
         cpu_din <= {loader_do, loader_do};
         cpu_ds <= {loader_addr[0], ~loader_addr[0]};
-    end else if (~ROM_CE_N && f2) begin     // ROM reads on R cycles
+    end else if (~ROM_CE_N && ~bsram_rd_t && f2) begin     // ROM reads on R cycles
         cpu_rd <= 1;
         cpu_addr <= ROM_ADDR[22:0];
         cpu_ds <= 2'b11;
@@ -315,13 +316,14 @@ always @(posedge wclk) begin
         if (wram_rd && f2) cpu_rd <= 1;
         if (wram_wr && r2) cpu_wr <= 1;
     end
+
+    bsram_addr <= BSRAM_ADDR;
+    bsram_din <= BSRAM_D;
+    bsram_rd <= bsram_rd_t;
+    bsram_wr <= ~BSRAM_CE_N & ~BSRAM_WE_N & r2;
 end
 
 always @(posedge wclk) begin
-    bsram_addr <= BSRAM_ADDR;
-    bsram_din <= BSRAM_D;
-    bsram_rd <= ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC) & f2;
-    bsram_wr <= ~BSRAM_CE_N & ~BSRAM_WE_N & r2;
 end
 
 `ifndef VERILATOR
