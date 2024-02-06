@@ -118,15 +118,15 @@ wire OBC1_RSTN;
         CART_ADDR <= {1'b0, ~CA[23],CA[22:16],CA[14:0]};
         BRAM_ADDR <= {CA[20:16],CA[14:0]};
         if(MAP_CTRL[3] == 1'b0) begin   // LoROM
-          if(CA[22:20] == 3'b111 && ROMSEL_N == 1'b0) begin // 70-7D
+          if(CA[22:20] == 3'b111 && ROMSEL_N == 1'b0) begin // 70-7D and F0-FF
             if(ROM_MASK[20] == 1'b1 || BSRAM_MASK[15] == 1'b1 || MAP_CTRL[7] == 1'b1) begin
               // rom_size >= 2MB, or ram_size >= 64KB, or map_ctrl[7]
-              BSRAM_SEL <=  ~CA[15] & BSRAM_MASK[10];       // 70-7D:0000-7FFF
+              BSRAM_SEL <=  ~CA[15] & BSRAM_MASK[10];       // :0000-7FFF 
               NO_BSRAM_SEL <=  ~CA[15] &  ~MAP_CTRL[7] &  ~BSRAM_MASK[10];
             end else begin
               BRAM_ADDR <= CA[19:0];
               BSRAM_SEL <= BSRAM_MASK[10];
-              NO_BSRAM_SEL <=  ~MAP_CTRL[7] &  ~BSRAM_MASK[10];
+              NO_BSRAM_SEL <= ~CA[15] & ~MAP_CTRL[7] &  ~BSRAM_MASK[10];
             end
           end
           //60-6F/E0-EF:0000-7FFF

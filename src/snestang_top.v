@@ -66,7 +66,7 @@ module snestang_top (
 wire fclk;                          // Fast clock for sdram, and 180-degree shifted, for SDRAM
 wire fclk_p /* synthesis syn_keep=1 */;              
 wire wclk;                      // Actual work clock for SNES, 1/6 of fclk and 1/2 of mclk
-wire smpclk;                    // same as wclk, for timing constratins
+// wire smpclk;                    // same as wclk, for timing constratins
 wire clk27;                     // 27Mhz for hdmi clock generation
 wire hclk5, hclk;               // 720p pixel clock at 74.25Mhz, and 5x high-speed
 
@@ -94,7 +94,7 @@ gowin_pll_snes pll_snes (
     .clkout0(wclk),             // 1/6 of fclk
     .clkout1(fclk),             // 64.84Mhz
     .clkout2(fclk_p),           // 180-degree shifted fclk
-    .clkout3(smpclk),           // same as wclk, for timing constrains
+    // .clkout3(smpclk),           // same as wclk, for timing constrains
     .clkin(clk27));
 
 // HDMI clocks
@@ -109,7 +109,7 @@ assign fclk = sys_clk;
 reg [2:0] fclk_cnt = 3'b0;      // 0 1 2 3 4 5
 always @(posedge fclk) fclk_cnt <= fclk_cnt == 3'd5 ? 3'd0 : fclk_cnt + 3'b1;
 assign wclk = fclk_cnt == 3'd3 || fclk_cnt == 3'd4 || fclk_cnt == 3'd5;
-assign smpclk = wclk;
+// assign smpclk = wclk;
 
 // assign hclk5 = fclk;
 // assign hclk = fclk;
@@ -214,7 +214,7 @@ wire sysclkf_ce, sysclkr_ce;
 wire overlay;
 
 main main (
-    .WCLK(wclk), .SMPCLK(smpclk), .RESET_N(resetn & ~loading), .ENABLE(enable), 
+    .WCLK(wclk), .SMPCLK(wclk/*smpclk*/), .RESET_N(resetn & ~loading), .ENABLE(enable), 
     .SYSCLKF_CE(sysclkf_ce), .SYSCLKR_CE(sysclkr_ce), .REFRESH(refresh),
 
     .ROM_TYPE(rom_type), .ROM_MASK(rom_mask), .RAM_MASK(ram_mask),
