@@ -66,7 +66,6 @@ module snestang_top (
 wire fclk;                          // Fast clock for sdram, and 180-degree shifted, for SDRAM
 wire fclk_p /*XXX synthesis syn_keep=1 */;              
 wire wclk;                      // Actual work clock for SNES, 1/6 of fclk and 1/2 of mclk
-// wire smpclk;                    // same as wclk, for timing constratins
 wire clk27;                     // 27Mhz for hdmi clock generation
 wire hclk5, hclk;               // 720p pixel clock at 74.25Mhz, and 5x high-speed
 
@@ -94,7 +93,6 @@ gowin_pll_snes pll_snes (
     .clkout0(wclk),             // 1/6 of fclk
     .clkout1(fclk),             // 64.84Mhz
     .clkout2(fclk_p),           // 180-degree shifted fclk
-    // .clkout3(smpclk),           // same as wclk, for timing constrains
     .clkin(clk27));
 
 // HDMI clocks
@@ -321,9 +319,6 @@ always @(posedge wclk) begin
     bsram_din <= BSRAM_D;
     bsram_rd <= bsram_rd_t;
     bsram_wr <= ~BSRAM_CE_N & ~BSRAM_WE_N & r2;
-end
-
-always @(posedge wclk) begin
 end
 
 `ifndef VERILATOR
