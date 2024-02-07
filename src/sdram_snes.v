@@ -294,13 +294,14 @@ always @(posedge clk) begin
             end
             if (cycle[4]) begin     // VRAM
                 if (vram1_rd | vram2_rd | vram1_wr | vram2_wr) begin
+                    reg [14:0] vram_addr_t = (vram1_rd|vram1_wr) ? vram1_addr : vram2_addr;
                     cmd_next <= CMD_BankActivate;
                     ba_next <= 2'b11;
-                    a_next <= {7'b0, vram1_addr[14:9]};      // for now just use VRAM1 address
+                    a_next <= {7'b0, vram_addr_t[14:9]};
                     {vram1_rd_buf, vram1_wr_buf, vram2_rd_buf, vram2_wr_buf} <= 
                         {vram1_rd, vram1_wr, vram2_rd, vram2_wr};
                     vram_din_buf <= {vram2_din, vram1_din};
-                    vram_addr_buf <= vram1_addr;
+                    vram_addr_buf <= vram_addr_t;
                 end else if (need_refresh && ~channel0_active && ~aram_rd && ~aram_wr) begin
                     // refresh when all banks are idle
                     // refresh <= 1'b1;

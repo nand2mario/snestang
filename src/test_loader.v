@@ -16,12 +16,12 @@ module test_loader (
 );
 
 // PeterLemon tests, 32KB
-localparam SIZE = 33280;
+// localparam SIZE = 33280;
 // localparam string FILE = "roms/CPUADC.hex";
 // localparam string FILE = "roms/SPC700ADC.hex";
 // localparam string FILE = "roms/SPC700AND.hex";
 // localparam string FILE = "roms/SPC700ORA.hex";
-localparam string FILE = "roms/memtest.hex";
+// localparam string FILE = "roms/memtest.hex";
 
 
 // 64KB ROMS
@@ -39,7 +39,7 @@ localparam string FILE = "roms/memtest.hex";
 // localparam string FILE = "roms/MosaicMode3.hex";
 
 // 128KB ROMS
-// localparam SIZE = 131584;
+localparam SIZE = 131584;
 // localparam string FILE = "roms/hello.hex";
 // localparam string FILE = "roms/hello2.hex";
 // localparam string FILE = "roms/textbuffer-hello-world.hex";  // not working
@@ -48,6 +48,7 @@ localparam string FILE = "roms/memtest.hex";
 // localparam string FILE = "roms/test_irq4200.hex";
 // localparam string FILE = "roms/test_math.hex";
 // localparam string FILE = "roms/demo_irq.hex";
+localparam string FILE = "roms/Perspective.hex";
 
 // 512KB roms
 // localparam SIZE = 524800;

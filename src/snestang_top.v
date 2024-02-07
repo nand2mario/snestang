@@ -272,9 +272,6 @@ reg [19:0] bsram_addr;
 reg [7:0] bsram_din;
 wire [7:0] bsram_dout;
 
-reg vram1_rd, vram1_wr, vram2_rd, vram2_wr;
-reg [14:0] vram_addr;
-
 wire rv_rd, rv_wr;
 wire [15:0] rv_din, rv_dout;
 wire [22:0] rv_addr /*XXX systhesis syn_keep=1 */;
@@ -316,15 +313,17 @@ always @(posedge wclk) begin
 end
 
 // VRAM signals are passed on in the same cycle
-reg [14:0] vram_addr_old;
+reg [14:0] vram1_addr_old, vram2_addr_old;
 reg vram_oe_n_old;
 always @(posedge wclk) begin
     vram_oe_n_old <= VRAM_OE_N;
-    vram_addr_old <= VRAM1_ADDR[14:0];
+    vram1_addr_old <= VRAM1_ADDR[14:0];
+    vram2_addr_old <= VRAM2_ADDR[14:0];
 end
 
 // a new VRAM read request is present - this removes duplicate requests
-wire vram_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram_addr_old != VRAM1_ADDR[14:0]);
+wire vram1_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram1_addr_old != VRAM1_ADDR[14:0]);
+wire vram2_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram2_addr_old != VRAM2_ADDR[14:0]);
 
 `ifndef VERILATOR
 
@@ -349,8 +348,8 @@ sdram_snes sdram(
     .aram_16(aram_16), .aram_addr(ARAM_ADDR), .aram_din({ARAM_D, ARAM_D}), 
     .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd),
 
-    .vram1_rd(vram_new_read), .vram1_wr(~VRAM1_WE_N), 
-    .vram2_rd(vram_new_read), .vram2_wr(~VRAM2_WE_N),
+    .vram1_rd(vram1_new_read), .vram1_wr(~VRAM1_WE_N), 
+    .vram2_rd(vram2_new_read), .vram2_wr(~VRAM2_WE_N),
     .vram1_addr(VRAM1_ADDR[14:0]), .vram2_addr(VRAM2_ADDR[14:0]), 
     .vram1_din(VRAM1_D), .vram2_din(VRAM2_D),
     .vram1_dout(VRAM1_Q), .vram2_dout(VRAM2_Q),
