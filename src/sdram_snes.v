@@ -182,6 +182,7 @@ reg         channel0_active;
 reg         aram_rd_buf, aram_wr_buf, aram_16_buf;
 reg [15:0]  aram_din_buf;
 reg [15:0]  aram_addr_buf;
+reg         vram_req;
 reg         vram1_rd_buf, vram1_wr_buf, vram2_rd_buf, vram2_wr_buf;
 reg [15:0]  vram_din_buf;
 reg [14:0]  vram_addr_buf;
@@ -292,16 +293,19 @@ always @(posedge clk) begin
                     aram_16_buf <= aram_16;
                 end
             end
+            if (cycle[3]) begin     // precalc VRAM signals
+                reg [14:0] vram_addr_t = (vram1_rd|vram1_wr) ? vram1_addr : vram2_addr;
+                vram_req <= vram1_rd | vram2_rd | vram1_wr | vram2_wr;
+                vram_addr_buf <= vram_addr_t;
+                {vram1_rd_buf, vram1_wr_buf, vram2_rd_buf, vram2_wr_buf} <= 
+                    {vram1_rd, vram1_wr, vram2_rd, vram2_wr};
+            end
             if (cycle[4]) begin     // VRAM
-                if (vram1_rd | vram2_rd | vram1_wr | vram2_wr) begin
-                    reg [14:0] vram_addr_t = (vram1_rd|vram1_wr) ? vram1_addr : vram2_addr;
+                if (vram_req) begin
                     cmd_next <= CMD_BankActivate;
                     ba_next <= 2'b11;
-                    a_next <= {7'b0, vram_addr_t[14:9]};
-                    {vram1_rd_buf, vram1_wr_buf, vram2_rd_buf, vram2_wr_buf} <= 
-                        {vram1_rd, vram1_wr, vram2_rd, vram2_wr};
+                    a_next <= {7'b0, vram_addr_buf[14:9]};
                     vram_din_buf <= {vram2_din, vram1_din};
-                    vram_addr_buf <= vram_addr_t;
                 end else if (need_refresh && ~channel0_active && ~aram_rd && ~aram_wr) begin
                     // refresh when all banks are idle
                     // refresh <= 1'b1;
@@ -364,7 +368,7 @@ always @(posedge clk) begin
                 end
             end
             if (cycle[7]) begin     // VRAM
-                if (vram1_rd_buf | vram1_wr_buf | vram2_rd_buf | vram2_wr_buf) begin
+                if (vram_req) begin
                     cmd_next <= (vram1_wr_buf | vram2_wr_buf) ? CMD_Write : CMD_Read;
                     ba_next <= 2'b11;
                     a_next[10] <= 1'b1;
