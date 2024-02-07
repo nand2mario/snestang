@@ -49,7 +49,7 @@ module snestang_top (
     output ds_cs2,
 
     // SDRAM
-    output sdram_clk,               
+    output sdram_clk,
     output O_sdram_cke,
     output O_sdram_cs_n,            // chip select
     output O_sdram_cas_n,           // columns address select
@@ -252,15 +252,6 @@ main main (
     .DBG_DAT_OUT(dbg_dat_out), .DBG_BREAK(dbg_break)
 );
 
-// FPGA block RAM for SNES VRAM 
-vram vram(
-    .clk(wclk), 
-    .addra(VRAM1_ADDR[14:0]), .wra_n(VRAM1_WE_N), 
-    .dina(VRAM1_D), .douta(VRAM1_Q), 
-    .addrb(VRAM2_ADDR[14:0]), .wrb_n(VRAM2_WE_N), 
-    .dinb(VRAM2_D), .doutb(VRAM2_Q)
-);
-
 // SDRAM for SNES ROM, WRAM and ARAM
 reg [22:0] cpu_addr; 
 wire [15:0] cpu_port0;
@@ -280,6 +271,9 @@ reg bsram_rd, bsram_wr;
 reg [19:0] bsram_addr;
 reg [7:0] bsram_din;
 wire [7:0] bsram_dout;
+
+reg vram1_rd, vram1_wr, vram2_rd, vram2_wr;
+reg [14:0] vram_addr;
 
 wire rv_rd, rv_wr;
 wire [15:0] rv_din, rv_dout;
@@ -321,6 +315,17 @@ always @(posedge wclk) begin
     bsram_wr <= ~BSRAM_CE_N & ~BSRAM_WE_N & r2;
 end
 
+// VRAM signals are passed on in the same cycle
+reg [14:0] vram_addr_old;
+reg vram_oe_n_old;
+always @(posedge wclk) begin
+    vram_oe_n_old <= VRAM_OE_N;
+    vram_addr_old <= VRAM1_ADDR[14:0];
+end
+
+// a new VRAM read request is present - this removes duplicate requests
+wire vram_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram_addr_old != VRAM1_ADDR[14:0]);
+
 `ifndef VERILATOR
 
 sdram_snes sdram(
@@ -344,6 +349,12 @@ sdram_snes sdram(
     .aram_16(aram_16), .aram_addr(ARAM_ADDR), .aram_din({ARAM_D, ARAM_D}), 
     .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd),
 
+    .vram1_rd(vram_new_read), .vram1_wr(~VRAM1_WE_N), 
+    .vram2_rd(vram_new_read), .vram2_wr(~VRAM2_WE_N),
+    .vram1_addr(VRAM1_ADDR[14:0]), .vram2_addr(VRAM2_ADDR[14:0]), 
+    .vram1_din(VRAM1_D), .vram2_din(VRAM2_D),
+    .vram1_dout(VRAM1_Q), .vram2_dout(VRAM2_Q),
+
     // IOSys risc-v softcore
     .rv_addr(rv_addr[22:1]), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
     .rv_rd(rv_rd), .rv_wr(rv_wr), .rv_wait(rv_wait)
@@ -366,6 +377,16 @@ sdram_sim sdram(
     .aram_16(aram_16), .aram_addr(ARAM_ADDR), .aram_din({ARAM_D, ARAM_D}), 
     .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd)
 );
+
+// FPGA block RAM for SNES VRAM 
+vram vram(
+    .clk(wclk), 
+    .addra(VRAM1_ADDR[14:0]), .wra_n(VRAM1_WE_N), 
+    .dina(VRAM1_D), .douta(VRAM1_Q), 
+    .addrb(VRAM2_ADDR[14:0]), .wrb_n(VRAM2_WE_N), 
+    .dinb(VRAM2_D), .doutb(VRAM2_Q)
+);
+
 `endif
 
 reg loading_r;

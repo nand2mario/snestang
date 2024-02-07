@@ -97,6 +97,20 @@ module sdram_snes
     input             aram_rd,
     input             aram_wr,
 
+    // VRAM1
+	input      [14:0] vram1_addr,
+	input       [7:0] vram1_din,
+	output reg  [7:0] vram1_dout,
+	input             vram1_rd,     // rd==1 for both, addr same for 16-bit reads
+	input             vram1_wr,     // wr==1 only for one of vram
+
+    // VRAM2
+	input      [14:0] vram2_addr,
+	input       [7:0] vram2_din,
+	output reg  [7:0] vram2_dout,
+	input             vram2_rd,
+	input             vram2_wr,
+
     // Risc-V softcore uses bank 0-1 of 2nd chip
     input      [22:1] rv_addr,      // 8MB RV memory space
     input      [15:0] rv_din,       // 16-bit accesses
@@ -165,11 +179,12 @@ reg [8:0]   refresh_cnt;
 reg         need_refresh = 0; 
 reg         write_delay;
 reg         channel0_active;
-reg         aram_rd_buf;
-reg         aram_wr_buf;
-reg         aram_16_buf;
+reg         aram_rd_buf, aram_wr_buf, aram_16_buf;
 reg [15:0]  aram_din_buf;
 reg [15:0]  aram_addr_buf;
+reg         vram1_rd_buf, vram1_wr_buf, vram2_rd_buf, vram2_wr_buf;
+reg [15:0]  vram_din_buf;
+reg [14:0]  vram_addr_buf;
 //
 // SDRAM state machine
 //
@@ -277,16 +292,27 @@ always @(posedge clk) begin
                     aram_16_buf <= aram_16;
                 end
             end
-            if (cycle[4'd4] && need_refresh && ~channel0_active && ~aram_rd && ~aram_wr) begin
-                // refresh when all banks are idle
-                // refresh <= 1'b1;
-                cmd_next <= CMD_AutoRefresh;
-                need_refresh <= 0;
-                total_refresh <= total_refresh + 1;
+            if (cycle[4]) begin     // VRAM
+                if (vram1_rd | vram2_rd | vram1_wr | vram2_wr) begin
+                    cmd_next <= CMD_BankActivate;
+                    ba_next <= 2'b11;
+                    a_next <= {7'b0, vram1_addr[14:9]};      // for now just use VRAM1 address
+                    {vram1_rd_buf, vram1_wr_buf, vram2_rd_buf, vram2_wr_buf} <= 
+                        {vram1_rd, vram1_wr, vram2_rd, vram2_wr};
+                    vram_din_buf <= {vram2_din, vram1_din};
+                    vram_addr_buf <= vram1_addr;
+                end else if (need_refresh && ~channel0_active && ~aram_rd && ~aram_wr) begin
+                    // refresh when all banks are idle
+                    // refresh <= 1'b1;
+                    cmd_next <= CMD_AutoRefresh;
+                    need_refresh <= 0;
+                    total_refresh <= total_refresh + 1;
+                end
+                
             end
 
             // CAS
-            if (cycle[4'd2]) begin        // CPU and RV
+            if (cycle[2]) begin     // CPU and RV
                 if (cpu_rd | cpu_wr) begin
                     cmd_next <= cpu_wr?CMD_Write:CMD_Read;
                     ba_next <= 2'b00;
@@ -336,9 +362,23 @@ always @(posedge clk) begin
                         SDRAM_DQM <= 2'b0;
                 end
             end
+            if (cycle[7]) begin     // VRAM
+                if (vram1_rd_buf | vram1_wr_buf | vram2_rd_buf | vram2_wr_buf) begin
+                    cmd_next <= (vram1_wr_buf | vram2_wr_buf) ? CMD_Write : CMD_Read;
+                    ba_next <= 2'b11;
+                    a_next[10] <= 1'b1;
+                    a_next[8:0] <= vram_addr_buf[8:0];
+                    if (vram1_wr_buf | vram2_wr_buf) begin
+                        dq_oen_next <= 0;
+                        dq_out_next <= vram_din_buf;
+                        SDRAM_DQM <= {~vram2_wr_buf, ~vram1_wr_buf};
+                    end else
+                        SDRAM_DQM <= 2'b0;
+                end
+            end
 
             // DATA
-            if (cycle[4'd5]) begin                    // CPU & RV
+            if (cycle[5]) begin     // CPU & RV
                 if (cpu_rd) begin
                     if (cpu_port) begin
                         if (cpu_ds[0]) cpu_port1[7:0] <= dq_in[7:0];
@@ -355,10 +395,15 @@ always @(posedge clk) begin
                     rv_dout <= dq_in;
                 end
             end
-            if (cycle[4'd6]) begin  // ARAM
+            if (cycle[6]) begin     // ARAM
                 if (aram_rd_buf) aram_dout <= dq_in;
                 aram_rd_buf <= 0;
                 aram_wr_buf <= 0;
+            end
+            if (cycle[2]) begin     // VRAM
+                if (vram1_rd_buf) vram1_dout <= dq_in[7:0];
+                if (vram2_rd_buf) vram2_dout <= dq_in[15:8];
+                {vram1_rd_buf, vram1_wr_buf, vram2_rd_buf, vram2_wr_buf} <= 0;
             end
         end
     end
