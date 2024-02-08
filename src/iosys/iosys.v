@@ -1,4 +1,3 @@
-
 // IOSys - PicoRV32-based IO subsystem for snestang
 //
 // IOSys provides the following functionality,
@@ -49,11 +48,11 @@ module iosys (
     output [7:0] rom_do,            
     output reg rom_do_valid,            // strobe for rom_do
     // ROM meta-data
-    output reg [7:0] map_ctrl,          
-    output reg [3:0] rom_size,
-    output reg [3:0] ram_size,
+    output reg [7:0] rom_type,          // map_ctrl after further detection like DSP
     output reg [23:0] rom_mask,
     output reg [23:0] ram_mask,
+    output reg [3:0] rom_size,
+    output reg [3:0] ram_size,
     
     // SDRAM interface for risc-v softcore
     output reg [22:0] rv_addr,
@@ -269,6 +268,9 @@ simplespimaster simplespi (
 // header[3,7,11]: unused
 reg [1:0] rom_cnt, rom_header;
 reg [31:0] rom_do_buf;
+reg [7:0] mapper_header;            // raw map_ctrl from the ROM
+reg [7:0] company_header;
+reg [7:0] rom_type_header;
 assign rom_do = rom_do_buf[7:0];
 always @(posedge wclk) begin
     if (~resetn) begin
@@ -286,13 +288,15 @@ always @(posedge wclk) begin
         if (romload_reg_data_sel && mem_wstrb) begin
             case (rom_header)
             2'd0: begin         // 12-byte header
-                map_ctrl <= mem_wdata[7:0];
-                rom_size <= mem_wdata[11:8];
-                ram_size <= mem_wdata[19:16];
+                mapper_header <= mem_wdata[7:0];
+                rom_type_header <= mem_wdata[15:8];
+                rom_size <= mem_wdata[19:16];
+                ram_size <= mem_wdata[27:24];
                 rom_header <= 2'd1;
             end
             2'd1: begin
                 rom_mask <= mem_wdata[23:0];
+                company_header <= mem_wdata[31:24];
                 rom_header <= 2'd2;
             end
             2'd2: begin
@@ -311,6 +315,59 @@ always @(posedge wclk) begin
             rom_cnt <= rom_cnt - 2'd1;
             rom_do_valid <= 1;
         end
+    end
+end
+
+// further processing of headers into rom_type
+reg [1:0] rom_header_old;
+always @(posedge wclk) begin
+    rom_header_old <= rom_header;
+    if (rom_header != rom_header_old && rom_header == 2'd3) begin   // finished receiving rom header
+        // inital rom_type value
+        rom_type <= {6'b0, mapper_header[1:0]};
+		//DSP3
+		if (mapper_header == 8'h30 && rom_type_header == 8'd5 && company_header == 8'hB2) 
+            rom_type[7:4] <= 4'hA;
+		//DSP1
+		else if (((mapper_header == 8'h20 || mapper_header == 8'h21) && rom_type_header == 8'd3) ||
+    		    (mapper_header == 8'h30 && rom_type_header == 8'd5) || 
+	    	    (mapper_header == 8'h31 && (rom_type_header == 8'd3 || rom_type_header == 8'd5))) 
+            rom_type[7] <= 1'b1;
+		//DSP2
+		else if (mapper_header == 8'h20 && rom_type_header == 8'd5) 
+            rom_type[7:4] <= 4'h9;
+		//DSP4
+		else if (mapper_header == 8'h30 && rom_type_header == 8'd3) 
+            rom_type[7:4] <= 4'hB;
+		//OBC1
+		else if (mapper_header == 8'h30 && rom_type_header == 8'h25) 
+            rom_type[7:4] <= 4'hC;
+		//SDD1
+		else if (mapper_header == 8'h32 && (rom_type_header == 8'h43 || rom_type_header == 8'h45)) 
+            rom_type[7:4] <= 4'h5;
+		//ST0XX
+		else if (mapper_header == 8'h30 && rom_type_header == 8'hf6) begin
+			rom_type[7:3] <= { 4'h8, 1'b1 };
+			if (rom_size < 4'd10) rom_type[5] <= 1'b1; // Hayazashi Nidan Morita Shougi
+		end
+		//GSU
+		else if (mapper_header == 8'h20 &&
+		    (rom_type_header == 8'h13 || rom_type_header == 8'h14 || rom_type_header == 8'h15 || rom_type_header == 8'h1a))
+		begin
+			rom_type[7:4] <= 4'h7;
+//			ram_mask <= (24'd1024 << 4'd6) - 1'd1;
+		end
+		//SA1
+		else if (mapper_header == 8'h23 && (rom_type_header == 8'h32 || rom_type_header == 8'h34 || rom_type_header == 8'h35)) begin
+			rom_type[7:4] <= 4'h6;
+		// SPC7110
+		end else if (mapper_header == 8'h3a && (rom_type_header == 8'hf5 || rom_type_header == 8'hf9)) begin
+			rom_type[7:4] <= 4'hD;
+			rom_type[3] <= rom_type_header[3]; // with RTC
+		//CX4
+		end else if (mapper_header == 8'h20 && rom_type_header == 8'hf3) begin
+			rom_type[7:4] <= 4'h4;
+		end
     end
 end
 

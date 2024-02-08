@@ -343,7 +343,7 @@ int in_game;
 
 // return 0 if snes header is successfully parsed at off
 // typ 0: LoROM, 1: HiROM, 2: ExHiROM
-int parse_snes_header(FIL *fp, int pos, int file_size, int typ, int *map_ctrl, int *rom_size, int *ram_size) {
+int parse_snes_header(FIL *fp, int pos, int file_size, int typ, int *map_ctrl, int *rom_type_header, int *rom_size, int *ram_size, int *company) {
 	int br;
 	if (f_lseek(fp, pos))
 		return 1;
@@ -382,8 +382,10 @@ int parse_snes_header(FIL *fp, int pos, int file_size, int typ, int *map_ctrl, i
 		(typ == 1 && (mc & 3) == 1) ||	// HiROM
 		(typ == 2 && (mc & 3) == 2))) {	// ExHiROM
 		*map_ctrl = mc;
+		*rom_type_header = hdr[22];
 		*rom_size = rom;
 		*ram_size = ram;
+		*company = hdr[26];
 		return 0;
 	}
 	return 1;
@@ -410,13 +412,13 @@ int loadrom(int rom) {
 	}
 	int br, total = 0;
 	int size = file_sizes[rom];
-	int map_ctrl, rom_size, ram_size;
+	int map_ctrl, rom_type_header, rom_size, ram_size, company;
 	// parse SNES header from ROM file
 	int off = size & 0x3ff;		// rom header (0 or 512)
 	DEBUG("off=%d\n", off);
-	r = parse_snes_header(&f, 0x7fc0 + off, size-off, 0, &map_ctrl, &rom_size, &ram_size) &&
-		parse_snes_header(&f, 0xffc0 + off, size-off, 1, &map_ctrl, &rom_size, &ram_size) &&
-		parse_snes_header(&f, 0x40ffc0 + off, size-off, 2, &map_ctrl, &rom_size, &ram_size);
+	r = parse_snes_header(&f, 0x7fc0 + off, size-off, 0, &map_ctrl, &rom_type_header, &rom_size, &ram_size, &company) &&
+		parse_snes_header(&f, 0xffc0 + off, size-off, 1, &map_ctrl, &rom_type_header, &rom_size, &ram_size, &company) &&
+		parse_snes_header(&f, 0x40ffc0 + off, size-off, 2, &map_ctrl, &rom_type_header, &rom_size, &ram_size, &company);
 	if (r) {
 		status("Not a SNES ROM file");
 		delay(200);
@@ -426,8 +428,11 @@ int loadrom(int rom) {
 	// load actual ROM
 	snes_ctrl(1);
 	// 3-word header
-	snes_data(map_ctrl | (rom_size << 8) | (ram_size << 16));
-	snes_data((1024 << (rom_size < 7 ? 12 : rom_size)) - 1);
+	// word 0: {ram_size, rom_sie, rom_type_header, map_ctrl}
+	snes_data(map_ctrl | (rom_type_header << 8) | (rom_size << 16) | (ram_size << 24));
+	// word 1: {company, rom_mask[23:0]}
+	snes_data(((1024 << (rom_size < 7 ? 12 : rom_size)) - 1) | (company << 24));
+	// word 2: {8'b0, ram_mask[23:0]}
 	snes_data(ram_size ? (1024 << ram_size) - 1 : 0);
 
 	if ((r = f_lseek(&f, off)) != FR_OK) {

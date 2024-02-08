@@ -132,7 +132,7 @@ parameter USE_CX4 = 1'b0;
 parameter USE_SDD1 = 1'b0;
 parameter USE_GSU = 1'b0;
 parameter USE_SA1 = 1'b0;
-parameter USE_DSPn = 1'b0;
+parameter USE_DSPn = 1'b1;
 parameter USE_SPC7110 = 1'b0;
 parameter USE_BSX = 1'b0;
 parameter USE_MSU = 1'b0;
@@ -276,7 +276,7 @@ wire        DLH_BSRAM_WE_N;
 generate
 if (USE_DLH == 1'b1) begin
 
-DSP_LHRomMap DSP_LHRomMap
+DSP_LHRomMap #(.USE_DSPn(USE_DSPn)) DSP_LHRomMap
 (
 	.WCLK(WCLK),
 	.RST_N(RESET_N),

@@ -363,7 +363,7 @@ end
 // TODO: Both prom and drom are compressible. 
 //       There are a lot of duplicate and empty lines
 
-// Program ROM (8096 * 24, 12 BRAM blocks)
+// Program ROM (8096 * 24, 11 BRAM blocks)
 // 0000: dsp1.rom
 // 04F2: dsp1b.rom
 // 09E5: dsp2.rom
@@ -376,11 +376,15 @@ assign PROG_ROM_ADDR =  VER == 3'b000 && REV == 1'b0 ? PC + {1'b0, 12'h000} :
                         VER == 3'b010                ? PC + {1'b1, 12'h0B8} : 
                         VER == 3'b011                ? PC + {1'b1, 12'h6BD} : 
                                                        PC + {1'b1, 12'hD8B};
-reg [23:0] PROG_ROM [8*1024] /* synthesis syn_ramstyle="block_ram" */;
+reg [23:0] PROG_ROM [8096] /* synthesis syn_ramstyle="block_ram" */;
 initial $readmemh("dsp11b23410_p.hex", PROG_ROM);
 always @(posedge CLK) PROG_ROM_Q <= PROG_ROM[PROG_ROM_ADDR];
+//prog_rom PROG_ROM(
+//    .clk(CLK), .reset(~RST_N), .oce(1), .ce(1),
+//    .ad(PROG_ROM_ADDR), .dout(PROG_ROM_Q)
+//);
 
-// Data ROM (7168 * 16, 6 BRAM blocks)
+// Data ROM (7168 * 16, 7 BRAM blocks)
 // 0000: dsp1.rom
 // 0400: dsp1b.rom
 // 0800: dsp2.rom
@@ -393,51 +397,28 @@ assign DATA_ROM_ADDR =  VER == 3'b000 && REV == 1'b0 ? RP[9:0] + {1'b0,12'h000} 
                         VER == 3'b010                ? RP[9:0] + {1'b0,12'hC00} : 
                         VER == 3'b011                ? RP[9:0] + {1'b1,12'h000} : 
                                                        RP[10:0] + {1'b1,12'h400};
-reg [15:0] DATA_ROM[7168] /* synthesis syn_ramstyle="block_ram" */;
+reg [15:0] DATA_ROM [7168] /* synthesis syn_ramstyle="block_ram" */;
 initial $readmemh("dsp11b23410_d.hex", DATA_ROM);
 always @(posedge CLK) DATA_ROM_Q <= DATA_ROM[DATA_ROM_ADDR];
+//data_rom DATA_ROM(
+//    .clk(CLK), .reset(~RST_N), .oce(1), .ce(1),
+//    .ad(DATA_ROM_ADDR), .dout(DATA_ROM_Q)
+//);
+
 
 assign DATA_RAM_ADDR_A = VER[2] == 1'b0 ? {3'b000,DP[7:0]} : DP;
 assign DATA_RAM_ADDR_B = DP_SEL == 1'b1 && (WR_N == 1'b0 || RD_N == 1'b0) ? DP_ADDR[11:1] : DATA_RAM_ADDR_A | 8'h40;
 assign DATA_RAM_WE = OP_INSTR != INSTR_JP && OP_DST == 4'hF && EN == 1'b1 ? 1'b1 : 1'b0;
 
 // Data RAM (2048 * 16, 2 BRAM blocks)
-reg [15:0] DATA_RAM[2048] /* synthesis syn_ramstyle="block_ram" */;
-always @(posedge CLK) begin // port A
-    if (DATA_RAM_WE)
-        DATA_RAM[DATA_RAM_ADDR_A] <= OP_ID;
-    DATA_RAM_Q_A <= DATA_RAM[DATA_RAM_ADDR_A];
-end
-always @(posedge CLK) begin // port B
-    if (~WR_N & DP_SEL & ~DP_ADDR[0])
-        DATA_RAM[DATA_RAM_ADDR_B] <= DI;
-    DATA_RAM_Q_B <= DATA_RAM[DATA_RAM_ADDR_B];
-end
-
-// DATA_RAML : entity work.dpram generic map(11, 8)
-// port map(
-// 	clock			=> CLK,
-// 	address_a	=> DATA_RAM_ADDR_A,
-// 	data_a		=> OP_ID(7 downto 0),
-// 	wren_a		=> DATA_RAM_WE,
-// 	q_a			=> DATA_RAM_Q_A(7 downto 0),
-// 	address_b	=> DATA_RAM_ADDR_B,
-// 	data_b		=> DI,
-// 	wren_b		=> not WR_N and DP_SEL and not DP_ADDR(0),
-// 	q_b			=> DATA_RAM_Q_B(7 downto 0)
-// );
-// DATA_RAMH : entity work.dpram generic map(11, 8)
-// port map(
-// 	clock			=> CLK,
-// 	address_a	=> DATA_RAM_ADDR_A,
-// 	data_a		=> OP_ID(15 downto 8),
-// 	wren_a		=> DATA_RAM_WE,
-// 	q_a			=> DATA_RAM_Q_A(15 downto 8),
-// 	address_b	=> DATA_RAM_ADDR_B,
-// 	data_b		=> DI,
-// 	wren_b		=> not WR_N and DP_SEL and DP_ADDR(0),
-// 	q_b			=> DATA_RAM_Q_B(15 downto 8)
-// );
+dsp_data_ram data_ram(
+    .clka(CLK),  .clkb(CLK), .reseta(~RST_N), .resetb(~RST_N), 
+    .cea(1), .ceb(1), .ocea(), .oceb(),
+    .ada(DAT_RAM_ADDR_A), .douta(DATA_RAM_Q_A), 
+    .wrea(DATA_RAM_WE),.dina(OP_ID),
+    .adb(DATA_RAM_ADDR_B), .doutb(DATA_RAM_Q_B),
+    .wreb(~WR_N & DP_SEL & ~DP_ADDR[0]), .dinb({DI,DI}) 
+);
 
 //I/O Ports
 always @(posedge CLK) begin

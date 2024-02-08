@@ -192,10 +192,6 @@ wire [7:0] rom_type;
 wire [3:0] rom_size, ram_size;
 wire [23:0] rom_mask, ram_mask;
 
-reg  [7:0] rom_type_header;
-reg  [7:0] mapper_header;
-reg  [7:0] company_header;
-
 wire sdram_busy;
 wire refresh;
 reg enable; // && ~dbg_break && ~pause;
@@ -453,7 +449,7 @@ iosys iosys (
     .joy1(joy1_btns), .joy2(joy2_btns),
 
     .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid), 
-    .map_ctrl(rom_type), .rom_mask(rom_mask), .ram_mask(ram_mask),
+    .rom_type(rom_type), .rom_mask(rom_mask), .ram_mask(ram_mask),
     .rom_size(rom_size), .ram_size(ram_size),
     .ram_busy(sdram_busy),
 

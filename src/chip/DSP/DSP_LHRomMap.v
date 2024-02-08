@@ -22,7 +22,7 @@
 
 // no timescale needed
 
-module DSP_LHRomMap(
+module DSP_LHRomMap #(parameter USE_DSPn=1)(
   input WCLK,
   input RST_N,
   input ENABLE,
@@ -90,21 +90,21 @@ wire [31:0] DSP_CLK;
 reg ROM_RD;
 wire OBC1_RSTN;
 
-  assign MAP_DSP_VER = {MAP_CTRL[3],MAP_CTRL[5:4]};
-  assign MAP_DSP_SEL =  ~MAP_CTRL[6] & (MAP_CTRL[7] |  ~(MAP_CTRL[5] | MAP_CTRL[4]));
-  //8..B
-  assign MAP_OBC1_SEL = MAP_CTRL[7] & MAP_CTRL[6] &  ~MAP_CTRL[5] &  ~MAP_CTRL[4];
-  //C
-  assign MAP_ACTIVE = MAP_DSP_SEL | MAP_OBC1_SEL;
-  CEGen CEGen(
-    .CLK(WCLK),
-    .RST_N(RST_N),
-    .IN_CLK(10_800_000),
-    .OUT_CLK(DSP_CLK),
-    .CE(DSP_CE));
+assign MAP_DSP_VER = {MAP_CTRL[3], MAP_CTRL[5:4]};
+assign MAP_DSP_SEL =  ~MAP_CTRL[6] & (MAP_CTRL[7] | ~(MAP_CTRL[5] | MAP_CTRL[4])); //8..B
+assign MAP_OBC1_SEL = MAP_CTRL[7] & MAP_CTRL[6] &  ~MAP_CTRL[5] &  ~MAP_CTRL[4];    //C
+assign MAP_ACTIVE = MAP_DSP_SEL | MAP_OBC1_SEL;
 
-  assign DSP_CLK = MAP_CTRL[3] == 1'b0 ? 760000 : 1000000;
-  always @(CA, MAP_CTRL, ROMSEL_N, RAMSEL_N, BSRAM_MASK, ROM_MASK) begin
+CEGen CEGen(
+  .CLK(WCLK),
+  .RST_N(RST_N),
+  .IN_CLK(10_800_000),
+  .OUT_CLK(DSP_CLK),
+  .CE(DSP_CE));
+
+assign DSP_CLK = MAP_CTRL[3] == 1'b0 ? 760_000 : 1_000_000;
+
+always @(CA, MAP_CTRL, ROMSEL_N, RAMSEL_N, BSRAM_MASK, ROM_MASK) begin
     DP_SEL <= 1'b0;
     DSP_SEL <= 1'b0;
     OBC1_SEL <= 1'b0;
@@ -206,10 +206,13 @@ wire OBC1_RSTN;
       DSP_SEL <= 1'b0;
       DSP_A0 <= 1'b1;
     end
-  end
+end
 
-  assign ROM_SEL =  ~ROMSEL_N &  ~DSP_SEL &  ~DP_SEL &  ~SRTC_SEL &  ~BSRAM_SEL &  ~OBC1_SEL &  ~NO_BSRAM_SEL;
-  assign DSP_CS_N =  ~DSP_SEL;
+assign ROM_SEL =  ~ROMSEL_N &  ~DSP_SEL &  ~DP_SEL &  ~SRTC_SEL &  ~BSRAM_SEL &  ~OBC1_SEL &  ~NO_BSRAM_SEL;
+assign DSP_CS_N =  ~DSP_SEL;
+
+generate
+if (USE_DSPn) begin
   DSPn dsp(
     .CLK(WCLK), .CE(DSP_CE), .RST_N(RST_N & MAP_DSP_SEL),
     .ENABLE(ENABLE),
@@ -218,27 +221,11 @@ wire OBC1_RSTN;
     .DP_ADDR(CA[11:0]), .DP_SEL(DP_SEL),
     .VER(MAP_DSP_VER), .REV(~MAP_CTRL[2])
   );
-  // DSPn_BLOCK: if USE_DSPn = '1' generate
-  // DSPn : entity work.DSPn
-  // port map(
-  // 	CLK			=> WCLK,
-  // 	CE				=> DSP_CE,
-  // 	RST_N			=> RST_N and MAP_DSP_SEL,
-  // 	ENABLE		=> ENABLE,
-  // 	A0				=> DSP_A0,
-  // 	DI				=> DI,
-  // 	DO				=> DSP_DO,
-  // 	CS_N			=> DSP_CS_N,
-  // 	RD_N			=> CPURD_N,
-  // 	WR_N			=> CPUWR_N,
-  // 	DP_ADDR     => CA(11 downto 0),
-  // 	DP_SEL      => DP_SEL,
-  // 	VER			=> MAP_DSP_VER,
-  // 	REV			=> not MAP_CTRL(2)
-  // );
-  // end generate;
-  assign OBC1_RSTN = RST_N & MAP_OBC1_SEL;
-  OBC1 OBC1(
+end
+endgenerate
+
+assign OBC1_RSTN = RST_N & MAP_OBC1_SEL;
+OBC1 OBC1(
     .CLK(WCLK),
     .RST_N(OBC1_RSTN),
     .ENABLE(ENABLE),
@@ -252,7 +239,7 @@ wire OBC1_RSTN;
     .SRAM_DI(BSRAM_Q),
     .SRAM_DO(OBC1_SRAM_DO));
 
-  SRTC SRTC(
+SRTC SRTC(
     .CLK(WCLK),
     .A0(CA[0]),
     .DI(DI),
@@ -263,20 +250,20 @@ wire OBC1_RSTN;
     .SYSCLKF_CE(SYSCLKF_CE),
     .EXT_RTC(EXT_RTC));
 
-  always @(posedge WCLK) begin
+always @(posedge WCLK) begin
     ROM_RD <= SYSCLKF_CE | SYSCLKR_CE;
-  end
+end
 
-  assign ROM_ADDR = CART_ADDR & ROM_MASK;
-  assign ROM_CE_N = ROMSEL_N;
-  assign ROM_OE_N =  ~ROM_RD;
-  assign ROM_WORD = 1'b0;
-  assign BSRAM_ADDR = OBC1_SEL == 1'b1 ? {7'b0000000,OBC1_SRAM_A} : BRAM_ADDR & BSRAM_MASK[19:0];
-  assign BSRAM_CE_N =  ~(BSRAM_SEL | OBC1_SEL);
-  assign BSRAM_OE_N = CPURD_N;
-  assign BSRAM_WE_N = CPUWR_N;
-  assign BSRAM_D = OBC1_SEL == 1'b1 ? OBC1_SRAM_DO : DI;
-  always @(posedge WCLK) begin
+assign ROM_ADDR = CART_ADDR & ROM_MASK;
+assign ROM_CE_N = ROMSEL_N;
+assign ROM_OE_N =  ~ROM_RD;
+assign ROM_WORD = 1'b0;
+assign BSRAM_ADDR = OBC1_SEL == 1'b1 ? {7'b0000000,OBC1_SRAM_A} : BRAM_ADDR & BSRAM_MASK[19:0];
+assign BSRAM_CE_N =  ~(BSRAM_SEL | OBC1_SEL);
+assign BSRAM_OE_N = CPURD_N;
+assign BSRAM_WE_N = CPUWR_N;
+assign BSRAM_D = OBC1_SEL == 1'b1 ? OBC1_SRAM_DO : DI;
+always @(posedge WCLK) begin
     if(~RST_N) begin
       OPENBUS <= {8{1'b1}};
     end else begin
@@ -284,9 +271,9 @@ wire OBC1_RSTN;
         OPENBUS <= DI;
       end
     end
-  end
+end
 
-  assign DO = ROM_SEL == 1'b1 ? ROM_Q[7:0] : DSP_SEL == 1'b1 || DP_SEL == 1'b1 ? DSP_DO : SRTC_SEL == 1'b1 ? SRTC_DO : BSRAM_SEL == 1'b1 || OBC1_SEL == 1'b1 ? BSRAM_Q : OPENBUS;
-  assign IRQ_N = 1'b1;
+assign DO = ROM_SEL == 1'b1 ? ROM_Q[7:0] : DSP_SEL == 1'b1 || DP_SEL == 1'b1 ? DSP_DO : SRTC_SEL == 1'b1 ? SRTC_DO : BSRAM_SEL == 1'b1 || OBC1_SEL == 1'b1 ? BSRAM_Q : OPENBUS;
+assign IRQ_N = 1'b1;
 
 endmodule
