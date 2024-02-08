@@ -210,6 +210,14 @@ wire OBC1_RSTN;
 
   assign ROM_SEL =  ~ROMSEL_N &  ~DSP_SEL &  ~DP_SEL &  ~SRTC_SEL &  ~BSRAM_SEL &  ~OBC1_SEL &  ~NO_BSRAM_SEL;
   assign DSP_CS_N =  ~DSP_SEL;
+  DSPn dsp(
+    .CLK(WCLK), .CE(DSP_CE), .RST_N(RST_N & MAP_DSP_SEL),
+    .ENABLE(ENABLE),
+    .A0(DSP_A0), .DI(DI), .DO(DSP_DO),
+    .CS_N(DSP_CS_N), .RD_N(CPURD_N), .WR_N(CPUWR_N),
+    .DP_ADDR(CA[11:0]), .DP_SEL(DP_SEL),
+    .VER(MAP_DSP_VER), .REV(~MAP_CTRL[2])
+  );
   // DSPn_BLOCK: if USE_DSPn = '1' generate
   // DSPn : entity work.DSPn
   // port map(

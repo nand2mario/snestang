@@ -16,6 +16,7 @@
         <File path="src/65C816/mcode.sv" type="file.verilog" enable="1"/>
         <File path="src/CEGen.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/DSP_LHRomMap.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/DSP/DSPn.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/OBC1.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/SRTC.v" type="file.verilog" enable="1"/>
         <File path="src/cpu.v" type="file.verilog" enable="1"/>
