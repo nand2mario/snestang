@@ -75,14 +75,14 @@ reg [15:0] DATA_RAM_Q_A, DATA_RAM_Q_B;
 wire DATA_RAM_WE;
 
 wire EN;
-reg [2:0] RD_Nr, WR_Nr;
+reg RD_Nr, WR_Nr;
 reg PORT_ACTIVE;
 
 //debug
 wire DBG_RUN_LAST;
 wire DBG_DAT_WRr;
-wire [10:0] DBG_BRK_ADDR = 1'b1;
-wire [7:0] DBG_CTRL = 1'b0;
+wire [10:0] DBG_BRK_ADDR = {11{1'b1}};
+wire [7:0] DBG_CTRL = 0;
 
 assign EN = ENABLE & CE;
 assign OP_INSTR = PROG_ROM_Q[23:22];
@@ -165,11 +165,15 @@ always @(posedge CLK) begin : P4
         if (EN) begin
             if ((OP_INSTR == INSTR_OP || OP_INSTR == INSTR_RT) && OP_ALU != 4'h0) begin
                 FLAGS[OP_A][FLAG_S0] <= ALU_R[15];
+                // nand2mario: replicate Mesen2 behavior
+                if (~FLAGS[OP_A][FLAG_OV1])
+                    FLAGS[OP_A][FLAG_S1] <= ALU_R[15];
                 
                 if (ALU_R == 16'h0000) 
                     FLAGS[OP_A][FLAG_Z] <= 1'b1;
                 else
                     FLAGS[OP_A][FLAG_Z] <= 1'b0;
+
                 
                 case (OP_ALU)
                 4'h1,4'h2,4'h3,4'hA,4'hD,4'hE,4'hF : 
@@ -218,7 +222,7 @@ end
 always @(K, L) begin : P3
     reg [30:0] TEMP;
 
-    TEMP = 30'(signed'(K) * signed'(L)); // TEMP := resize((signed(K) * signed(L)),TEMP'length);
+    TEMP = 31'(signed'(K) * signed'(L)); // TEMP := resize((signed(K) * signed(L)),TEMP'length);
     M <= TEMP[30:15];
     N <= {TEMP[14:0], 1'b0};
 end
@@ -370,19 +374,15 @@ end
 // 10B8: dsp3.rom
 // 16BD: dsp4.rom
 // 1D8B: st010.rom
-assign PROG_ROM_ADDR =  VER == 3'b000 && REV == 1'b0 ? PC + {1'b0, 12'h000} : 
-                        VER == 3'b000 && REV == 1'b1 ? PC + {1'b0, 12'h4F2} : 
-                        VER == 3'b001                ? PC + {1'b0, 12'h9E5} : 
-                        VER == 3'b010                ? PC + {1'b1, 12'h0B8} : 
-                        VER == 3'b011                ? PC + {1'b1, 12'h6BD} : 
-                                                       PC + {1'b1, 12'hD8B};
+assign PROG_ROM_ADDR =  VER == 3'b000 && REV == 1'b0 ? 13'(PC) + {1'b0, 12'h000} : 
+                        VER == 3'b000 && REV == 1'b1 ? 13'(PC) + {1'b0, 12'h4F2} : 
+                        VER == 3'b001                ? 13'(PC) + {1'b0, 12'h9E5} : 
+                        VER == 3'b010                ? 13'(PC) + {1'b1, 12'h0B8} : 
+                        VER == 3'b011                ? 13'(PC) + {1'b1, 12'h6BD} : 
+                                                       13'(PC) + {1'b1, 12'hD8B};
 reg [23:0] PROG_ROM [8096] /* synthesis syn_ramstyle="block_ram" */;
 initial $readmemh("dsp11b23410_p.hex", PROG_ROM);
 always @(posedge CLK) PROG_ROM_Q <= PROG_ROM[PROG_ROM_ADDR];
-//prog_rom PROG_ROM(
-//    .clk(CLK), .reset(~RST_N), .oce(1), .ce(1),
-//    .ad(PROG_ROM_ADDR), .dout(PROG_ROM_Q)
-//);
 
 // Data ROM (7168 * 16, 7 BRAM blocks)
 // 0000: dsp1.rom
@@ -391,34 +391,72 @@ always @(posedge CLK) PROG_ROM_Q <= PROG_ROM[PROG_ROM_ADDR];
 // 0C00: dsp3.rom
 // 1000: dsp4.rom
 // 1400: st010.rom
-assign DATA_ROM_ADDR =  VER == 3'b000 && REV == 1'b0 ? RP[9:0] + {1'b0,12'h000} :
-                        VER == 3'b000 && REV == 1'b1 ? RP[9:0] + {1'b0,12'h400} : 
-                        VER == 3'b001                ? RP[9:0] + {1'b0,12'h800} : 
-                        VER == 3'b010                ? RP[9:0] + {1'b0,12'hC00} : 
-                        VER == 3'b011                ? RP[9:0] + {1'b1,12'h000} : 
-                                                       RP[10:0] + {1'b1,12'h400};
+assign DATA_ROM_ADDR =  VER == 3'b000 && REV == 1'b0 ? 13'(RP[9:0]) + {1'b0,12'h000} :
+                        VER == 3'b000 && REV == 1'b1 ? 13'(RP[9:0]) + {1'b0,12'h400} : 
+                        VER == 3'b001                ? 13'(RP[9:0]) + {1'b0,12'h800} : 
+                        VER == 3'b010                ? 13'(RP[9:0]) + {1'b0,12'hC00} : 
+                        VER == 3'b011                ? 13'(RP[9:0]) + {1'b1,12'h000} : 
+                                                       13'(RP[10:0]) + {1'b1,12'h400};
 reg [15:0] DATA_ROM [7168] /* synthesis syn_ramstyle="block_ram" */;
 initial $readmemh("dsp11b23410_d.hex", DATA_ROM);
 always @(posedge CLK) DATA_ROM_Q <= DATA_ROM[DATA_ROM_ADDR];
-//data_rom DATA_ROM(
-//    .clk(CLK), .reset(~RST_N), .oce(1), .ce(1),
-//    .ad(DATA_ROM_ADDR), .dout(DATA_ROM_Q)
-//);
-
 
 assign DATA_RAM_ADDR_A = VER[2] == 1'b0 ? {3'b000,DP[7:0]} : DP;
-assign DATA_RAM_ADDR_B = DP_SEL == 1'b1 && (WR_N == 1'b0 || RD_N == 1'b0) ? DP_ADDR[11:1] : DATA_RAM_ADDR_A | 8'h40;
+assign DATA_RAM_ADDR_B = DP_SEL == 1'b1 && (WR_N == 1'b0 || RD_N == 1'b0) ? 
+                         DP_ADDR[11:1] : 
+                         DATA_RAM_ADDR_A | 11'h40;
 assign DATA_RAM_WE = OP_INSTR != INSTR_JP && OP_DST == 4'hF && EN == 1'b1 ? 1'b1 : 1'b0;
 
 // Data RAM (2048 * 16, 2 BRAM blocks)
+`ifndef VERILATOR
 dsp_data_ram data_ram(
     .clka(CLK),  .clkb(CLK), .reseta(~RST_N), .resetb(~RST_N), 
     .cea(1), .ceb(1), .ocea(), .oceb(),
-    .ada(DAT_RAM_ADDR_A), .douta(DATA_RAM_Q_A), 
+    .ada(DATA_RAM_ADDR_A), .douta(DATA_RAM_Q_A), 
     .wrea(DATA_RAM_WE),.dina(OP_ID),
     .adb(DATA_RAM_ADDR_B), .doutb(DATA_RAM_Q_B),
     .wreb(~WR_N & DP_SEL & ~DP_ADDR[0]), .dinb({DI,DI}) 
 );
+`else
+reg [15:0] data_ram [2048];
+always @(posedge CLK) begin
+    if (DATA_RAM_WE) begin
+        data_ram[DATA_RAM_ADDR_A] <= OP_ID;
+        $display("DSPn[%x] <= %x", DATA_RAM_ADDR_A, OP_ID);
+    end
+    DATA_RAM_Q_A <= data_ram[DATA_RAM_ADDR_A];
+    if (~WR_N & DP_SEL)
+        if (DP_ADDR[0])
+            data_ram[DATA_RAM_ADDR_B][15:8] <= DI;
+        else
+            data_ram[DATA_RAM_ADDR_B][7:0] <= DI;
+    DATA_RAM_Q_B <= data_ram[DATA_RAM_ADDR_B];
+end
+
+// print I/O communication for verilator
+reg [10:0] PCr, PCrr;
+always @(posedge CLK) begin
+    if (~CS_N && RD_Nr && ~RD_N && ~A0) begin
+        if (DRC) 
+            $display("DSPn DO: %x", DR[7:0]);
+        else if (~DRS)
+            $display("DSPn DO: %x", DR);
+    end
+    if (~CS_N && WR_Nr && ~WR_N && ~A0) begin
+        if (DRC)
+            $display("DSPn DI: %x", DI);
+        else if (DRS)
+            $display("DSPn DI: %x", {DI, DR[7:0]});
+    end
+    PCr <= PC;
+    PCrr <= PCr;
+    if (PCr != PCrr) begin
+        $display("DSPn: PC=%x, INST=%x, A=%x, B=%x, RP=%x, DP=%x, DR=%x, SR=%x, K=%x, L=%x, M=%x, N=%x",
+                13'(PC)+13'(PC)+13'(PC), PROG_ROM_Q, ACC[ACC_A], ACC[ACC_B], RP, DP, DR, SR, K, L, M, N);
+    end
+end
+
+`endif
 
 //I/O Ports
 always @(posedge CLK) begin
@@ -426,15 +464,15 @@ always @(posedge CLK) begin
         DRS <= 1'b0;
         RQM <= 1'b0;
         DR <= {16{1'b0}};
-        WR_Nr <= {3{1'b1}};
-        RD_Nr <= {3{1'b1}};
+        WR_Nr <= 1;
+        RD_Nr <= 1;
         PORT_ACTIVE <= 1'b0;
     end else begin
         if (ENABLE) begin
-            WR_Nr <= {WR_Nr[1:0],WR_N};
-            RD_Nr <= {RD_Nr[1:0],RD_N};
+            WR_Nr <= WR_N;
+            RD_Nr <= RD_N;
 
-            if (WR_Nr == 3'b110 && ~CS_N && ~A0) begin
+            if (WR_Nr && ~WR_N && ~CS_N && ~A0) begin
                 if (~DRC) begin
                     if (~DRS) 
                         DR[7:0] <= DI;
@@ -443,10 +481,10 @@ always @(posedge CLK) begin
                 end else 
                     DR[7:0] <= DI;
                 PORT_ACTIVE <= 1'b1;
-            end else if (RD_Nr == 3'b110 && ~CS_N && ~A0) 
+            end else if (RD_Nr && RD_N && ~CS_N && ~A0) 
                 PORT_ACTIVE <= 1'b1;
 
-            if ((WR_Nr == 3'b001 || RD_Nr == 3'b001) && PORT_ACTIVE) begin
+            if (((~WR_Nr && WR_N ) || (~RD_Nr && RD_N)) && PORT_ACTIVE) begin
                 if (~DRC) begin
                     if (~DRS) 
                         DRS <= 1;

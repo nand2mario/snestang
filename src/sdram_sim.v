@@ -44,11 +44,11 @@ always @(posedge clkref) begin
         2'b00: ;
         2'b10: begin
             mem_cpu[cpu_addr][15:8] <= cpu_din[15:8];
-            $display("[%06x] <= %02x", {cpu_addr, 1'b1}, cpu_din[15:8]);
+            // $display("[%06x] <= %02x", {cpu_addr, 1'b1}, cpu_din[15:8]);
         end
         2'b01: begin
             mem_cpu[cpu_addr][7:0] <= cpu_din[7:0];
-            $display("[%06x] <= %02x", {cpu_addr, 1'b0}, cpu_din[7:0]);
+            // $display("[%06x] <= %02x", {cpu_addr, 1'b0}, cpu_din[7:0]);
         end
         2'b11:
             mem_cpu[cpu_addr] <= cpu_din;

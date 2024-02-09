@@ -5,7 +5,6 @@
 module SNES(
     // input MCLK,              // Master clock 21Mhz
     input WCLK,                 // Half of mclk
-    input SMPCLK,
     input RST_N,
     input ENABLE,
 
@@ -212,7 +211,7 @@ assign SMP_CPU_DI = BUSA_SEL == 1'b1 ? DI : INT_RAMSEL_N == 1'b0 ? WRAM_DO : CPU
 
 // SMP
 SMP smp(
-    .CLK(SMPCLK), .RST_N(RST_N), .ENABLE(SMP_EN & APU_ACTIVE),
+    .CLK(WCLK), .RST_N(RST_N), .ENABLE(SMP_EN & APU_ACTIVE),
     .A(SMP_A), .DI(SMP_DI), .DO(SMP_DO), .WE_N(SMP_WE_N),
     .PA(INT_PA[1:0]), .PARD_N(INT_PARD_N), .PAWR_N(INT_PAWR_N), .CPU_DI(SMP_CPU_DI), .CPU_DO(SMP_CPU_DO),
     .CS(INT_PA[6]), .CS_N(INT_PA[7]),
@@ -222,7 +221,7 @@ SMP smp(
 
 // DSP 
 DSP dsp(
-    .CLK(SMPCLK), .RST_N(RST_N), .ENABLE(ENABLE), .READY(AUDIO_EN), .PHASE(), .LAST_PHASE(APU_ACTIVE),
+    .CLK(WCLK), .RST_N(RST_N), .ENABLE(ENABLE), .READY(AUDIO_EN), .PHASE(), .LAST_PHASE(APU_ACTIVE),
     .SMP_EN(SMP_EN), .SMP_A(SMP_A), .SMP_DO(SMP_DO), .SMP_DI(SMP_DI),
     .SMP_WE_N(SMP_WE_N), .RAM_A(ARAM_ADDR), .RAM_D(ARAM_D), .RAM_Q(ARAM_Q),
     .RAM_WE_N(ARAM_WE_N), .RAM_OE_N(ARAM_OE_N), .RAM_CE_N(ARAM_CE_N), 

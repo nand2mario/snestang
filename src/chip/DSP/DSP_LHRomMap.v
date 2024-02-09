@@ -24,6 +24,7 @@
 
 module DSP_LHRomMap #(parameter USE_DSPn=1)(
   input WCLK,
+  input MCLK,
   input RST_N,
   input ENABLE,
 
@@ -96,9 +97,9 @@ assign MAP_OBC1_SEL = MAP_CTRL[7] & MAP_CTRL[6] &  ~MAP_CTRL[5] &  ~MAP_CTRL[4];
 assign MAP_ACTIVE = MAP_DSP_SEL | MAP_OBC1_SEL;
 
 CEGen CEGen(
-  .CLK(WCLK),
+  .CLK(MCLK),
   .RST_N(RST_N),
-  .IN_CLK(10_800_000),
+  .IN_CLK(2160000),   // this is 1/10 of actual clock
   .OUT_CLK(DSP_CLK),
   .CE(DSP_CE));
 
@@ -129,13 +130,13 @@ always @(CA, MAP_CTRL, ROMSEL_N, RAMSEL_N, BSRAM_MASK, ROM_MASK) begin
               NO_BSRAM_SEL <= ~CA[15] & ~MAP_CTRL[7] &  ~BSRAM_MASK[10];
             end
           end
-          //60-6F/E0-EF:0000-7FFF
-          //20-3F/A0-BF:8000-FFFF
-          if((CA[22:21] == 2'b01 && CA[15] == 1'b1 && ROM_MASK[20] == 1'b0) || (CA[22:20] == 3'b110 && CA[15] == 1'b0 && ROM_MASK[20] == 1'b1)) begin
+          // DSP chip: 60-6F/E0-EF:0000-7FFF, 20-3F/A0-BF:8000-FFFF
+          if ((CA[22:21] == 2'b01 && CA[15] == 1'b1 && ROM_MASK[20] == 1'b0) || 
+              (CA[22:20] == 3'b110 && CA[15] == 1'b0 && ROM_MASK[20] == 1'b1)) begin
             DSP_SEL <= MAP_CTRL[7] &  ~MAP_CTRL[6];
           end
           DSP_A0 <= CA[14];
-          if(CA[22] == 1'b0 && CA[15:13] == 3'b011) begin
+          if (CA[22] == 1'b0 && CA[15:13] == 3'b011) begin
             //00-3F/80-BF:6000-7FFF
             OBC1_SEL <= MAP_CTRL[7] & MAP_CTRL[6];
           end
@@ -214,7 +215,7 @@ assign DSP_CS_N =  ~DSP_SEL;
 generate
 if (USE_DSPn) begin
   DSPn dsp(
-    .CLK(WCLK), .CE(DSP_CE), .RST_N(RST_N & MAP_DSP_SEL),
+    .CLK(MCLK), .CE(DSP_CE), .RST_N(RST_N & MAP_DSP_SEL),
     .ENABLE(ENABLE),
     .A0(DSP_A0), .DI(DI), .DO(DSP_DO),
     .CS_N(DSP_CS_N), .RD_N(CPURD_N), .WR_N(CPUWR_N),

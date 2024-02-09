@@ -62,12 +62,12 @@ module snestang_top (
 );
 
 // Clock signals
-// wire mclk;                      // SNES master clock at 21.6Mhz (~21.477), not actually instantiated
-wire fclk;                          // Fast clock for sdram, and 180-degree shifted, for SDRAM
-wire fclk_p /*XXX synthesis syn_keep=1 */;              
-wire wclk;                      // Actual work clock for SNES, 1/6 of fclk and 1/2 of mclk
+wire wclk;                      // Actual work clock for SNES for most components, 1/2 of SNES master clock speed
+wire fclk;                      // Fast clock for sdram for SDRAM
+wire fclk_p;                    // 180-degree shifted fclk
 wire clk27;                     // 27Mhz for hdmi clock generation
 wire hclk5, hclk;               // 720p pixel clock at 74.25Mhz, and 5x high-speed
+wire mclk;                      // SNES master clock at 21.6Mhz (~21.477), used for faster components like DSPn
 
 reg resetn = 1'b0;              // reset is cleared after 4 cycles
 wire pause;
@@ -90,9 +90,10 @@ gowin_pll_27 pll_27 (
 
 // DRAM and SNES clocks
 gowin_pll_snes pll_snes (
-    .clkout0(wclk),             // 1/6 of fclk
-    .clkout1(fclk),             // 64.84Mhz
-    .clkout2(fclk_p),           // 180-degree shifted fclk
+    .clkout0(wclk),             // 10.8Mhz
+    .clkout1(fclk),             // 86.4Mhz
+    .clkout2(fclk_p),            
+    .clkout3(mclk),             // 21.6Mhz
     .clkin(clk27));
 
 // HDMI clocks
@@ -104,13 +105,10 @@ gowin_pll_hdmi pll_hdmi (
 
 // Simulated clocks for verilator
 assign fclk = sys_clk;
-reg [2:0] fclk_cnt = 3'b0;      // 0 1 2 3 4 5
-always @(posedge fclk) fclk_cnt <= fclk_cnt == 3'd5 ? 3'd0 : fclk_cnt + 3'b1;
-assign wclk = fclk_cnt == 3'd3 || fclk_cnt == 3'd4 || fclk_cnt == 3'd5;
-// assign smpclk = wclk;
-
-// assign hclk5 = fclk;
-// assign hclk = fclk;
+reg [2:0] fclk_cnt = 3'b0;      // 0 1 2 3 4 5 6 7
+always @(posedge fclk) fclk_cnt <= fclk_cnt + 3'b1;
+assign wclk = fclk_cnt[2];
+assign mclk = fclk_cnt[1];
 
 `endif
 
@@ -208,7 +206,7 @@ wire sysclkf_ce, sysclkr_ce;
 wire overlay;
 
 main main (
-    .WCLK(wclk), .SMPCLK(wclk/*smpclk*/), .RESET_N(resetn & ~loading), .ENABLE(enable), 
+    .WCLK(wclk), .MCLK(mclk), .RESET_N(resetn & ~loading), .ENABLE(enable), 
     .SYSCLKF_CE(sysclkf_ce), .SYSCLKR_CE(sysclkr_ce), .REFRESH(refresh),
 
     .ROM_TYPE(rom_type), .ROM_MASK(rom_mask), .RAM_MASK(ram_mask),

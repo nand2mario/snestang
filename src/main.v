@@ -2,7 +2,7 @@
 
 module main (
 	input             WCLK,
-	input			  SMPCLK,
+	input			  MCLK,
 	input             RESET_N,
 	input             ENABLE,
 
@@ -154,7 +154,7 @@ wire  [5:0] MAP_ACTIVE;
 
 SNES SNES
 (
-	.WCLK(WCLK), .SMPCLK(SMPCLK), .RST_N(RESET_N), .ENABLE(ENABLE),
+	.WCLK(WCLK), .RST_N(RESET_N), .ENABLE(ENABLE),
 
 	.CA(CA), .CPURD_N(CPURD_N),	.CPUWR_N(CPUWR_N), .CPURD_CYC_N(CPURD_CYC_N),
 	.PA(PA), .PARD_N(PARD_N), .PAWR_N(PAWR_N), .DI(DI),	.DO(DO),
@@ -279,6 +279,7 @@ if (USE_DLH == 1'b1) begin
 DSP_LHRomMap #(.USE_DSPn(USE_DSPn)) DSP_LHRomMap
 (
 	.WCLK(WCLK),
+	.MCLK(MCLK),
 	.RST_N(RESET_N),
     .ENABLE(1'b1),
 
