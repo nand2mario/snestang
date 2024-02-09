@@ -52,7 +52,7 @@
 -de2_en false
 -en_clkout3 true
 -clkout3_bypass false
--odiv3_sel 80
+-odiv3_sel 40
 -clkout3_dt_dir 1
 -clkout3_dt_step 0
 -dyn_pe3_sel false

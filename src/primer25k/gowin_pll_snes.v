@@ -1,12 +1,3 @@
-//Copyright (C)2014-2023 Gowin Semiconductor Corporation.
-//All rights reserved.
-//File Title: IP file
-//Tool Version: V1.9.9 (64-bit)
-//Part Number: GW5A-LV25MG121NC1/I0
-//Device: GW5A-25
-//Device Version: A
-//Created Time: Tue Jan 30 17:37:40 2024
-
 module gowin_pll_snes (clkout0, clkout1, clkout2, clkout3, clkin);
 
 output clkout0;
@@ -66,7 +57,7 @@ defparam PLLA_inst.FBDIV_SEL = 1;
 defparam PLLA_inst.ODIV0_SEL = 80;
 defparam PLLA_inst.ODIV1_SEL = 10;
 defparam PLLA_inst.ODIV2_SEL = 10;
-defparam PLLA_inst.ODIV3_SEL = 80;
+defparam PLLA_inst.ODIV3_SEL = 40;
 defparam PLLA_inst.ODIV4_SEL = 8;
 defparam PLLA_inst.ODIV5_SEL = 8;
 defparam PLLA_inst.ODIV6_SEL = 8;
