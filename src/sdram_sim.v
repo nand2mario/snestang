@@ -1,9 +1,21 @@
 // Simulation model of sdram_snes.v for Verilator
 
-module sdram_sim
+module sdram_snes
 (
+    input             clk,
     input             clkref,       // main reference clock, requests are sampled on its rising edge
     input             resetn,
+
+    // SDRAM side interface
+    inout      [15:0] SDRAM_DQ,
+    output     [12:0] SDRAM_A,
+    output     [1:0]  SDRAM_BA,
+    output reg        SDRAM_nCS, 
+    output            SDRAM_nWE,
+    output            SDRAM_nRAS,
+    output            SDRAM_nCAS,
+    output            SDRAM_CKE, 
+    output reg  [1:0] SDRAM_DQM,
 
     // CPU access (ROM and WRAM) uses bank 0 and 1 (total 16MB)
 	input      [15:0] cpu_din,
@@ -29,12 +41,37 @@ module sdram_sim
 	input             aram_rd,
     input             aram_wr,
 
+    // VRAM1
+	input      [14:0] vram1_addr,
+	input       [7:0] vram1_din,
+	output reg  [7:0] vram1_dout,
+	input             vram1_rd,     // rd==1 for both, addr same for 16-bit reads
+	input             vram1_wr,     // wr==1 only for one of vram
+
+    // VRAM2
+	input      [14:0] vram2_addr,
+	input       [7:0] vram2_din,
+	output reg  [7:0] vram2_dout,
+	input             vram2_rd,
+	input             vram2_wr,
+
+    // Risc-V softcore uses bank 0-1 of 2nd chip
+    input      [22:1] rv_addr,      // 8MB RV memory space
+    input      [15:0] rv_din,       // 16-bit accesses
+    input      [1:0]  rv_ds,
+    output reg        rv_wait,      // rv request is not serviced this cycle
+    output reg [15:0] rv_dout,      
+    input             rv_rd,
+    input             rv_wr,
+
     output reg        busy
 );
 
 reg [15:0] mem_cpu [4*1024*1024];       // max 8MB
 reg [15:0] mem_aram [32*1024];          // 64KB
 reg [15:0] mem_bsram[64*1024];           // max 128KB
+reg [7:0] mem_vram1 [0:32*1024-1];
+reg [7:0] mem_vram2 [0:32*1024-1];
 
 initial $readmemh("random_4m_words.hex", mem_cpu);
 
@@ -94,5 +131,22 @@ always @(posedge clkref) begin
             aram_dout[7:0] <= mem_aram[aram_addr[15:1]][7:0]; 
     end
 end
+
+always @(posedge clkref) begin
+    if (vram1_wr) begin
+        mem_vram1[vram1_addr] <= vram1_din;
+        $display("vram_write_a: [%x]L <= %x", vram1_addr, vram1_din);
+    end else if (vram2_wr) begin
+        mem_vram2[vram2_addr] <= vram2_din;
+        $display("vram_write_b: [%x]H <= %x", vram2_addr, vram2_din);
+    end else if (vram1_rd && vram2_rd && vram1_addr == vram2_addr) begin
+        vram1_dout <= mem_vram1[vram1_addr];
+        vram2_dout <= mem_vram2[vram2_addr];
+    end else if (vram1_rd) 
+        vram1_dout <= mem_vram1[vram1_addr];
+    else if (vram2_rd)
+        vram2_dout <= mem_vram2[vram2_addr];
+end
+
 
 endmodule

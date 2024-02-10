@@ -6,7 +6,7 @@ SRCS=$D/dsp.v $D/snestang_top.v $D/smp.v $D/spc700/_spc700_package.v $D/spc700/a
 	 $D/65C816/common.sv $D/65C816/ALU.v $D/65C816/AddSubBCD.v $D/65C816/AddrGen.v $D/65C816/BCDAdder.v \
 	 $D/65C816/adder4.v $D/65C816/bit_adder.v $D/65C816/mcode.sv $D/65C816/P65C816.v \
 	 $D/chip/DSP/DSP_LHRomMap.v $D/chip/DSP/OBC1.v $D/chip/DSP/SRTC.v $D/chip/DSP/DSPn.v \
-	 $D/vram.v $D/test_loader.v $D/SNES.v $D/sdram_sim.v $D/swram.v 
+	 $D/test_loader.v $D/SNES.v $D/sdram_sim.v $D/swram.v 
 DEPS=$D/ppu_defines.vh
 INCLUDES=-I$D -I$D/spc700 -I$D/65C816
 

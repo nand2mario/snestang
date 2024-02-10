@@ -58,7 +58,7 @@ module snestang_top (
     inout [15:0] IO_sdram_dq,       // 16 bit bidirectional data bus
     output [12:0] O_sdram_addr,     // 13 bit multiplexed address bus
     output [1:0] O_sdram_ba,        // 4 banks
-    output [3:0] O_sdram_dqm        // 32/4
+    output [1:0] O_sdram_dqm        // 
 );
 
 // Clock signals
@@ -268,8 +268,9 @@ wire [7:0] bsram_dout;
 
 wire rv_rd, rv_wr;
 wire [15:0] rv_din, rv_dout;
-wire [22:0] rv_addr /*XXX systhesis syn_keep=1 */;
+wire [22:0] rv_addr;
 wire [1:0] rv_ds;
+wire rv_wait;
 
 // Generate SDRAM signals
 always @(posedge wclk) begin
@@ -319,8 +320,6 @@ end
 wire vram1_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram1_addr_old != VRAM1_ADDR[14:0]);
 wire vram2_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram2_addr_old != VRAM2_ADDR[14:0]);
 
-`ifndef VERILATOR
-
 sdram_snes sdram(
     .clk(fclk), .clkref(wclk), .resetn(resetn), .busy(sdram_busy),
 
@@ -353,34 +352,14 @@ sdram_snes sdram(
     .rv_rd(rv_rd), .rv_wr(rv_wr), .rv_wait(rv_wait)
 );
 
-`else
-
-assign sdram_busy = 0;
-
-sdram_sim sdram(
-    .clkref(wclk), .resetn(resetn), .busy(),
-    // CPU access
-    .cpu_addr(cpu_addr[22:1]), .cpu_din(cpu_din), .cpu_port(cpu_port), 
-    .cpu_port0(cpu_port0), .cpu_port1(cpu_port1), .cpu_rd(cpu_rd), 
-    .cpu_wr(cpu_wr), .cpu_ds(cpu_ds),
-    // BSRAM accesses
-    .bsram_addr(bsram_addr), .bsram_dout(bsram_dout), .bsram_din(bsram_din),
-    .bsram_rd(bsram_rd), .bsram_wr(bsram_wr),
-    // ARAM accesses
-    .aram_16(aram_16), .aram_addr(ARAM_ADDR), .aram_din({ARAM_D, ARAM_D}), 
-    .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd)
-);
-
 // FPGA block RAM for SNES VRAM 
-vram vram(
-    .clk(wclk), 
-    .addra(VRAM1_ADDR[14:0]), .wra_n(VRAM1_WE_N), 
-    .dina(VRAM1_D), .douta(VRAM1_Q), 
-    .addrb(VRAM2_ADDR[14:0]), .wrb_n(VRAM2_WE_N), 
-    .dinb(VRAM2_D), .doutb(VRAM2_Q)
-);
-
-`endif
+// vram vram(
+//     .clk(wclk), 
+//     .addra(VRAM1_ADDR[14:0]), .rda(vram1_new_read), .wra(~VRAM1_WE_N), 
+//     .dina(VRAM1_D), .douta(VRAM1_Q), 
+//     .addrb(VRAM2_ADDR[14:0]), .rdb(vram2_new_read), .wrb(~VRAM2_WE_N), 
+//     .dinb(VRAM2_D), .doutb(VRAM2_Q)
+// );
 
 reg loading_r;
 always @(posedge wclk) begin
