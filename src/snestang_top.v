@@ -310,15 +310,18 @@ end
 // VRAM signals are passed on in the same cycle
 reg [14:0] vram1_addr_old, vram2_addr_old;
 reg vram_oe_n_old;
+// a new VRAM read request is present - this removes duplicate requests
+wire vram1_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram1_addr_old != VRAM1_ADDR[14:0]);
+wire vram2_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram2_addr_old != VRAM2_ADDR[14:0]);
+// vram1/vram2 reading different addresses, then delay vram2 read one cycle
+wire vram2_read_delay = vram1_new_read && vram2_new_read && VRAM1_ADDR != VRAM2_ADDR;
+reg vram2_read_delay_r;     
 always @(posedge wclk) begin
     vram_oe_n_old <= VRAM_OE_N;
     vram1_addr_old <= VRAM1_ADDR[14:0];
     vram2_addr_old <= VRAM2_ADDR[14:0];
+    vram2_read_delay_r <= vram2_read_delay;
 end
-
-// a new VRAM read request is present - this removes duplicate requests
-wire vram1_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram1_addr_old != VRAM1_ADDR[14:0]);
-wire vram2_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram2_addr_old != VRAM2_ADDR[14:0]);
 
 sdram_snes sdram(
     .clk(fclk), .clkref(wclk), .resetn(resetn), .busy(sdram_busy),
@@ -342,7 +345,7 @@ sdram_snes sdram(
     .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd),
 
     .vram1_rd(vram1_new_read), .vram1_wr(~VRAM1_WE_N), 
-    .vram2_rd(vram2_new_read), .vram2_wr(~VRAM2_WE_N),
+    .vram2_rd(vram2_new_read & ~vram2_read_delay | vram2_read_delay_r), .vram2_wr(~VRAM2_WE_N),
     .vram1_addr(VRAM1_ADDR[14:0]), .vram2_addr(VRAM2_ADDR[14:0]), 
     .vram1_din(VRAM1_D), .vram2_din(VRAM2_D),
     .vram1_dout(VRAM1_Q), .vram2_dout(VRAM2_Q),

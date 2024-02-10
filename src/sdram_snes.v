@@ -98,6 +98,9 @@ module sdram_snes
     input             aram_wr,
 
     // VRAM1
+    // Two modes are supported for VRAM.
+    // 1. 8-bit read or write. One port active a time.
+    // 2. 16-bit reads. vram1_rd=vram2_rd=1, vram1_addr==vram2_addr
 	input      [14:0] vram1_addr,
 	input       [7:0] vram1_din,
 	output reg  [7:0] vram1_dout,

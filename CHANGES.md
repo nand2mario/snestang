@@ -1,6 +1,8 @@
 0.4, current
-* Fix game freezes: Super Mario All-Star, Super Metroid, Legend of Zelda - A Link to the Past
+* Cartridge DSP expansion chip is supported. Games like Super Mario Kart are working.
+* Fix game freezes due to BSRAM bugs: Super Mario All-Star, Super Metroid, Legend of Zelda - A Link to the Past
 * Fix SPC CPU bugs. Now passes all Peter Lemon's CPUTests.
+* For developers: VRAM is moved from BRAM to SDRAM bank 3. DSPn uses some of the saved BRAM space. We now provides 3 channels from SDRAM: CPU/softcore, ARAM and VRAM.
 
 0.3, 2/3/2024
 * Add iosys, PicoRV32-based riscv softcore for game loading and menu system.
