@@ -35,9 +35,9 @@ typedef struct packed {
 
 typedef struct packed {
     Opcode_r OP;
-    Opcode_r OPT_ALT1;
-    Opcode_r OPT_ALT2;
-    Opcode_r OPT_ALT3;
+    Opcode_r OP_ALT1;
+    Opcode_r OP_ALT2;
+    Opcode_r OP_ALT3;
 } OpcodeAlt_r;
 
 typedef struct packed {
@@ -52,7 +52,7 @@ typedef struct packed {
     logic [2:0] RAMADDR;// [2:0] 0 = none, 1 = RAMADDR.LSB = DATA, 2 = RAMADDR.MSB = DATA, 3 = RAMADDR = Rn, 4 = RAMADDR = DATA*2, 5 = RAMADDR no change 
 } Microcode_r;
 
-typedef Microcode_r[NUM_MCODES][4]  MicrocodeTbl_t;
+typedef Microcode_r MicrocodeTbl_t[NUM_MCODES][4];
 
 parameter MicrocodeTbl_t MC_TBL = '{
 	// 0 STOP
@@ -182,7 +182,7 @@ parameter MicrocodeTbl_t MC_TBL = '{
 	  {1'bX,1'bX,1'bX,3'bXXX,1'bX,1'bX,2'bXX,3'bXXX,3'bXXX}}
 };
 
-typedef OpcodeAlt_r [256] OpcodeTbl_t;
+typedef OpcodeAlt_r OpcodeTbl_t[256];
 parameter OpcodeTbl_t OP_TBL = '{
 	'{'{OP_STOP,   0}, '{OP_STOP,    0}, '{OP_STOP,    0}, '{OP_STOP,    0}}, //STOP
 	'{'{OP_NOP,    1}, '{OP_NOP,     1}, '{OP_NOP,     1}, '{OP_NOP,     1}}, //NOP
@@ -460,13 +460,12 @@ parameter OpcodeTbl_t OP_TBL = '{
 typedef logic [15:0] Reg_t [16];
 
 typedef logic [7:0] PixCacheData_t [8];
-
-typedef struct packed {
+typedef struct {
     PixCacheData_t DATA;
     logic [12:0] OFFSET;
     logic [7:0] VALID;
 } PixCache_r;
-typedef PixCache_r[2] PixCache_t;
+typedef PixCache_r PixCaches_t[2];
 
 parameter [2:0]
     ROMST_IDLE = 0, ROMST_FETCH = 1, ROMST_FETCH_DONE = 2, ROMST_CACHE = 3,
@@ -492,7 +491,7 @@ function logic [2:0] GetLastBPP(logic [1:0] md);
 endfunction
 
 function logic [16:0] GetCharOffset(logic [12:0] offs, logic [1:0] ht,
-                                    logic [1:0] md, logic [2:0] bpp, logic [7:0] scbr)
+                                    logic [1:0] md, logic [2:0] bpp, logic [7:0] scbr);
     logic [9:0] temp;
     logic [16:0] temp2;
     logic [16:0] res;
@@ -515,9 +514,9 @@ function logic [16:0] GetCharOffset(logic [12:0] offs, logic [1:0] ht,
     return res;
 endfunction
 
-function logic [7:0] GetPCData(PixCache_r pc, logic [2:0] p)
+function logic [7:0] GetPCData(PixCache_r pc, logic [2:0] p);
     return {pc.DATA[7][p], pc.DATA[6][p], pc.DATA[5][p], pc.DATA[4][p],
             pc.DATA[3][p], pc.DATA[2][p], pc.DATA[1][p], pc.DATA[0][p]};
 endfunction
 
-endpackage GSU
+endpackage

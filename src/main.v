@@ -476,47 +476,48 @@ if (USE_GSU == 1'b1) begin
 
 GSUMap GSUMap
 (
-	.mclk(MCLK),
-	.rst_n(RESET_N),
+	.MCLK(MCLK),
+	.RST_N(RESET_N),
+	.ENABLE(1'b1),
 
-	.ca(CA),
-	.di(DO),
+	.CA(CA),
+	.DI(DO),
 	.DO(GSU_DO),
-	.cpurd_n(CPURD_N),
-	.cpuwr_n(CPUWR_N),
+	.CPURD_N(CPURD_N),
+	.CPUWR_N(CPUWR_N),
 
-	.pa(PA),
-	.pard_n(PARD_N),
-	.pawr_n(PAWR_N),
+	.PA(PA),
+	.PARD_N(PARD_N),
+	.PAWR_N(PAWR_N),
 
-	.romsel_n(ROMSEL_N),
-	.ramsel_n(RAMSEL_N),
+	.ROMSEL_N(ROMSEL_N),
+	.RAMSEL_N(RAMSEL_N),
 
-	.sysclkf_ce(SYSCLKF_CE),
-	.sysclkr_ce(SYSCLKR_CE),
-	.refresh(REFRESH),
+	.SYSCLKF_CE(SYSCLKF_CE),
+	.SYSCLKR_CE(SYSCLKR_CE),
+	.REFRESH(REFRESH),
 
-	.irq_n(GSU_IRQ_N),
+	.IRQ_N(GSU_IRQ_N),
 
-	.rom_addr(GSU_ROM_ADDR),
-	.rom_q(ROM_Q),
-	.rom_ce_n(GSU_ROM_CE_N),
-	.rom_oe_n(GSU_ROM_OE_N),
-	.rom_word(GSU_ROM_WORD),
+	.ROM_ADDR(GSU_ROM_ADDR),
+	.ROM_Q(ROM_Q),
+	.ROM_CE_N(GSU_ROM_CE_N),
+	.ROM_OE_N(GSU_ROM_OE_N),
+	.ROM_WORD(GSU_ROM_WORD),
 
-	.bsram_addr(GSU_BSRAM_ADDR),
-	.bsram_d(GSU_BSRAM_D),
-	.bsram_q(BSRAM_Q),
-	.bsram_ce_n(GSU_BSRAM_CE_N),
-	.bsram_oe_n(GSU_BSRAM_OE_N),
-	.bsram_we_n(GSU_BSRAM_WE_N),
+	.BSRAM_ADDR(GSU_BSRAM_ADDR),
+	.BSRAM_D(GSU_BSRAM_D),
+	.BSRAM_Q(BSRAM_Q),
+	.BSRAM_CE_N(GSU_BSRAM_CE_N),
+	.BSRAM_OE_N(GSU_BSRAM_OE_N),
+	.BSRAM_WE_N(GSU_BSRAM_WE_N),
 
-	.map_active(MAP_ACTIVE[2]),
-	.map_ctrl(ROM_TYPE),
-	.rom_mask(ROM_MASK),
-	.bsram_mask(RAM_MASK),
+	.MAP_ACTIVE(MAP_ACTIVE[2]),
+	.MAP_CTRL(ROM_TYPE),
+	.ROM_MASK(ROM_MASK),
+	.BSRAM_MASK(RAM_MASK),
 
-	.turbo(GSU_TURBO)
+	.TURBO(GSU_TURBO)
 );
 end else
 assign MAP_ACTIVE[2] = 0;

@@ -1,3 +1,6 @@
+
+import GSU::*;
+
 module GSU(
     input CLK,
     input RST_N,
@@ -499,7 +502,7 @@ assign OP = FLAG_B && OPS.OP.OP == OP_FROM ? '{OP_MOVES, 5} :
             ~FLAG_ALT1 && FLAG_ALT2 ? OPS.OP_ALT2 :
             FLAG_ALT1 && ~FLAG_ALT2 ? OPS.OP_ALT1 :
             OPS.OP;
-assing MC = MC_TBL[OP.MC][STATE];
+assign MC = MC_TBL[OP.MC][STATE];
 
 always @(posedge CLK) begin
     if (~RST_N) 
@@ -572,12 +575,12 @@ always @* begin
     else if (OP.OP == OP_NOT) 
         ALUR <=  ~A;
     else if (OP.OP == OP_ADD) begin
-        TEMP := {1'b0, A} + {1'b0, B} + {16'b0, FLAG_ALT1 & FLAG_CY};
+        TEMP = {1'b0, A} + {1'b0, B} + {16'b0, FLAG_ALT1 & FLAG_CY};
         ALUR <= TEMP[15:0];
         ALUOV <= (A[15] ^ TEMP[15]) & (B[15] ^ TEMP[15]);
         ALUCY <= TEMP[16];
     end else if (OP.OP == OP_SUB) begin
-        TEMP := {1'b0, A} - {1'b0, B} - {16'b0, FLAG_ALT1 & ~FLAG_CY};
+        TEMP = {1'b0, A} - {1'b0, B} - {16'b0, FLAG_ALT1 & ~FLAG_CY};
         ALUR <= TEMP[15:0];
         ALUOV <= (A[15] ^ B[15]) & (A[15] ^ TEMP[15]);
         ALUCY <=  ~TEMP[16];
@@ -676,7 +679,7 @@ always @(posedge CLK) begin : P4
     reg COND;
 
     if (~RST_N) begin
-        R <= {16'{16'b0}};
+//        R <= {16'{16'b0}};
         RAMBR <= 0;
         ROMBR <= 0;
         REG_LSB <= 0;
@@ -893,7 +896,7 @@ always @(posedge CLK) begin
         ROMST <= ROMST_IDLE;
         FLAG_R <= 1'b0;
     end else begin
-        if (GO <== 1'b1) begin
+        if (GO == 1'b1) begin
             ROM_LOAD_START <= 1'b0;
             ROM_FETCH_START <= 1'b0;
             ROM_LOAD_END <= 1'b0;
@@ -1023,7 +1026,7 @@ assign PC_X = R[1][7:0];
 assign PC_Y = R[2][7:0];
 assign PC0_FULL = PIX_CACHE[0].VALID == 8'hFF;
 assign PC0_EMPTY = PIX_CACHE[0].VALID == 8'h00;
-assign PC0_OFFS_HIT <= PIX_CACHE[0].OFFSET = {PC_Y, PC_X[7:3];
+assign PC0_OFFS_HIT = PIX_CACHE[0].OFFSET == {PC_Y, PC_X[7:3]};
 
 always @(POR_TRANS, SCMR_MD, POR_FH, COLR) begin
     PLOT_EXEC <= 1'b0;
@@ -1038,30 +1041,27 @@ always @(POR_TRANS, SCMR_MD, POR_FH, COLR) begin
     end
 end
 
-always @(negedge CLK, negedge RST_N) begin : P1
-    reg RAM_SAVE_START;
-    reg RAM_LOAD_START;
-    reg RAM_PCF_START;
-    reg RAM_RPIX_START;
-    reg RAM_FETCH_START;
-    reg RAM_SAVE_END;
-    reg RAM_LOAD_END;
-    reg RAM_PCF_END;
-    reg RAM_FETCH_END;
-    reg RAM_CACHE_END;
-    reg RAM_PCF_EXEC;
-    reg RAM_RPIX_EXEC;
-    reg RAM_LOAD_WORD;
-    reg RAM_STORE_WORD;
-    reg [7:0] NEW_COLOR;
-    reg [7:0] COL_DITH;
-    reg [2:0] RAM_CYCLES;
+reg RAM_SAVE_START;
+reg RAM_LOAD_START;
+reg RAM_PCF_START;
+reg RAM_RPIX_START;
+reg RAM_FETCH_START;
+reg RAM_SAVE_END;
+reg RAM_LOAD_END;
+reg RAM_PCF_END;
+reg RAM_FETCH_END;
+reg RAM_CACHE_END;
+reg [2:0] RAM_CYCLES;
+reg RAM_LOAD_WORD;
+reg RAM_STORE_WORD;
+reg [7:0] NEW_COLOR;
+reg [7:0] COL_DITH;
+reg RAM_PCF_EXEC;
+reg RAM_RPIX_EXEC;
+
+always @(negedge CLK) begin : P1
 
     if (~RST_N) begin
-        RAMADDR <= {16{1'b0}};
-        RAMDR <= {16{1'b0}};
-        RAM_WORD <= 1'b0;
-        RAM_BYTES <= 1'b0;
         RAM_LOAD_PEND <= 1'b0;
         RAM_SAVE_PEND <= 1'b0;
         RAM_PCF_PEND <= 1'b0;
@@ -1072,31 +1072,9 @@ always @(negedge CLK, negedge RST_N) begin : P1
         RAM_PCF_WAIT <= 1'b0;
         RAM_FETCH_WAIT <= 1'b0;
         RAM_CACHE_WAIT <= 1'b0;
-        RAM_SAVE_START = 1'b0;
-        RAM_LOAD_START = 1'b0;
-        RAM_PCF_START = 1'b0;
-        RAM_RPIX_START = 1'b0;
-        RAM_FETCH_START = 1'b0;
-        RAM_SAVE_END = 1'b0;
-        RAM_LOAD_END = 1'b0;
-        RAM_PCF_END = 1'b0;
-        RAM_PCF_EXEC = 1'b0;
-        RAM_RPIX_EXEC = 1'b0;
-        RAM_ACCESS_CNT <= 3'b001;
-        RAMST <= RAMST_IDLE;
-        PCF_RW <= 1'b0;
 
-        POR_TRANS <= 1'b0;
-        POR_DITH <= 1'b0;
-        POR_HN <= 1'b0;
-        POR_FH <= 1'b0;
-        POR_OBJ <= 1'b0;
-        COLR <= {8{1'b0}};
-        PIX_CACHE[0] <= '{8'{8'b0}, 13'b0, 8'b0};
-        PIX_CACHE[1] <= '{8'{8'b0}, 13'b0, 8'b0};
-        PCF_RD_DATA <= 0;
-        RPIX_DATA <= 0;
-        BPP_CNT <= 0;
+//        PIX_CACHE[0] <= '{8'{8'b0}, 13'b0, 8'b0};
+//        PIX_CACHE[1] <= '{8'{8'b0}, 13'b0, 8'b0};
     end else begin
         if (GO) begin
             RAM_FETCH_WAIT <= 1'b0;
@@ -1182,7 +1160,34 @@ end
 
 always @(posedge CLK) begin
     if (~RST_N) begin
-        
+        RAM_WORD <= 1'b0;
+        RAM_BYTES <= 1'b0;
+
+        RAMADDR <= {16{1'b0}};
+        RAMDR <= {16{1'b0}};
+        RAM_SAVE_START = 1'b0;
+        RAM_LOAD_START = 1'b0;
+        RAM_PCF_START = 1'b0;
+        RAM_RPIX_START = 1'b0;
+        RAM_FETCH_START = 1'b0;
+        RAM_SAVE_END = 1'b0;
+        RAM_LOAD_END = 1'b0;
+        RAM_PCF_END = 1'b0;
+        RAM_PCF_EXEC = 1'b0;
+        RAM_RPIX_EXEC = 1'b0;
+
+        COLR <= {8{1'b0}};
+        POR_TRANS <= 1'b0;
+        POR_DITH <= 1'b0;
+        POR_HN <= 1'b0;
+        POR_FH <= 1'b0;
+        POR_OBJ <= 1'b0;
+        RAMST <= RAMST_IDLE;
+        RAM_ACCESS_CNT <= 3'b001;
+        PCF_RW <= 1'b0;
+        PCF_RD_DATA <= 0;
+        RPIX_DATA <= 0;
+        BPP_CNT <= 0;
     end else begin
         if (GO) begin
             RAM_SAVE_START = 1'b0;
@@ -1196,6 +1201,7 @@ always @(posedge CLK) begin
             RAM_FETCH_END = 1'b0;
             RAM_CACHE_END = 1'b0;
         end
+
         if (EN) begin
             if (TURBO) 
                 RAM_CYCLES = 3'b001;
@@ -1227,8 +1233,8 @@ always @(posedge CLK) begin
                         else 
                             RAMDR <= R[OP_N];
                     end
-                    RAM_LOAD_WORD = MC.RAMLD[1];
-                    RAM_STORE_WORD = MC.RAMST[1];
+                    RAM_LOAD_WORD <= MC.RAMLD[1];
+                    RAM_STORE_WORD <= MC.RAMST[1];
                 end else if (OP.OP == OP_CMODE) begin
                     POR_TRANS <= R[SREG][0];
                     POR_DITH <= R[SREG][1];
@@ -1256,7 +1262,7 @@ always @(posedge CLK) begin
                         COL_DITH = COLR;
                     PIX_CACHE[0].DATA[~PC_X[2:0]] <= COL_DITH;
                     PIX_CACHE[0].OFFSET <= {PC_Y, PC_X[7:3]};
-                    PIX_CACHE[0].VALID[~PC_X[2 downto 0]] <= PLOT_EXEC;
+                    PIX_CACHE[0].VALID[~PC_X[2:0]] <= PLOT_EXEC;
                 end else if (OP.OP == OP_RPIX && STATE == 0) begin
                     PIX_CACHE[1] <= PIX_CACHE[0];
                     PIX_CACHE[0].OFFSET <= {PC_Y, PC_X[7:3]};
@@ -1362,7 +1368,7 @@ always @(posedge CLK) begin
                             PCF_RD_DATA <= RAM_DI;
                         else begin
                             BPP_CNT <= BPP_CNT + 1;
-                            if (BPP_CNT == GetLastBPP[SCMR_MD]) begin
+                            if (BPP_CNT == GetLastBPP(SCMR_MD)) begin
                                 BPP_CNT <= {3{1'b0}};
                                 PIX_CACHE[1].VALID <= 0;
                                 RAMST <= RAMST_PCF_END;
@@ -1386,7 +1392,7 @@ always @(posedge CLK) begin
                     if (RAM_ACCESS_CNT == 0) begin
                         RPIX_DATA[BPP_CNT] <= RAM_DI[~PC_X[2:0]];
                         BPP_CNT <= BPP_CNT + 1;
-                        if (BPP_CNT == GetLastBPP[SCMR_MD]) begin
+                        if (BPP_CNT == GetLastBPP(SCMR_MD)) begin
                             BPP_CNT <= 0;
                             RAM_RPIX_EXEC = 1'b0;
                             RAM_PCF_END = 1'b1;

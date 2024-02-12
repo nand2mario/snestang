@@ -205,7 +205,9 @@ end
 wire sysclkf_ce, sysclkr_ce;
 wire overlay;
 
-main main (
+main #(
+    .USE_GSU(1)
+) main (
     .WCLK(wclk), .MCLK(mclk), .RESET_N(resetn & ~loading), .ENABLE(enable), 
     .SYSCLKF_CE(sysclkf_ce), .SYSCLKR_CE(sysclkr_ce), .REFRESH(refresh),
 

@@ -19,6 +19,9 @@
         <File path="src/chip/DSP/DSPn.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/OBC1.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/SRTC.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/GSU/GSU.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/GSU/GSUMap.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/GSU/GSU_PKG.v" type="file.verilog" enable="1"/>
         <File path="src/chip/dsp/dsp_data_ram.v" type="file.verilog" enable="1"/>
         <File path="src/cpu.v" type="file.verilog" enable="1"/>
         <File path="src/ds2snes.sv" type="file.verilog" enable="1"/>
