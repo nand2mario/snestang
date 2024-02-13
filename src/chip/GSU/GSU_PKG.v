@@ -1,4 +1,4 @@
-package GSU;
+package GSU_Package;
 
 parameter FLAG_GO = 5;
 parameter FLAG_R = 6;
@@ -26,7 +26,7 @@ parameter [5:0]
     OP_ALT2 = 56, OP_ALT3 = 57, OP_TO = 58, OP_WITH = 59,
     OP_FROM = 60;
 typedef logic [5:0] Opcode_t;
-typedef logic [$clog2(NUM_MCODES-1):0] Mccode_t;
+typedef logic [$clog2(NUM_MCODES)-1:0] Mccode_t;
 
 typedef struct packed {
     Opcode_t OP;
@@ -459,9 +459,9 @@ parameter OpcodeTbl_t OP_TBL = '{
 
 typedef logic [15:0] Reg_t [16];
 
-typedef logic [7:0] PixCacheData_t [8];
+// typedef logic [7:0] PixCacheData_t [8];
 typedef struct {
-    PixCacheData_t DATA;
+    logic [8*8-1:0] DATA;		// 8 bytes
     logic [12:0] OFFSET;
     logic [7:0] VALID;
 } PixCache_r;
@@ -510,13 +510,13 @@ function logic [16:0] GetCharOffset(logic [12:0] offs, logic [1:0] ht,
     default:  temp2 = {2'b0, temp, 5'b0};
     endcase
 
-    res = {temp2 + scbr[6:0], 4'b0, bpp[2:1], offs[7:5], bpp[0]};
+    res = temp2 + {scbr[6:0], 4'b0, bpp[2:1], offs[7:5], bpp[0]};
     return res;
 endfunction
 
 function logic [7:0] GetPCData(PixCache_r pc, logic [2:0] p);
-    return {pc.DATA[7][p], pc.DATA[6][p], pc.DATA[5][p], pc.DATA[4][p],
-            pc.DATA[3][p], pc.DATA[2][p], pc.DATA[1][p], pc.DATA[0][p]};
+    return {pc.DATA[{3'b111, p}], pc.DATA[{3'b110, p}], pc.DATA[{3'b101, p}], pc.DATA[{3'b100, p}],
+            pc.DATA[{3'b011, p}], pc.DATA[{3'b010, p}], pc.DATA[{3'b001, p}], pc.DATA[{3'b000, p}]};
 endfunction
 
 endpackage

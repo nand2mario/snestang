@@ -1,5 +1,5 @@
 
-import GSU::*;
+import GSU_Package::*;
 
 module GSU(
     input CLK,
@@ -319,42 +319,42 @@ assign SFR = {FLAG_IRQ,1'b0,1'b0,FLAG_B,1'b0,1'b0,
             FLAG_OV,FLAG_S,FLAG_CY,FLAG_Z,1'b0};
 
 always @* begin
-    DO <= 8'h00;
+    DO = 8'h00;
     if (ROM_SEL) begin
         if (GSU_ROM_ACCESS == 1'b0) 
-            DO <= ROM_DI;
+            DO = ROM_DI;
         else  if (ADDR[0]) 
-            DO <= 8'h01;
+            DO = 8'h01;
         else if (ADDR[3:0] == 4'hE) 
-            DO <= 8'h0C;
+            DO = 8'h0C;
         else if (ADDR[3:0] == 4'hA) 
-            DO <= 8'h08;
+            DO = 8'h08;
         else if (ADDR[3:0] == 4'h4) 
-            DO <= 8'h04;
+            DO = 8'h04;
         else 
-            DO <= 8'h00;
+            DO = 8'h00;
     end else if (MMIO_REG_SEL) begin
         if (ADDR[0] == 1'b0) 
-            DO <= R[ADDR[4:1]][7:0];
+            DO = R[ADDR[4:1]][7:0];
         else 
-            DO <= R[ADDR[4:1]][15:8];
+            DO = R[ADDR[4:1]][15:8];
     end else if (MMIO_SEL) begin
         case (ADDR[7:0])
-        8'h30 : DO <= SFR[7:0];     // 3030 SFR
-        8'h31 : DO <= SFR[15:8];    // 3031 SFR
-        8'h33 : DO <= BRAMR;        // 3033 BRAMR
-        8'h34 : DO <= PBR;          // 3034 PBR
-        8'h36 : DO <= ROMBR;        // 3036 ROMBR
-        8'h3B : DO <= 8'h04;        // 303B VCR
-        8'h3C : DO <= RAMBR;        // 303C RAMBR
-        8'h3E : DO <= CBR[7:0];     // 303E CBR
-        8'h3F : DO <= CBR[15:8];    // 303F CBR
+        8'h30 : DO = SFR[7:0];     // 3030 SFR
+        8'h31 : DO = SFR[15:8];    // 3031 SFR
+        8'h33 : DO = BRAMR;        // 3033 BRAMR
+        8'h34 : DO = PBR;          // 3034 PBR
+        8'h36 : DO = ROMBR;        // 3036 ROMBR
+        8'h3B : DO = 8'h04;        // 303B VCR
+        8'h3C : DO = RAMBR;        // 303C RAMBR
+        8'h3E : DO = CBR[7:0];     // 303E CBR
+        8'h3F : DO = CBR[15:8];    // 303F CBR
         default : ;
         endcase
     end else if (MMIO_CACHE_SEL) 
-      DO <= BRAM_CACHE_Q_B;
+      DO = BRAM_CACHE_Q_B;
     else if (SRAM_SEL) 
-      DO <= RAM_DI;
+      DO = RAM_DI;
 end
 
 assign IRQ_N =  ~FLAG_IRQ | IRQ_OFF;
@@ -443,7 +443,7 @@ always @(posedge CLK) begin
                 if (IN_CACHE && ~VAL_CACHE && ~CACHE_RUN) begin
                     CACHE_RUN <= 1'b1;
                     CACHE_DST_ADDR <= {CACHE_POS[8:4],4'h0};
-                    CACHE_SRC_ADDR <= ({PBR,16'h0000}) + ({(CBR[15:4]) + CACHE_POS[15:4],4'h0});
+                    CACHE_SRC_ADDR <= {PBR, 16'h0000} + 24'({CBR[15:4] + CACHE_POS[15:4], 4'h0});
                 end
 
                 if (CPU_EN) begin
@@ -561,96 +561,100 @@ always @* begin
     reg [31:0] MUL_TEMP;
 
     A = R[SREG];
+    TEMP = {17{1'bX}};
+    MUL_TEMP = {32{1'bX}};
     if (FLAG_ALT2 && (OP.OP == OP_ADD || OP.OP == OP_SUB || OP.OP == OP_AND || OP.OP == OP_MULT 
         || OP.OP == OP_UMULT || OP.OP == OP_OR || OP.OP == OP_XOR)) 
         B = {12'h000,OP_N};
     else 
         B = R[OP_N];
-    ALUR <= 0;
-    MULR <= 0;
-    ALUOV <= FLAG_OV;
-    ALUCY <= FLAG_CY;
+    ALUR = 0;
+    MULR = 0;
+    ALUOV = FLAG_OV;
+    ALUCY = FLAG_CY;
     if (OP.OP == OP_SWAP) 
-        ALUR <= {A[7:0],A[15:8]};
+        ALUR = {A[7:0],A[15:8]};
     else if (OP.OP == OP_NOT) 
-        ALUR <=  ~A;
+        ALUR =  ~A;
     else if (OP.OP == OP_ADD) begin
         TEMP = {1'b0, A} + {1'b0, B} + {16'b0, FLAG_ALT1 & FLAG_CY};
-        ALUR <= TEMP[15:0];
-        ALUOV <= (A[15] ^ TEMP[15]) & (B[15] ^ TEMP[15]);
-        ALUCY <= TEMP[16];
+        ALUR = TEMP[15:0];
+        ALUOV = (A[15] ^ TEMP[15]) & (B[15] ^ TEMP[15]);
+        ALUCY = TEMP[16];
     end else if (OP.OP == OP_SUB) begin
         TEMP = {1'b0, A} - {1'b0, B} - {16'b0, FLAG_ALT1 & ~FLAG_CY};
-        ALUR <= TEMP[15:0];
-        ALUOV <= (A[15] ^ B[15]) & (A[15] ^ TEMP[15]);
-        ALUCY <=  ~TEMP[16];
+        ALUR = TEMP[15:0];
+        ALUOV = (A[15] ^ B[15]) & (A[15] ^ TEMP[15]);
+        ALUCY =  ~TEMP[16];
     end else if (OP.OP == OP_CMP) begin
         TEMP = ({1'b0, A}) - ({1'b0, B});
-        ALUR <= TEMP[15:0];
-        ALUOV <= (A[15] ^ B[15]) & (A[15] ^ TEMP[15]);
-        ALUCY <=  ~TEMP[16];
+        ALUR = TEMP[15:0];
+        ALUOV = (A[15] ^ B[15]) & (A[15] ^ TEMP[15]);
+        ALUCY =  ~TEMP[16];
     end else if (OP.OP == OP_LSR) begin
-        ALUR <= {1'b0,A[15:1]};
-        ALUCY <= A[0];
+        ALUR = {1'b0,A[15:1]};
+        ALUCY = A[0];
     end else if (OP.OP == OP_ASR || OP.OP == OP_DIV2) begin
         if (OP.OP == OP_DIV2 && A == 16'hFFFF) 
-            ALUR <= 0;
+            ALUR = 0;
         else 
-            ALUR <= {A[15], A[15:1]};
-        ALUCY <= A[0];
+            ALUR = {A[15], A[15:1]};
+        ALUCY = A[0];
     end else if (OP.OP == OP_ROL) begin
-        ALUR <= {A[14:0], FLAG_CY};
-        ALUCY <= A[15];
+        ALUR = {A[14:0], FLAG_CY};
+        ALUCY = A[15];
     end else if (OP.OP == OP_ROR) begin
-        ALUR <= {FLAG_CY, A[15:1]};
-        ALUCY <= A[0];
+        ALUR = {FLAG_CY, A[15:1]};
+        ALUCY = A[0];
     end else if (OP.OP == OP_AND) 
-        ALUR <= A & (B ^ {16{FLAG_ALT1}});
+        ALUR = A & (B ^ {16{FLAG_ALT1}});
     else if (OP.OP == OP_OR) 
-        ALUR <= A | B;
+        ALUR = A | B;
     else if (OP.OP == OP_XOR) 
-        ALUR <= A ^ B;
+        ALUR = A ^ B;
     else if (OP.OP == OP_INC) 
-        ALUR <= B + 1;
+        ALUR = B + 1;
     else if (OP.OP == OP_DEC || OP.OP == OP_LOOP) 
-        ALUR <= B - 1;
+        ALUR = B - 1;
     else if (OP.OP == OP_MULT) 
-        ALUR <= A[7:0] * B[7:0];
+        ALUR = A[7:0] * B[7:0];
     else if (OP.OP == OP_UMULT) 
-        ALUR <= A[7:0] * B[7:0];
+        ALUR = A[7:0] * B[7:0];
     else if (OP.OP == OP_FMULT || OP.OP == OP_LMULT) begin
         MUL_TEMP = A * R[6];
-        ALUR <= MUL_TEMP[31:16];
-        MULR <= MUL_TEMP[15:0];
-        ALUCY <= MUL_TEMP[15];
+        ALUR = MUL_TEMP[31:16];
+        MULR = MUL_TEMP[15:0];
+        ALUCY = MUL_TEMP[15];
     end else if (OP.OP == OP_SEX) 
-        ALUR <= {8{A[7]}} & A[7:0];
+        ALUR = {{8{A[7]}}, A[7:0]};
     else if (OP.OP == OP_MERGE) begin
-        ALUR <= {R[7][15:8], R[8][15:8]};
-        ALUCY <= R[7][15] | R[7][14] | R[7][13] | R[8][15] | R[8][14] | R[8][13];
-        ALUOV <= R[7][15] | R[7][14] | R[8][15] | R[8][14];
+        ALUR = {R[7][15:8], R[8][15:8]};
+        ALUCY = R[7][15] | R[7][14] | R[7][13] | R[8][15] | R[8][14] | R[8][13];
+        ALUOV = R[7][15] | R[7][14] | R[8][15] | R[8][14];
     end else if (OP.OP == OP_LOB) 
-        ALUR <= {8'h00,A[7:0]};
+        ALUR = {8'h00,A[7:0]};
     else if (OP.OP == OP_HIB)
-        ALUR <= {8'h00,A[15:8]};
+        ALUR = {8'h00,A[15:8]};
     else if (OP.OP == OP_MOVES) begin
-        ALUR <= B;
-        ALUOV <= B[7];
+        ALUR = B;
+        ALUOV = B[7];
     end else if (OP.OP == OP_RPIX) 
-          ALUR <= {8'h00,RPIX_DATA};
+          ALUR = {8'h00,RPIX_DATA};
+
     if (OP.OP == OP_MERGE) 
-        ALUZ <= R[7][15] | R[7][14] | R[7][13] | R[7][12] | R[8][15] 
+        ALUZ = R[7][15] | R[7][14] | R[7][13] | R[7][12] | R[8][15] 
                 | R[8][14] | R[8][13] | R[8][12];
     else if (ALUR == 16'h0000) 
-        ALUZ <= 1'b1;
+        ALUZ = 1'b1;
     else 
-        ALUZ <= 1'b0;
+        ALUZ = 1'b0;
+
     if (OP.OP == OP_MERGE) 
-        ALUS <= R[7][15] | R[8][15];
+        ALUS = R[7][15] | R[8][15];
     else if (OP.OP == OP_LOB || OP.OP == OP_HIB) 
-        ALUS <= ALUR[7];
+        ALUS = ALUR[7];
     else 
-        ALUS <= ALUR[15];
+        ALUS = ALUR[15];
 end
 
 always @(posedge CLK) begin
@@ -724,9 +728,9 @@ always @(posedge CLK) begin : P4
                 if (ALUZ == 1'b0) 
                     R[15] <= R[13];
             end else if (OP.OP == OP_LINK) 
-                R[11] <= (R[15]) + OP_N;
+                R[11] <= R[15] + 16'(OP_N);
             else if (OP.OP == OP_PLOT) 
-                R[1] <= (R[1]) + 1;
+                R[1] <= R[1] + 1;
             else if (OP.OP == OP_RAMB) 
                 RAMBR <= R[SREG][7:0] & 8'h01;
             else if (OP.OP == OP_ROMB) 
@@ -892,7 +896,7 @@ always @(posedge CLK) begin
         ROM_LOAD_START <= 1'b0;
         ROM_FETCH_START <= 1'b0;
         ROM_LOAD_END <= 1'b0;        
-        R14_CHANGE_LATCH = 1'b0;
+        R14_CHANGE_LATCH <= 1'b0;
         ROMST <= ROMST_IDLE;
         FLAG_R <= 1'b0;
     end else begin
@@ -1253,6 +1257,7 @@ always @(posedge CLK) begin
                     if (~POR_FH) 
                         COLR[7:4] <= NEW_COLOR[7:4];
                 end else if (OP.OP == OP_PLOT) begin
+                    reg [5:0] not_pc_x;
                     if (POR_DITH && SCMR_MD != 2'b11) begin
                         if ((R[1][0] ^ R[2][0])) 
                             COL_DITH = {4'b0000,COLR[7:4]};
@@ -1260,7 +1265,8 @@ always @(posedge CLK) begin
                             COL_DITH = {4'b0000,COLR[3:0]};
                     end else 
                         COL_DITH = COLR;
-                    PIX_CACHE[0].DATA[~PC_X[2:0]] <= COL_DITH;
+                    not_pc_x = {~PC_X[2:0], 3'b0};      // array slicing
+                    PIX_CACHE[0].DATA[not_pc_x +: 8] <= COL_DITH;
                     PIX_CACHE[0].OFFSET <= {PC_Y, PC_X[7:3]};
                     PIX_CACHE[0].VALID[~PC_X[2:0]] <= PLOT_EXEC;
                 end else if (OP.OP == OP_RPIX && STATE == 0) begin

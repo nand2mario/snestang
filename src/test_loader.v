@@ -48,8 +48,9 @@ localparam SIZE = 131584;
 // localparam string FILE = "roms/test_irq4200.hex";
 // localparam string FILE = "roms/test_math.hex";
 // localparam string FILE = "roms/demo_irq.hex";
-localparam string FILE = "roms/Perspective.hex";
+// localparam string FILE = "roms/Perspective.hex";
 // localparam string FILE = "roms/dsp1demo.hex";
+localparam string FILE = "roms/SuperFX.hex";
 
 // 512KB roms
 // localparam SIZE = 524800;

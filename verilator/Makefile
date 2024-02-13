@@ -6,7 +6,8 @@ SRCS=$D/dsp.v $D/snestang_top.v $D/smp.v $D/spc700/_spc700_package.v $D/spc700/a
 	 $D/65C816/common.sv $D/65C816/ALU.v $D/65C816/AddSubBCD.v $D/65C816/AddrGen.v $D/65C816/BCDAdder.v \
 	 $D/65C816/adder4.v $D/65C816/bit_adder.v $D/65C816/mcode.sv $D/65C816/P65C816.v \
 	 $D/chip/DSP/DSP_LHRomMap.v $D/chip/DSP/OBC1.v $D/chip/DSP/SRTC.v $D/chip/DSP/DSPn.v \
-	 $D/test_loader.v $D/SNES.v $D/sdram_sim.v $D/swram.v 
+	 $D/chip/GSU/GSU_PKG.v $D/chip/GSU/GSUMap.v $D/chip/GSU/GSU.v \
+	 $D/test_loader.v $D/SNES.v $D/sdram_sim.v $D/swram.v
 DEPS=$D/ppu_defines.vh
 INCLUDES=-I$D -I$D/spc700 -I$D/65C816
 
@@ -47,7 +48,7 @@ trace: ./obj_dir/V$N
 trace2: ./obj_dir/V$N
 	@echo
 	@echo "### SIMULATION (trace) ###"
-	@cd obj_dir && ./V$N -t -c 30000000
+	@cd obj_dir && ./V$N -t -c 50000000
 
 gtkwave:
 	gtkwave obj_dir/waveform.vcd

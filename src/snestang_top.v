@@ -5,9 +5,11 @@
 
 //`define STEP_TRACE
 
+`ifndef VERILATOR
 `ifndef MEGA
 `ifndef PRIMER
 `error "config.v must be read before snestang_top.v"
+`endif
 `endif
 `endif
 
@@ -211,8 +213,15 @@ end
 wire sysclkf_ce, sysclkr_ce;
 wire overlay;
 
-main 
+`ifdef VERILATOR
+`define GSU_ACTIVE
+`endif
 `ifdef MEGA
+`define GSU_ACTIVE
+`endif
+
+main 
+`ifdef GSU_ACTIVE
 #(.USE_GSU(1)) 
 `endif
 main (

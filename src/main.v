@@ -470,6 +470,7 @@ wire [7:0]  GSU_BSRAM_D;
 wire        GSU_BSRAM_CE_N;
 wire        GSU_BSRAM_OE_N;
 wire        GSU_BSRAM_WE_N;
+wire 		GSU_TURBO;
 
 generate
 if (USE_GSU == 1'b1) begin
