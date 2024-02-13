@@ -148,6 +148,7 @@ always @(posedge clk) clkref_r <= clkref;
 reg aram_rd_buf, aram_wr_buf, aram_16_buf;
 reg [15:0] aram_addr_buf;
 reg [15:0] aram_dout_buf;
+reg [15:0] aram_din_buf;
 // immediately use dq_in as aram_dout for cycle 1
 assign aram_dout = (aram_rd_buf && cycle == 4'd1) ? dq_in : aram_dout_buf;
 
@@ -293,6 +294,7 @@ always @(posedge clk) begin
                 aram_wr_buf <= aram_wr;
                 aram_16_buf <= aram_16;
                 aram_addr_buf <= aram_addr;
+                aram_din_buf <= aram_din;
             end else if (need_refresh && ~cpu_rd && ~cpu_wr && ~bsram_rd && ~bsram_wr && ~rv_rd && ~rv_wr) begin  
                 // refresh when both bank are idle
 				refresh <= 1'b1;
@@ -308,10 +310,10 @@ always @(posedge clk) begin
                 ba_next <= 2'b10;
                 a_next[10] <= 1'b1;                 // set auto precharge
                 a_next[8:0] <= aram_addr_buf[9:1];      // column address
-                SDRAM_DQM <= aram_16 ? 2'b0 : {~aram_addr_buf[0], aram_addr_buf[0]}; // DQM
+                SDRAM_DQM <= aram_16_buf ? 2'b0 : {~aram_addr_buf[0], aram_addr_buf[0]}; // DQM
                 if (aram_wr_buf) begin
                     dq_oen_next <= 0;
-                    dq_out_next <= aram_din;
+                    dq_out_next <= aram_din_buf;
                 end
             end
             aram_wr_buf <= 0;
