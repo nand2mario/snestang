@@ -5,7 +5,7 @@
 //Part Number: GW5A-LV25MG121NC1/I0
 //Device: GW5A-25
 //Device Version: A
-//Created Time: Thu Feb  8 13:40:31 2024
+//Created Time: Tue Feb 13 12:17:08 2024
 
 module dsp_data_ram (douta, doutb, clka, ocea, cea, reseta, wrea, clkb, oceb, ceb, resetb, wreb, ada, dina, adb, dinb);
 
@@ -58,7 +58,7 @@ DPB dpb_inst_0 (
 defparam dpb_inst_0.READ_MODE0 = 1'b0;
 defparam dpb_inst_0.READ_MODE1 = 1'b0;
 defparam dpb_inst_0.WRITE_MODE0 = 2'b00;
-defparam dpb_inst_0.WRITE_MODE1 = 2'b10;
+defparam dpb_inst_0.WRITE_MODE1 = 2'b00;
 defparam dpb_inst_0.BIT_WIDTH_0 = 8;
 defparam dpb_inst_0.BIT_WIDTH_1 = 8;
 defparam dpb_inst_0.BLK_SEL_0 = 3'b000;
@@ -89,7 +89,7 @@ DPB dpb_inst_1 (
 defparam dpb_inst_1.READ_MODE0 = 1'b0;
 defparam dpb_inst_1.READ_MODE1 = 1'b0;
 defparam dpb_inst_1.WRITE_MODE0 = 2'b00;
-defparam dpb_inst_1.WRITE_MODE1 = 2'b10;
+defparam dpb_inst_1.WRITE_MODE1 = 2'b00;
 defparam dpb_inst_1.BIT_WIDTH_0 = 8;
 defparam dpb_inst_1.BIT_WIDTH_1 = 8;
 defparam dpb_inst_1.BLK_SEL_0 = 3'b000;

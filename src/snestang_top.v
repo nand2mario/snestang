@@ -5,6 +5,12 @@
 
 //`define STEP_TRACE
 
+`ifndef MEGA
+`ifndef PRIMER
+`error "config.v must be read before snestang_top.v"
+`endif
+`endif
+
 module snestang_top (
     input sys_clk,
     input s0,                     
@@ -205,9 +211,11 @@ end
 wire sysclkf_ce, sysclkr_ce;
 wire overlay;
 
-main #(
-    .USE_GSU(1)
-) main (
+main 
+`ifdef MEGA
+#(.USE_GSU(1)) 
+`endif
+main (
     .WCLK(wclk), .MCLK(mclk), .RESET_N(resetn & ~loading), .ENABLE(enable), 
     .SYSCLKF_CE(sysclkf_ce), .SYSCLKR_CE(sysclkr_ce), .REFRESH(refresh),
 
@@ -346,25 +354,30 @@ sdram_snes sdram(
     .aram_16(aram_16), .aram_addr(ARAM_ADDR), .aram_din({ARAM_D, ARAM_D}), 
     .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd),
 
+`ifndef MEGA
+    // VRAM accesses
     .vram1_rd(vram1_new_read), .vram1_wr(~VRAM1_WE_N), 
     .vram2_rd(vram2_new_read & ~vram2_read_delay | vram2_read_delay_r), .vram2_wr(~VRAM2_WE_N),
     .vram1_addr(VRAM1_ADDR[14:0]), .vram2_addr(VRAM2_ADDR[14:0]), 
     .vram1_din(VRAM1_D), .vram2_din(VRAM2_D),
     .vram1_dout(VRAM1_Q), .vram2_dout(VRAM2_Q),
+`endif
 
     // IOSys risc-v softcore
     .rv_addr(rv_addr[22:1]), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
     .rv_rd(rv_rd), .rv_wr(rv_wr), .rv_wait(rv_wait)
 );
 
+`ifdef MEGA
 // FPGA block RAM for SNES VRAM 
-// vram vram(
-//     .clk(wclk), 
-//     .addra(VRAM1_ADDR[14:0]), .rda(vram1_new_read), .wra(~VRAM1_WE_N), 
-//     .dina(VRAM1_D), .douta(VRAM1_Q), 
-//     .addrb(VRAM2_ADDR[14:0]), .rdb(vram2_new_read), .wrb(~VRAM2_WE_N), 
-//     .dinb(VRAM2_D), .doutb(VRAM2_Q)
-// );
+vram vram(
+    .clk(wclk), 
+    .addra(VRAM1_ADDR[14:0]), .rda(vram1_new_read), .wra(~VRAM1_WE_N), 
+    .dina(VRAM1_D), .douta(VRAM1_Q), 
+    .addrb(VRAM2_ADDR[14:0]), .rdb(vram2_new_read), .wrb(~VRAM2_WE_N), 
+    .dinb(VRAM2_D), .doutb(VRAM2_Q)
+);
+`endif
 
 reg loading_r;
 always @(posedge wclk) begin
@@ -393,11 +406,12 @@ ds2snes joy1 (
     .snes_buttons(joy1_btns),
     .ds_clk(ds_clk), .ds_miso(ds_miso), .ds_mosi(ds_mosi), .ds_cs(ds_cs) 
 );
+
 ds2snes joy2 (
-    .clk(wclk),
-    .snes_joy_strb(joy_strb), .snes_joy_clk(joy2_clk), .snes_joy_di(joy2_di[0]),
-    .snes_buttons(joy2_btns),
-    .ds_clk(ds_clk2), .ds_miso(ds_miso2), .ds_mosi(ds_mosi2), .ds_cs(ds_cs2) 
+   .clk(wclk),
+   .snes_joy_strb(joy_strb), .snes_joy_clk(joy2_clk), .snes_joy_di(joy2_di[0]),
+   .snes_buttons(joy2_btns),
+   .ds_clk(ds_clk2), .ds_miso(ds_miso2), .ds_mosi(ds_mosi2), .ds_cs(ds_cs2) 
 );
 assign joy1_di[1] = 0;  // P3
 assign joy2_di[1] = 0;  // P4
@@ -442,18 +456,11 @@ iosys iosys (
     .flash_spi_mosi(flash_spi_mosi), .flash_spi_clk(flash_spi_clk),
     .flash_spi_wp_n(flash_spi_wp_n), .flash_spi_hold_n(flash_spi_hold_n),
 
-    .uart_tx(UART_TXD), .uart_rx(UART_RXD),
+    .uart_tx(/*UART_TXD*/), .uart_rx(/*UART_RXD*/),
 
     .sd_clk(sd_clk), .sd_cmd(sd_cmd), .sd_dat0(sd_dat0), .sd_dat1(sd_dat1),
     .sd_dat2(sd_dat2), .sd_dat3(sd_dat3)
 );
-
-
-
-// Test rom
-//testrom rom (
-//    .clk(wclk), .addr(rom_addr), .dout(rom_do)
-//);
 
 `else
 
@@ -521,112 +528,6 @@ reg [11:0] reached;
 
 // LED control
 assign led = ~s0 ? ~(reached[9:5]) : ~{reached[4:0]};
-
-// a simple memory access logger
-// localparam mlog_len = 16;
-// reg [23:0] mlog_a[0:mlog_len-1];
-// reg [7:0] mlog_q[0:mlog_len-1];
-// reg [$clog2(mlog_len)-1:0] mlog_i = 0;
-// reg mlog_active;
-
-// reg cpu_rd_r;
-// reg [23:0] cpu_addr_r;
-
-// always @(posedge wclk) begin
-//     cpu_rd_r <= cpu_rd;
-//     cpu_addr_r <= cpu_addr;
-//     if (~loading) begin
-//         // result from active read
-//         if (mlog_active) begin
-//             mlog_q[mlog_i] <= ROM_Q[7:0];
-//             mlog_active <= 0;
-//             if (mlog_i != mlog_len - 1)
-//                 mlog_i <= mlog_i + 1;
-//         end
-
-//         // start next read
-//         if (cpu_rd && (~cpu_rd_r || cpu_addr != cpu_addr_r) && mlog_i != mlog_len - 1) begin
-//             mlog_active <= 1;
-//             mlog_a[mlog_i] <= cpu_addr;
-//         end
-//     end
-// end
-
-// end of memory access logger
-
-// assign led = s1 ? ~{reach_wai, reach_string_loop, reach_charset_loop, reach_set_palette, reach_start, snes_start} :  // 000011 means ClearVRAM did not return
-//                   ~{reach_rts, reach_enddma, reach_startdma, reach_clearvram, reach_start, reach_reset_vector};      // 001111 means DMA started but did not end
-
-// Serial debugger and loader data source
-/*
-debugger dbg (
-    .clk(wclk), .resetn(resetn),
-    .uart_rx(UART_RXD), .uart_tx(UART_TXD),
-
-    .dbg_sel(dbg_sel), .dbg_reg(dbg_reg), 
-    .dbg_dat_out(dbg_sel[7] ? dbg_dat_out_loader : 
-                 dbg_sel[2] ? dbg_dat_out_mem :     // take over WRAM's slot
-                 dbg_dat_out),
-    .dbg_reg_wr(dbg_reg_wr), .dbg_dat_in(dbg_dat_in), 
-
-    .pause(pause), .last_cycle(last_cycle), .last_phase(last_phase),
-
-    .serial_reset(serial_reset), .serial_data(serial_data), .serial_data_valid(serial_data_valid),
-    .loader_done(loader_done), .loader_fail(loader_fail),
-
-    .dbg_state(dbg_state)
-);
-*/
-
-//
-// Print control
-//
-/*
-`include "print.v"
-localparam BAUDRATE=115200;
-
-defparam tx.uart_freq=BAUDRATE;
-defparam tx.clk_freq=10_800_000;
-assign print_clk = wclk;
-assign UART_TXD = uart_txp;
-
-wire tick;
-assign tick = (timer == 20'b0);
-
-reg [19:0] frame_sync_cycles = 20'b0;
-
-always @(posedge wclk) begin
-    if (pause_snes_for_frame_sync && frame_sync_cycles != 20'hfffff)
-        frame_sync_cycles = frame_sync_cycles + 1;
-end
-
-reg [23:0] dbg_sd_sector;
-reg [$clog2(mlog_len)-1:0] mlog_prt = 0;
-//wire mlog_prt_done = mlog_prt == mlog_len - 1;
-reg [2:0] prt_state = 0;
-// 0:loader, 1:memory header, 2: memory content, 3: cpu stat
-
-always @(posedge wclk) begin
-    // print CA every tick
-    timer <= timer + 20'd1;
-    case (timer) 
-    20'h00000: `print("map_ctrl=", STR);
-    20'h10000: `print(rom_type, 1);
-    20'h20000: `print(", rom_size=", STR);
-    20'h30000: `print({4'b0, rom_size}, 1);
-    20'h40000: `print(", ram_size=", STR);
-    20'h50000: `print({4'b0, ram_size}, 1);
-    20'h60000: `print(", btns=", STR);
-    20'h70000: `print({4'b0, joy1_btns}, 2);
-    20'h80000: `print(", addr=", STR);
-    20'h90000: `print(loader_addr, 3);
-    20'hA0000: `print(", loading=", STR);
-    20'hA8000: `print({7'b0, loading}, 1);
-
-    20'hf0000: `print("\n", STR);
-    endcase
-end
-*/
 
 `endif
 

@@ -7,7 +7,7 @@
 
 -mod_name dsp_data_ram
 -file_name dsp_data_ram
--path D:/Gowin/dev/snestang/src/chip/dsp/
+-path D:/Gowin/dev/snestang/src/chip/DSP/
 -type RAM_DP
 -file_type vlg
 -bram_b true
@@ -19,6 +19,6 @@
 -read_mode_0 bypass
 -read_mode_1 bypass
 -write_mode_0 normal
--write_mode_1 read-before-write
+-write_mode_1 normal
 -speed false
 -reset_mode sync

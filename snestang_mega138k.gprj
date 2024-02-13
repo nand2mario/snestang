@@ -16,8 +16,13 @@
         <File path="src/65C816/mcode.sv" type="file.verilog" enable="1"/>
         <File path="src/CEGen.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/DSP_LHRomMap.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/DSP/DSPn.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/OBC1.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/SRTC.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/DSP/dsp_data_ram.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/GSU/GSU.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/GSU/GSUMap.v" type="file.verilog" enable="1"/>
+        <File path="src/chip/GSU/GSU_PKG.v" type="file.verilog" enable="1"/>
         <File path="src/cpu.v" type="file.verilog" enable="1"/>
         <File path="src/ds2snes.sv" type="file.verilog" enable="1"/>
         <File path="src/dsp.v" type="file.verilog" enable="1"/>
@@ -46,15 +51,17 @@
         <File path="src/iosys/spiflash.v" type="file.verilog" enable="1"/>
         <File path="src/iosys/textdisp.v" type="file.verilog" enable="1"/>
         <File path="src/main.v" type="file.verilog" enable="1"/>
+        <File path="src/mega138k/config.v" type="file.verilog" enable="1"/>
         <File path="src/mega138k/gowin_pll_27.v" type="file.verilog" enable="1"/>
         <File path="src/mega138k/gowin_pll_hdmi.v" type="file.verilog" enable="1"/>
         <File path="src/mega138k/gowin_pll_snes.v" type="file.verilog" enable="1"/>
+        <File path="src/mega138k/sdram_snes_2ch.v" type="file.verilog" enable="1"/>
+        <File path="src/mega138k/vram.v" type="file.verilog" enable="1"/>
         <File path="src/ppu.v" type="file.verilog" enable="1"/>
         <File path="src/ppucgram.v" type="file.verilog" enable="1"/>
         <File path="src/ppuhoam.v" type="file.verilog" enable="1"/>
         <File path="src/ppuoam.v" type="file.verilog" enable="1"/>
         <File path="src/ppusprbuf.v" type="file.verilog" enable="1"/>
-        <File path="src/sdram_snes.v" type="file.verilog" enable="1"/>
         <File path="src/smp.v" type="file.verilog" enable="1"/>
         <File path="src/snes.v" type="file.verilog" enable="1"/>
         <File path="src/snes2hdmi.v" type="file.verilog" enable="1"/>
@@ -69,10 +76,9 @@
         <File path="src/spc700/spc700.v" type="file.verilog" enable="1"/>
         <File path="src/swram.v" type="file.verilog" enable="1"/>
         <File path="src/uart_tx_V2.v" type="file.verilog" enable="1"/>
-        <File path="src/vram.v" type="file.verilog" enable="1"/>
         <File path="src/mega138k/snestang.cst" type="file.cst" enable="1"/>
         <File path="src/snestang.sdc" type="file.sdc" enable="1"/>
-        <File path="src/iosys.gao" type="file.gao" enable="1"/>
+        <File path="src/iosys.gao" type="file.gao" enable="0"/>
         <File path="src/mega138k/snestang.gao" type="file.gao" enable="0"/>
     </FileList>
 </Project>

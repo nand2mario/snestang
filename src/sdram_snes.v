@@ -1,4 +1,4 @@
-// Triple-channel CL2 SDRAM controller for SNES on Tang Primer 25K and Tang Mega 138K
+// Triple-channel CL2 SDRAM controller for SNES on Tang Primer 25K
 // nand2mario 2024.1
 // 
 // This supports 3 parallel access streams (ROM/WRAM/BSRAM/RiscV softcore, ARAM, VRAM),
@@ -6,8 +6,8 @@
 // BSRAM max 1MB). RV uses bank 1. ARAM uses bank 2. VRAM uses bank 3.
 // 
 // Memory works at 8x clkref speed. clkref and clk should come from the same PLL
-// so that they are aligned. Request needs to be ready 3 fclk before clkref posedge. 
-// Data out is ready 3 fclk after clkref posedge.
+// so that they are aligned. Request needs to be ready at most 3 fclk after clkref posedge. 
+// Data out is ready at least 3 fclk before the clkref posedge.
 //
 // All requests except RV ones are served in one clkref cycle. RV requests are served
 // on a best-effort basis. ROM/WRAM take precedence. `rv_wait` signals whether RV needs
@@ -114,7 +114,7 @@ module sdram_snes
 	input             vram2_rd,
 	input             vram2_wr,
 
-    // Risc-V softcore uses bank 0-1 of 2nd chip
+    // Risc-V softcore
     input      [22:1] rv_addr,      // 8MB RV memory space
     input      [15:0] rv_din,       // 16-bit accesses
     input      [1:0]  rv_ds,
