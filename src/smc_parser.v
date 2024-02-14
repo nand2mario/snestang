@@ -32,7 +32,7 @@ always @(posedge clk) begin
     if (~resetn) begin
         cnt <= 0;
         header_finished <= 0;
-    end else if (rom_strb) begin
+    end else if (rom_strb && ~header_finished) begin
         cnt <= cnt + 1;
         case (cnt)
         6'h15: mapper_header <= rom_d;

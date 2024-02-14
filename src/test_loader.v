@@ -37,12 +37,12 @@ localparam SIZE = 131584;
 // localparam string FILE = "roms/hello.hex";
 // localparam string FILE = "roms/hello2.hex";
 // localparam string FILE = "roms/textbuffer-hello-world.hex";  // not working
-localparam string FILE = "roms/Perspective.hex";
+// localparam string FILE = "roms/Perspective.hex";
 // localparam string FILE = "roms/test_dmavalid.hex";
 // localparam string FILE = "roms/test_irq4200.hex";
 // localparam string FILE = "roms/test_math.hex";
 // localparam string FILE = "roms/demo_irq.hex";
-// localparam string FILE = "roms/dsp1demo.hex";
+localparam string FILE = "roms/dsp1demo.hex";
 // localparam string FILE = "roms/SuperFX.hex";
 
 // 512KB roms
