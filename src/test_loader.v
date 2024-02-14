@@ -3,14 +3,8 @@
 module test_loader (
     input wclk,
     input resetn,
-
     output reg [7:0] dout,
     output reg dout_valid,
-
-    output [7:0] map_ctrl,
-    output [3:0] rom_size,
-    output [23:0] rom_mask,
-    output [23:0] ram_mask,
     output loading,
     output fail
 );
@@ -43,14 +37,13 @@ localparam SIZE = 131584;
 // localparam string FILE = "roms/hello.hex";
 // localparam string FILE = "roms/hello2.hex";
 // localparam string FILE = "roms/textbuffer-hello-world.hex";  // not working
-// localparam string FILE = "roms/Perspective.hex";
+localparam string FILE = "roms/Perspective.hex";
 // localparam string FILE = "roms/test_dmavalid.hex";
 // localparam string FILE = "roms/test_irq4200.hex";
 // localparam string FILE = "roms/test_math.hex";
 // localparam string FILE = "roms/demo_irq.hex";
-// localparam string FILE = "roms/Perspective.hex";
 // localparam string FILE = "roms/dsp1demo.hex";
-localparam string FILE = "roms/SuperFX.hex";
+// localparam string FILE = "roms/SuperFX.hex";
 
 // 512KB roms
 // localparam SIZE = 524800;
@@ -95,19 +88,13 @@ initial begin
    $readmemh(FILE, rom);
 end
 
-assign map_ctrl = rom[21];
-assign rom_size = rom[23][3:0];
-wire [7:0] ram_size = rom[24];
-assign rom_mask = (24'h400 << rom_size) - 24'b1;
-assign ram_mask = (24'h400 << ram_size) - 24'b1;
-
-reg [$clog2(SIZE)-1:0] addr = 512;
+reg [$clog2(SIZE)-1:0] addr = 0;
 assign fail = 1'b0;
 assign loading = addr != SIZE;
 
 always @(posedge wclk) begin
     if (~resetn) begin
-        addr <= 512;
+        addr <= 0;
     end else begin
         dout_valid <= 1'b0;
         if (~dout_valid && addr < SIZE) begin
@@ -116,7 +103,10 @@ always @(posedge wclk) begin
             dout <= rom[addr];      
             /* xxverilator lint_on WIDTHTRUNC */
         end else if (dout_valid)
-            addr <= addr + 1;
+            if (addr == 63)     // header is 64 bytes long
+                addr <= 512;
+            else
+                addr <= addr + 1;
     end
 end
 

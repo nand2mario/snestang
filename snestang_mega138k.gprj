@@ -62,6 +62,7 @@
         <File path="src/ppuhoam.v" type="file.verilog" enable="1"/>
         <File path="src/ppuoam.v" type="file.verilog" enable="1"/>
         <File path="src/ppusprbuf.v" type="file.verilog" enable="1"/>
+        <File path="src/smc_parser.v" type="file.verilog" enable="1"/>
         <File path="src/smp.v" type="file.verilog" enable="1"/>
         <File path="src/snes.v" type="file.verilog" enable="1"/>
         <File path="src/snes2hdmi.v" type="file.verilog" enable="1"/>
@@ -79,6 +80,7 @@
         <File path="src/mega138k/snestang.cst" type="file.cst" enable="1"/>
         <File path="src/snestang.sdc" type="file.sdc" enable="1"/>
         <File path="src/iosys.gao" type="file.gao" enable="0"/>
+        <File path="src/loading.gao" type="file.gao" enable="0"/>
         <File path="src/mega138k/snestang.gao" type="file.gao" enable="0"/>
     </FileList>
 </Project>

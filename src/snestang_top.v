@@ -185,7 +185,7 @@ reg snes_start = 1'b0;
 wire pause_snes_for_frame_sync;
 
 wire [7:0] loader_do;
-wire loader_do_valid, loading;
+wire loader_do_valid, loading, header_finished;
 
 reg [23:0] loader_addr = 0;
 
@@ -302,7 +302,7 @@ always @(posedge wclk) begin
     cpu_din <= 0;
     cpu_ds <= 0;
     cpu_port <= 0;
-    if (loading && loader_do_valid) begin
+    if (loading && loader_do_valid && header_finished) begin
         cpu_addr <= loader_addr[22:0];
         cpu_wr <= 1;
         cpu_din <= {loader_do, loader_do};
@@ -388,6 +388,15 @@ vram vram(
 );
 `endif
 
+// Parse 64-byte rom header into rom_type and etc
+smc_parser smc (
+    .clk(wclk), .resetn(resetn & ~(loading & ~loading_r)),
+    .rom_d(loader_do), .rom_strb(loader_do_valid), 
+    .rom_type(rom_type), .rom_mask(rom_mask), .ram_mask(ram_mask),
+    .rom_size(rom_size), .ram_size(ram_size),
+    .header_finished(header_finished)
+);
+
 reg loading_r;
 always @(posedge wclk) begin
     if (~resetn) begin
@@ -395,7 +404,7 @@ always @(posedge wclk) begin
         loaded <= 0;
     end else begin
         loading_r <= loading;
-        if (loader_do_valid)
+        if (loader_do_valid && header_finished)
             loader_addr <= loader_addr + 24'd1; 
         if (loading & ~loading_r) begin
             loader_addr <= 0;
@@ -454,8 +463,6 @@ iosys iosys (
     .joy1(joy1_btns), .joy2(joy2_btns),
 
     .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid), 
-    .rom_type(rom_type), .rom_mask(rom_mask), .ram_mask(ram_mask),
-    .rom_size(rom_size), .ram_size(ram_size),
     .ram_busy(sdram_busy),
 
     .rv_addr(rv_addr), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
@@ -476,12 +483,7 @@ iosys iosys (
 // test loader with embedded rom
 test_loader test_loader (
     .wclk(wclk), .resetn(resetn),
-
     .dout(loader_do), .dout_valid(loader_do_valid),
-
-    .map_ctrl(rom_type), .rom_size(rom_size),
-    .rom_mask(rom_mask), .ram_mask(ram_mask),
-    
     .loading(loading), .fail()
 );
 
@@ -527,7 +529,6 @@ always @(posedge wclk) begin    // halt SNES during snes dram refresh on line 2
 end
 
 `endif
-
 
 `ifndef VERILATOR
 

@@ -45,14 +45,8 @@ module iosys (
 
     // ROM loading interface
     output reg rom_loading,             // 0-to-1 loading starts, 1-to-0 loading is finished
-    output [7:0] rom_do,            
+    output [7:0] rom_do,                // first 64 bytes are snes header + 32 bytes after snes header 
     output reg rom_do_valid,            // strobe for rom_do
-    // ROM meta-data
-    output reg [7:0] rom_type,          // map_ctrl after further detection like DSP
-    output reg [23:0] rom_mask,
-    output reg [23:0] ram_mask,
-    output reg [3:0] rom_size,
-    output reg [3:0] ram_size,
     
     // SDRAM interface for risc-v softcore
     output reg [22:0] rv_addr,
@@ -258,117 +252,32 @@ simplespimaster simplespi (
     .reg_wait(simplespimaster_reg_wait)
 );
 
-// rom loading I/O
-// 12-byte header + data
-// header[0]: map_ctrl
-// header[1]: rom_size
-// header[2]: ram_size
-// header[4..6]: rom_mask (little endian)
-// header[8..10]: ram_mask
-// header[3,7,11]: unused
-reg [1:0] rom_cnt, rom_header;
+// ROM loading I/O
+reg [1:0] rom_cnt;
 reg [31:0] rom_do_buf;
-reg [7:0] mapper_header;            // raw map_ctrl from the ROM
-reg [7:0] company_header;
-reg [7:0] rom_type_header;
 assign rom_do = rom_do_buf[7:0];
 always @(posedge wclk) begin
-    if (~resetn) begin
-        rom_cnt <= 0;
-    end else begin
-        rom_do_valid <= 0;
-        if (romload_reg_ctrl_sel && mem_wstrb) begin
-            if (mem_wdata[7:0] == 8'd1) begin
-                rom_loading <= 1;
-                rom_header <= 0;
-            end
-            if (mem_wdata[7:0] == 8'd0)
-                rom_loading <= 0;
-        end
-        if (romload_reg_data_sel && mem_wstrb) begin
-            case (rom_header)
-            2'd0: begin         // 12-byte header
-                mapper_header <= mem_wdata[7:0];
-                rom_type_header <= mem_wdata[15:8];
-                rom_size <= mem_wdata[19:16];
-                ram_size <= mem_wdata[27:24];
-                rom_header <= 2'd1;
-            end
-            2'd1: begin
-                rom_mask <= mem_wdata[23:0];
-                company_header <= mem_wdata[31:24];
-                rom_header <= 2'd2;
-            end
-            2'd2: begin
-                ram_mask <= mem_wdata[23:0];
-                rom_header <= 2'd3;
-            end
-            2'd3: begin                 // actual ROM data
-                rom_do_buf <= mem_wdata;
-                rom_cnt <= 2'd3;
-                rom_do_valid <= 1;
-            end
-            endcase
-        end
-        if (rom_cnt != 2'd0) begin      // output remaining rom_do
-            rom_do_buf[23:0] <= rom_do_buf[31:8];
-            rom_cnt <= rom_cnt - 2'd1;
-            rom_do_valid <= 1;
-        end
+    rom_do_valid <= 0;
+    // data register
+    if (romload_reg_data_sel && mem_wstrb) begin
+        rom_do_buf <= mem_wdata;
+        rom_cnt <= 2'd3;
+        rom_do_valid <= 1;
+    end
+    if (rom_cnt != 2'd0) begin      // output remaining rom_do
+        rom_do_buf[23:0] <= rom_do_buf[31:8];
+        rom_cnt <= rom_cnt - 2'd1;
+        rom_do_valid <= 1;
     end
 end
-
-// further processing of headers into rom_type
-reg [1:0] rom_header_old;
 always @(posedge wclk) begin
-    rom_header_old <= rom_header;
-    if (rom_header != rom_header_old && rom_header == 2'd3) begin   // finished receiving rom header
-        // inital rom_type value
-        rom_type <= {6'b0, mapper_header[1:0]};
-		//DSP3
-		if (mapper_header == 8'h30 && rom_type_header == 8'd5 && company_header == 8'hB2) 
-            rom_type[7:4] <= 4'hA;
-		//DSP1
-		else if (((mapper_header == 8'h20 || mapper_header == 8'h21) && rom_type_header == 8'd3) ||
-    		    (mapper_header == 8'h30 && rom_type_header == 8'd5) || 
-	    	    (mapper_header == 8'h31 && (rom_type_header == 8'd3 || rom_type_header == 8'd5))) 
-            rom_type[7] <= 1'b1;
-		//DSP2
-		else if (mapper_header == 8'h20 && rom_type_header == 8'd5) 
-            rom_type[7:4] <= 4'h9;
-		//DSP4
-		else if (mapper_header == 8'h30 && rom_type_header == 8'd3) 
-            rom_type[7:4] <= 4'hB;
-		//OBC1
-		else if (mapper_header == 8'h30 && rom_type_header == 8'h25) 
-            rom_type[7:4] <= 4'hC;
-		//SDD1
-		else if (mapper_header == 8'h32 && (rom_type_header == 8'h43 || rom_type_header == 8'h45)) 
-            rom_type[7:4] <= 4'h5;
-		//ST0XX
-		else if (mapper_header == 8'h30 && rom_type_header == 8'hf6) begin
-			rom_type[7:3] <= { 4'h8, 1'b1 };
-			if (rom_size < 4'd10) rom_type[5] <= 1'b1; // Hayazashi Nidan Morita Shougi
-		end
-		//GSU
-		else if (mapper_header == 8'h20 &&
-		    (rom_type_header == 8'h13 || rom_type_header == 8'h14 || rom_type_header == 8'h15 || rom_type_header == 8'h1a))
-		begin
-			rom_type[7:4] <= 4'h7;
-//			ram_mask <= (24'd1024 << 4'd6) - 1'd1;
-		end
-		//SA1
-		else if (mapper_header == 8'h23 && (rom_type_header == 8'h32 || rom_type_header == 8'h34 || rom_type_header == 8'h35)) begin
-			rom_type[7:4] <= 4'h6;
-		// SPC7110
-		end else if (mapper_header == 8'h3a && (rom_type_header == 8'hf5 || rom_type_header == 8'hf9)) begin
-			rom_type[7:4] <= 4'hD;
-			rom_type[3] <= rom_type_header[3]; // with RTC
-		//CX4
-		end else if (mapper_header == 8'h20 && rom_type_header == 8'hf3) begin
-			rom_type[7:4] <= 4'h4;
-		end
-    end
+    if (romload_reg_ctrl_sel && mem_wstrb) begin
+        // control register
+        if (mem_wdata[7:0] == 8'd1)
+            rom_loading <= 1;
+        if (mem_wdata[7:0] == 8'd0)
+            rom_loading <= 0;
+    end    
 end
 
 // RV memory access
