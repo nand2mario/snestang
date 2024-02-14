@@ -40,11 +40,13 @@ always @(posedge clk) begin
         6'h17: rom_size <= rom_d[3:0];
         6'h18: ram_size <= rom_d[3:0];
         6'h1A: company_header <= rom_d;
-        6'h3F: header_finished <= 1;
+        6'h3F: begin
+            header_finished <= 1;
+            rom_mask <= (24'd1024 << ((rom_size < 4'd7) ? 4'hC : rom_size)) - 1'd1;
+            ram_mask <= ram_size != 0 ? (24'd1024 << ram_size) - 1'd1 : 24'd0;
+        end
         default: ;
         endcase
-        rom_mask <= (24'd1024 << ((rom_size < 4'd7) ? 4'hC : rom_size)) - 1'd1;
-        ram_mask <= ram_size != 0 ? (24'd1024 << ram_size) - 1'd1 : 24'd0;
     end
 
     // further processing of headers into rom_type

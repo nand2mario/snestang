@@ -307,10 +307,6 @@ always @(posedge wclk) begin
         cpu_wr <= 1;
         cpu_din <= {loader_do, loader_do};
         cpu_ds <= {loader_addr[0], ~loader_addr[0]};
-    end else if (~ROM_CE_N && ~bsram_rd_t && f2) begin     // ROM reads on R cycles
-        cpu_rd <= 1;
-        cpu_addr <= ROM_ADDR[22:0];
-        cpu_ds <= 2'b11;
     end else if (wram_rd | wram_wr) begin
         cpu_addr <= {6'b111_111, WRAM_ADDR[16:0]};  // 7E,7F:0000-FFFF, total 128KB
         cpu_ds <= {WRAM_ADDR[0], ~WRAM_ADDR[0]};
@@ -318,6 +314,10 @@ always @(posedge wclk) begin
         cpu_port <= 1;
         if (wram_rd && f2) cpu_rd <= 1;
         if (wram_wr && r2) cpu_wr <= 1;
+    end else if (~ROM_CE_N && ~bsram_rd_t && f2) begin     // ROM reads on R cycles
+        cpu_rd <= 1;
+        cpu_addr <= ROM_ADDR[22:0];
+        cpu_ds <= 2'b11;
     end
 
     bsram_addr <= BSRAM_ADDR;
