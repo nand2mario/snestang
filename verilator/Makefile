@@ -38,7 +38,7 @@ verilate: ./obj_dir/V$N.cpp
 sim: ./obj_dir/V$N
 	@echo
 	@echo "### SIMULATION (GUI) ###"
-	@cd obj_dir && ./V$N -c 200000000
+	@cd obj_dir && ./V$N -c 400000000
 
 trace: ./obj_dir/V$N
 	@echo

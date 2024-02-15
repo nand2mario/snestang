@@ -138,8 +138,8 @@ wire [8:0] BRAM_CACHE_ADDR_A;
 wire [8:0] BRAM_CACHE_ADDR_B;
 wire [7:0] BRAM_CACHE_DI_A;
 wire [7:0] BRAM_CACHE_DI_B;
-wire [7:0] BRAM_CACHE_Q_A;
-wire [7:0] BRAM_CACHE_Q_B;
+reg [7:0] BRAM_CACHE_Q_A;
+reg [7:0] BRAM_CACHE_Q_B;
 wire BRAM_CACHE_WE_A;
 wire BRAM_CACHE_WE_B;  
 
@@ -483,6 +483,21 @@ end
   // 	wren_b		=> BRAM_CACHE_WE_B,
   // 	q_b			=> BRAM_CACHE_Q_B
   // );
+reg [7:0] cache [512];
+
+always @(negedge CLK) begin
+    if (BRAM_CACHE_WE_A)
+        cache[BRAM_CACHE_ADDR_A] <= BRAM_CACHE_DI_A;
+    else
+        BRAM_CACHE_Q_A <= cache[BRAM_CACHE_ADDR_A];
+end
+
+always @(posedge CLK) begin
+    if (BRAM_CACHE_WE_B)
+        cache[BRAM_CACHE_ADDR_B] <= BRAM_CACHE_DI_B;
+    else
+        BRAM_CACHE_Q_B <= cache[BRAM_CACHE_ADDR_B];
+end
 
 assign BRAM_CACHE_ADDR_A = CACHE_POS[8:0];
 assign BRAM_CACHE_DI_A = 8'h00;
