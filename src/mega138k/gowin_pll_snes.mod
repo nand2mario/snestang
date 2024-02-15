@@ -26,7 +26,7 @@
 -dyn_dpa_en false
 -clkout0_bypass false
 -dyn_odiv0_sel false
--odiv0_sel 90
+-odiv0_sel 45
 -odiv0_frac_sel 0
 -dyn_dt0_sel false
 -clkout0_dt_dir 1
@@ -60,17 +60,7 @@
 -clkout2_pe_coarse 9
 -clkout2_pe_fine 3
 -de2_en false
--en_clkout3 true
--clkout3_bypass false
--dyn_odiv3_sel false
--odiv3_sel 90
--dyn_dt3_sel false
--clkout3_dt_dir 1
--clkout3_dt_step 0
--dyn_pe3_sel false
--clkout3_pe_coarse 0
--clkout3_pe_fine 0
--de3_en false
+-en_clkout3 false
 -en_clkout4 false
 -en_clkout5 false
 -en_clkout6 false

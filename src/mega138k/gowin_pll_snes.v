@@ -5,17 +5,17 @@
 //Part Number: GW5AST-LV138FPG676AES
 //Device: GW5AST-138B
 //Device Version: B
-//Created Time: Tue Feb 13 11:57:54 2024
+//Created Time: Thu Feb 15 17:01:59 2024
 
-module gowin_pll_snes (clkout0, clkout1, clkout2, clkout3, clkin);
+module gowin_pll_snes (clkout0, clkout1, clkout2, clkin);
 
 output clkout0;
 output clkout1;
 output clkout2;
-output clkout3;
 input clkin;
 
 wire lock;
+wire clkout3;
 wire clkout4;
 wire clkout5;
 wire clkout6;
@@ -80,10 +80,10 @@ PLL PLL_inst (
 defparam PLL_inst.FCLKIN = "27";
 defparam PLL_inst.IDIV_SEL = 1;
 defparam PLL_inst.FBDIV_SEL = 1;
-defparam PLL_inst.ODIV0_SEL = 90;
+defparam PLL_inst.ODIV0_SEL = 45;
 defparam PLL_inst.ODIV1_SEL = 15;
 defparam PLL_inst.ODIV2_SEL = 15;
-defparam PLL_inst.ODIV3_SEL = 90;
+defparam PLL_inst.ODIV3_SEL = 8;
 defparam PLL_inst.ODIV4_SEL = 8;
 defparam PLL_inst.ODIV5_SEL = 8;
 defparam PLL_inst.ODIV6_SEL = 8;
@@ -93,7 +93,7 @@ defparam PLL_inst.ODIV0_FRAC_SEL = 0;
 defparam PLL_inst.CLKOUT0_EN = "TRUE";
 defparam PLL_inst.CLKOUT1_EN = "TRUE";
 defparam PLL_inst.CLKOUT2_EN = "TRUE";
-defparam PLL_inst.CLKOUT3_EN = "TRUE";
+defparam PLL_inst.CLKOUT3_EN = "FALSE";
 defparam PLL_inst.CLKOUT4_EN = "FALSE";
 defparam PLL_inst.CLKOUT5_EN = "FALSE";
 defparam PLL_inst.CLKOUT6_EN = "FALSE";

@@ -327,12 +327,26 @@ localparam IntStep_r IS_TBL[0:31][0:3] = '{
 '{{IS_IDLE, 3'd0},    {IS_IDLE, 3'd0},    {IS_IDLE, 3'd0},    {IS_IDLE, 3'd0}}
 };
 
+parameter [2:0]
+    GS_IDLE = 0,
+    GS_WAIT = 1,
+    GS_BRR0 = 2,
+    GS_BRR1 = 3,
+    GS_BRR2 = 4,
+    GS_BRR3 = 5;
+
+parameter [1:0]
+    BD_IDLE = 0,
+    BD_WAIT = 1,
+    BD_P0 = 2,
+    BD_P1 = 3;
+
 // Envelope Modes
 parameter [1:0]
-  EM_RELEASE = 0,
-  EM_ATTACK = 1,
-  EM_DECAY = 2,
-  EM_SUSTAIN = 3;
+    EM_RELEASE = 0,
+    EM_ATTACK = 1,
+    EM_DECAY = 2,
+    EM_SUSTAIN = 3;
 
 // type GaussTbl_t is array(0 to 511) of signed(11 downto 0);
 localparam signed [11:0] GTBL[0:511] = '{

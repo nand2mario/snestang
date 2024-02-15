@@ -70,18 +70,18 @@ module snestang_top (
 );
 
 // Clock signals
-wire wclk;                      // Actual work clock for SNES for most components, 1/2 of SNES master clock speed
+// wire wclk;                      // Actual work clock for SNES for most components, 1/2 of SNES master clock speed
+wire mclk;                      // SNES master clock at 21.6Mhz (~21.477)
 wire fclk;                      // Fast clock for sdram for SDRAM
 wire fclk_p;                    // 180-degree shifted fclk
 wire clk27;                     // 27Mhz for hdmi clock generation
 wire hclk5, hclk;               // 720p pixel clock at 74.25Mhz, and 5x high-speed
-wire mclk;                      // SNES master clock at 21.6Mhz (~21.477), used for faster components like DSPn
 
 reg resetn = 1'b0;              // reset is cleared after 4 cycles
 wire pause;
 
 reg [15:0] resetcnt = 16'hffff;
-always @(posedge wclk) begin
+always @(posedge mclk) begin
     resetcnt <= resetcnt == 0 ? 0 : resetcnt - 1;
     if (resetcnt == 0)
 //   if (resetcnt == 0 && s0)   // primer25k
@@ -98,10 +98,10 @@ gowin_pll_27 pll_27 (
 
 // DRAM and SNES clocks
 gowin_pll_snes pll_snes (
-    .clkout0(wclk),             // 10.8Mhz
+    .clkout0(mclk),             // 10.8Mhz
     .clkout1(fclk),             // 86.4Mhz
     .clkout2(fclk_p),            
-    .clkout3(mclk),             // 21.6Mhz
+    // .clkout3(mclk),             // 21.6Mhz
     .clkin(clk27));
 
 // HDMI clocks
@@ -112,11 +112,19 @@ gowin_pll_hdmi pll_hdmi (
 `else
 
 // Simulated clocks for verilator
-assign fclk = sys_clk;
-reg [2:0] fclk_cnt = 3'b0;      // 0 1 2 3 4 5 6 7
-always @(posedge fclk) fclk_cnt <= fclk_cnt + 3'b1;
-assign wclk = fclk_cnt[2];
-assign mclk = fclk_cnt[1];
+reg [2:0] clk_cnt = 3'b0;       // 0 1 2 3 4 5
+reg mclk_buf;                   // 0 0 0 1 1 1
+assign fclk = clk_cnt[0];       // 0 1 0 1 0 1
+assign mclk = mclk_buf;
+always @(posedge sys_clk) begin
+    clk_cnt <= clk_cnt + 3'b1; 
+    if (clk_cnt == 3'd5) begin
+        clk_cnt == 0;
+        mclk_buf <= 0;
+    end
+    if (clk_cnt == 3'd2)
+        mclk_buf <= 1;
+end
 
 `endif
 
@@ -203,7 +211,7 @@ wire refresh;
 reg enable; // && ~dbg_break && ~pause;
 reg loaded;
 
-always @(posedge wclk) begin        // wait until memory initialize to start SNES
+always @(posedge mclk) begin        // wait until memory initialize to start SNES
     if (~sdram_busy && ~pause_snes_for_frame_sync && loaded)
         enable <= 1;
     else 
@@ -225,7 +233,7 @@ main
 #(.USE_GSU(1)) 
 `endif
 main (
-    .WCLK(wclk), .MCLK(mclk), .RESET_N(resetn & ~loading), .ENABLE(enable), 
+    .MCLK(mclk), .RESET_N(resetn & ~loading), .ENABLE(enable), 
     .SYSCLKF_CE(sysclkf_ce), .SYSCLKR_CE(sysclkr_ce), .REFRESH(refresh),
 
     .ROM_TYPE(rom_type), .ROM_MASK(rom_mask), .RAM_MASK(ram_mask),
@@ -278,7 +286,7 @@ reg        f2, r2;
 assign sdram_clk = fclk_p;
 wire aram_rd = ~ARAM_CE_N & ~ARAM_OE_N;
 wire aram_wr = ~ARAM_CE_N & ~ARAM_WE_N;
-always @(posedge wclk) if (aram_rd) aram_lsb <= ARAM_ADDR[0];
+always @(posedge mclk) if (aram_rd) aram_lsb <= ARAM_ADDR[0];
 
 reg bsram_rd, bsram_wr;
 reg [19:0] bsram_addr;
@@ -292,7 +300,7 @@ wire [1:0] rv_ds;
 wire rv_wait;
 
 // Generate SDRAM signals
-always @(posedge wclk) begin
+always @(posedge mclk) begin
     reg bsram_rd_t = ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC) & f2;
     f2 <= sysclkf_ce && enable;
     r2 <= sysclkr_ce && enable;
@@ -335,7 +343,7 @@ wire vram2_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram2_addr_old != VRAM2_AD
 // vram1/vram2 reading different addresses, then delay vram2 read one cycle
 wire vram2_read_delay = vram1_new_read && vram2_new_read && VRAM1_ADDR != VRAM2_ADDR;
 reg vram2_read_delay_r;     
-always @(posedge wclk) begin
+always @(posedge mclk) begin
     vram_oe_n_old <= VRAM_OE_N;
     vram1_addr_old <= VRAM1_ADDR[14:0];
     vram2_addr_old <= VRAM2_ADDR[14:0];
@@ -343,7 +351,7 @@ always @(posedge wclk) begin
 end
 
 sdram_snes sdram(
-    .clk(fclk), .clkref(wclk), .resetn(resetn), .busy(sdram_busy),
+    .clk(fclk), .clkref(dotclk), .resetn(resetn), .busy(sdram_busy),
 
     // SDRAM pins
     .SDRAM_DQ(IO_sdram_dq), .SDRAM_A(O_sdram_addr), .SDRAM_BA(O_sdram_ba), 
@@ -380,7 +388,7 @@ sdram_snes sdram(
 `ifdef MEGA
 // FPGA block RAM for SNES VRAM 
 vram vram(
-    .clk(wclk), 
+    .clk(mclk), 
     .addra(VRAM1_ADDR[14:0]), .rda(vram1_new_read), .wra(~VRAM1_WE_N), 
     .dina(VRAM1_D), .douta(VRAM1_Q), 
     .addrb(VRAM2_ADDR[14:0]), .rdb(vram2_new_read), .wrb(~VRAM2_WE_N), 
@@ -390,7 +398,7 @@ vram vram(
 
 // Parse 64-byte rom header into rom_type and etc
 smc_parser smc (
-    .clk(wclk), .resetn(resetn & ~(loading & ~loading_r)),
+    .clk(mclk), .resetn(resetn & ~(loading & ~loading_r)),
     .rom_d(loader_do), .rom_strb(loader_do_valid), 
     .rom_type(rom_type), .rom_mask(rom_mask), .ram_mask(ram_mask),
     .rom_size(rom_size), .ram_size(ram_size),
@@ -398,7 +406,7 @@ smc_parser smc (
 );
 
 reg loading_r;
-always @(posedge wclk) begin
+always @(posedge mclk) begin
     if (~resetn) begin
         loading_r <= 0;
         loaded <= 0;
@@ -419,14 +427,14 @@ end
 
 // 2 controllers, convert from DS2 to SNES
 ds2snes joy1 (
-    .clk(wclk),
+    .clk(mclk),
     .snes_joy_strb(joy_strb), .snes_joy_clk(joy1_clk), .snes_joy_di(joy1_di[0]),
     .snes_buttons(joy1_btns),
     .ds_clk(ds_clk), .ds_miso(ds_miso), .ds_mosi(ds_mosi), .ds_cs(ds_cs) 
 );
 
 ds2snes joy2 (
-   .clk(wclk),
+   .clk(mclk),
    .snes_joy_strb(joy_strb), .snes_joy_clk(joy2_clk), .snes_joy_di(joy2_di[0]),
    .snes_buttons(joy2_btns),
    .ds_clk(ds_clk2), .ds_miso(ds_miso2), .ds_mosi(ds_mosi2), .ds_cs(ds_cs2) 
@@ -442,7 +450,7 @@ wire [9:0] overlay_y;
 wire [7:0] dbg_dat_out_loader;
 
 snes2hdmi s2h(
-    .clk(wclk), .resetn(resetn), .snes_refresh(refresh),
+    .clk(mclk), .resetn(resetn), .snes_refresh(refresh),
     .pause_snes_for_frame_sync(pause_snes_for_frame_sync),
     .dotclk(dotclk), .hblank(~hblankn),.vblank(~vblankn),.rgb5(rgb_out),
     .xs(x_out), .ys(y_out), 
@@ -456,7 +464,7 @@ snes2hdmi s2h(
 
 // IOSys for menu, rom loading...
 iosys iosys (
-    .wclk(wclk), .hclk(hclk), .resetn(resetn),
+    .clk(mclk), .hclk(hclk), .resetn(resetn),
 
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color),
@@ -482,14 +490,14 @@ iosys iosys (
 
 // test loader with embedded rom
 test_loader test_loader (
-    .wclk(wclk), .resetn(resetn),
+    .clk(mclk), .resetn(resetn),
     .dout(loader_do), .dout_valid(loader_do_valid),
     .loading(loading), .fail()
 );
 
 // test audio sink: FIFO-like rate limiting to sound sample generation
 reg [3:0] sample_counter = 0;
-always @(posedge wclk) begin
+always @(posedge mclk) begin
     if (audio_ready)
         sample_counter <= 0;
     else
@@ -503,7 +511,7 @@ reg test_halt_snes, test_sync_done;
 reg [3:0] test_halt_cnt = 0;
 assign pause_snes_for_frame_sync = test_halt_snes;
 
-always @(posedge wclk) begin    // halt SNES during snes dram refresh on line 2
+always @(posedge mclk) begin    // halt SNES during snes dram refresh on line 2
     if (~resetn) begin
         test_halt_cnt <= 0;
         test_halt_snes <= 0;
