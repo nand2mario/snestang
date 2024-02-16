@@ -36,7 +36,7 @@ reg [7:0] SPC700_D_IN, SPC700_D_OUT;
 wire [15:0] SPC700_A;
 wire SPC700_R_WN;
 wire SPC700_CE;
-wire TIMER_CE;
+reg TIMER_CE;
 
 reg [7:0] CPUI[0:3];
 reg [7:0] CPUO[0:3];
@@ -46,6 +46,7 @@ reg [7:0] TEST;
 reg [1:0] CLK_SPEED;
 reg [1:0] TM_SPEED;
 reg TIMERS_ENABLE, TIMERS_DISABLE;
+reg RAM_WRITE_EN;
 reg [2:0] TM_EN;
 reg IPL_EN;
 reg [7:0] T0DIV;
@@ -129,7 +130,7 @@ always @(posedge CLK) begin : spc_timers
         TM_SPEED <= 0;
         TIMERS_ENABLE <= 1'b1;
         TIMERS_DISABLE <= 1'b0;
-        RAM_TIMER_EN <= 1;
+        RAM_WRITE_EN <= 1;
         IPL_EN <= 1'b1;
         TM_EN <= 3'b0;
         // RESET_PORT <= 2'b11;
@@ -181,7 +182,7 @@ always @(posedge CLK) begin : spc_timers
                             CLK_SPEED <= SPC700_D_OUT[7:6];
                             TM_SPEED <= SPC700_D_OUT[5:4];
                             TIMERS_ENABLE <= SPC700_D_OUT[3];
-                            RAM_WRITER_EN <= SPC700_D_OUT[1];
+                            RAM_WRITE_EN <= SPC700_D_OUT[1];
                             TIMERS_DISABLE <= SPC700_D_OUT[0];
                         end
                         4'h1: begin

@@ -34,7 +34,7 @@ module test_loader (
 
 // 128KB ROMS
 localparam SIZE = 131584;
-// localparam string FILE = "roms/hello.hex";
+localparam string FILE = "roms/hello.hex";
 // localparam string FILE = "roms/hello2.hex";
 // localparam string FILE = "roms/textbuffer-hello-world.hex";  // not working
 // localparam string FILE = "roms/Perspective.hex";
@@ -43,7 +43,7 @@ localparam SIZE = 131584;
 // localparam string FILE = "roms/test_math.hex";
 // localparam string FILE = "roms/demo_irq.hex";
 // localparam string FILE = "roms/dsp1demo.hex";
-localparam string FILE = "roms/SuperFX.hex";
+// localparam string FILE = "roms/SuperFX.hex";
 
 // 512KB roms
 // localparam SIZE = 524800;
@@ -91,22 +91,29 @@ end
 reg [$clog2(SIZE)-1:0] addr = 0;
 assign fail = 1'b0;
 assign loading = addr != SIZE;
+reg [1:0] cnt;
 
 always @(posedge clk) begin
     if (~resetn) begin
         addr <= 0;
     end else begin
-        dout_valid <= 1'b0;
-        if (~dout_valid && addr < SIZE) begin
-            dout_valid <= 1'b1;
-            /* xxverilator lint_off WIDTHTRUNC */
-            dout <= rom[addr];      
-            /* xxverilator lint_on WIDTHTRUNC */
-        end else if (dout_valid)
+        cnt <= cnt + 1;
+        case (cnt)
+        2'd0: begin
+            dout_valid <= 1;
+            dout <= rom[addr];
+        end
+        2'd1: begin
+            dout_valid <= 0;
+            addr <= addr + 1;
             if (addr == 63)     // header is 64 bytes long
                 addr <= 512;
-            else
-                addr <= addr + 1;
+        end
+        2'd2: ;
+        2'd3: 
+            if (addr == SIZE)
+                cnt <= 3;       // done
+        endcase
     end
 end
 

@@ -1,29 +1,4 @@
-// File DSP_LHRomMap.vhd translated with vhd2vl 3.0 VHDL to Verilog RTL translator
-// vhd2vl settings:
-//  * Verilog Module Declaration Style: 2001
-
-// vhd2vl is Free (libre) Software:
-//   Copyright (C) 2001-2023 Vincenzo Liguori - Ocean Logic Pty Ltd
-//     http://www.ocean-logic.com
-//   Modifications Copyright (C) 2006 Mark Gonzales - PMC Sierra Inc
-//   Modifications (C) 2010 Shankar Giri
-//   Modifications Copyright (C) 2002-2023 Larry Doolittle
-//     http://doolittle.icarus.com/~larry/vhd2vl/
-//   Modifications (C) 2017 Rodrigo A. Melo
-//
-//   vhd2vl comes with ABSOLUTELY NO WARRANTY.  Always check the resulting
-//   Verilog for correctness, ideally with a formal verification tool.
-//
-//   You are welcome to redistribute vhd2vl under certain conditions.
-//   See the license (GPLv2) file included with the source for details.
-
-// The result of translation follows.  Its copyright status should be
-// considered unchanged from the original VHDL.
-
-// no timescale needed
-
 module DSP_LHRomMap #(parameter USE_DSPn=1)(
-  input WCLK,
   input MCLK,
   input RST_N,
   input ENABLE,
@@ -227,7 +202,7 @@ endgenerate
 
 assign OBC1_RSTN = RST_N & MAP_OBC1_SEL;
 OBC1 OBC1(
-    .CLK(WCLK),
+    .CLK(MCLK),
     .RST_N(OBC1_RSTN),
     .ENABLE(ENABLE),
     .CA(CA),
@@ -241,7 +216,7 @@ OBC1 OBC1(
     .SRAM_DO(OBC1_SRAM_DO));
 
 SRTC SRTC(
-    .CLK(WCLK),
+    .CLK(MCLK),
     .A0(CA[0]),
     .DI(DI),
     .DO(SRTC_DO),
@@ -251,7 +226,7 @@ SRTC SRTC(
     .SYSCLKF_CE(SYSCLKF_CE),
     .EXT_RTC(EXT_RTC));
 
-always @(posedge WCLK) begin
+always @(posedge MCLK) begin
     ROM_RD <= SYSCLKF_CE | SYSCLKR_CE;
 end
 
@@ -264,7 +239,7 @@ assign BSRAM_CE_N =  ~(BSRAM_SEL | OBC1_SEL);
 assign BSRAM_OE_N = CPURD_N;
 assign BSRAM_WE_N = CPUWR_N;
 assign BSRAM_D = OBC1_SEL == 1'b1 ? OBC1_SRAM_DO : DI;
-always @(posedge WCLK) begin
+always @(posedge MCLK) begin
     if(~RST_N) begin
       OPENBUS <= {8{1'b1}};
     end else begin

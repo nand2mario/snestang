@@ -10,7 +10,7 @@ module SCPU(
     output reg CPURD_CYC_N, // full-cycle version of CPURD_N
     output reg PARD_CYC_N,
 
-    output DOT_CLK_CE_O;
+    output DOT_CLK_CE_O,
 
     output reg [7:0] PA,    // Addr Bus B: Peripheral bus
     output reg PARD_N,      //    S-CPU to PPU, SMP, WRAM, Cart and expansion port
@@ -20,12 +20,11 @@ module SCPU(
 
     output reg RAMSEL_N,
     output reg ROMSEL_N,
-    output DMA_ACTIVE,
 
     // Sys clock: \___/   \___/   
     //            F   R   F   R
     // output LAST_CYCLE,      // Last cycle for current instruction
-    output SYSCLK;
+    output SYSCLK,
     output SYSCLKF_CE,  // Falling edge of SNES sys clock, for CPU operations.
     output SYSCLKR_CE,  // Rising edge of SNES sys clock, for memory accesses.
     output [7:6] JPIO67,
@@ -63,7 +62,7 @@ reg [2:0] DMA_CLK_CNT;
 localparam [2:0] DMA_LAST_CLOCK = 3'b111;
 localparam [2:0] DMA_MID_CLOCK = 3'b011;
 reg [3:0] CPU_LAST_CLOCK;
-localparam [3:0] CPU_MID_CLOCK = 3'd2;
+localparam [3:0] CPU_MID_CLOCK = 4'd2;
 reg CPU_ACTIVEr, DMA_ACTIVEr;
 reg [1:0] DOT_CLK_CNT;
 reg [8:0] H_CNT;
@@ -152,8 +151,9 @@ reg [7:0] UNUSED[0:7] = '{8{8'b1111_1111}};
 
 reg [2:0] DCH, HCH;
 reg DMA_RUN, HDMA_RUN;
-// wire DMA_ACTIVE;
+wire DMA_ACTIVE;
 reg [7:0] HDMA_CH_WORK, HDMA_CH_RUN, HDMA_CH_DO;
+reg [7:0] HDMA_CH_EN;
 reg HDMA_INIT_EXEC, HDMA_RUN_EXEC;
 
 parameter [1:0] DS_IDLE = 0, DS_CH_SEL = 1, DS_TRANSFER = 2;
@@ -201,14 +201,16 @@ function logic IsLastHDMACh(logic [7:0] data, logic [2:0] ch);
 endfunction
 
 // JOY
-reg [15:0] JOY1_DATA; reg [15:0] JOY2_DATA; reg [15:0] JOY3_DATA; reg [15:0] JOY4_DATA;
+reg [15:0] JOY1_DATA, JOY2_DATA, JOY3_DATA, JOY4_DATA;
 reg AUTO_JOY_CLK;
-reg OLD_JOY_STRB; reg AUTO_JOY_STRB;
-reg OLD_JOY1_CLK; reg OLD_JOY2_CLK;
+reg OLD_JOY_STRB, AUTO_JOY_STRB;
+reg OLD_JOY1_CLK, OLD_JOY2_CLK;
 reg [5:0] JOY_POLL_CLK;
 reg [4:0] JOY_POLL_CNT;
+reg JOY_POLL_STRB;
 reg JOYRD_BUSY;
 reg JOY_POLL_RUN;
+reg JOY_VBLANK_OLD;
 
 //debug
 // reg [15:0] FRAME_CNT;
@@ -225,15 +227,15 @@ DOT_CLK ___dot 1__/         \__dot 2__/         \_
 
 always @* begin
     if (TURBO) /* and P65_ACCESSED_PERIPHERAL_CNT = x"0" */
-        CPU_LAST_CLOCK <= 4'd4;	
+        CPU_LAST_CLOCK = 4'd4;	
     else if (REFRESHED && CPU_ACTIVEr)
-        CPU_LAST_CLOCK <= 4'd7;	
+        CPU_LAST_CLOCK = 4'd7;	
     else if (SPEED == FAST || (SPEED == SLOWFAST && ~MEMSEL))
-        CPU_LAST_CLOCK <= 4'd5;
-    else if (SPEED = SLOW || (SPEED = SLOWFAST && ~MEMSEL))
-        CPU_LAST_CLOCK <= 4'd7;
+        CPU_LAST_CLOCK = 4'd5;
+    else if (SPEED == SLOW || (SPEED == SLOWFAST && ~MEMSEL))
+        CPU_LAST_CLOCK = 4'd7;
     else	
-        CPU_LAST_CLOCK <= 4'hB;
+        CPU_LAST_CLOCK = 4'hB;
 end
 
 always @(posedge CLK) begin : cpu_clk_gen
@@ -286,12 +288,12 @@ always @(posedge CLK) begin
         if (DMA_ACTIVEr || ~ENABLE) begin
             if (DMA_CLK_CNT == DMA_MID_CLOCK)
                 INT_CLKR_CE <= 1;
-            else
+            else if (DMA_CLK_CNT == DMA_LAST_CLOCK)
                 INT_CLKF_CE <= 1;
         end else if (CPU_ACTIVEr) begin
             if (P65_CLK_CNT == CPU_MID_CLOCK)
                 INT_CLKR_CE <= 1;
-            else
+            else if (P65_CLK_CNT >= CPU_LAST_CLOCK)
                 INT_CLKF_CE <= 1; 
         end
     end
@@ -308,13 +310,14 @@ assign DOT_CLK_CE_O = DOT_CLK_CE;
 
 // 65C816
 P65C816 P65C816(
-    .CLK(CLK), .RST_N(RST_N), .WE_N(P65_R_WN),
-    .D_IN(P65_DI), .D_OUT(P65_DO), .A_OUT(P65_A),
-    .RDY_IN(P65_EN_IN_PHASE), .NMI_N(P65_NMI_N), .IRQ_N(P65_IRQ_N),
+    .CLK(CLK), .RST_N(RST_N), .CE(INT_CLKF_CE),
+
+    .WE_N(P65_R_WN), .D_IN(P65_DI), .D_OUT(P65_DO), .A_OUT(P65_A),
+    .RDY_IN(P65_EN), .NMI_N(P65_NMI_N), .IRQ_N(P65_IRQ_N),
     .ABORT_N(1'b1), .VPA(P65_VPA), .VDA(P65_VDA),
-    .RDY_OUT(P65_RDY), .CE(1'b1),
-    .MLB(), .VPB(), .LAST_CYCLE(),
-  
+
+    .RDY_OUT(), .MLB(), .VPB(),
+
     .BRK_OUT(P65_BRK), .DBG_REG(DBG_REG), .DBG_DAT_IN(DBG_DAT_IN),
     .DBG_DAT_OUT(DBG_CPU_DAT), .DBG_DAT_WR(DBG_CPU_WR)
 );
@@ -477,6 +480,7 @@ always @(posedge CLK) begin
                 VTIME[8] <= P65_DO[0];
             8'h0D :
                 MEMSEL <= P65_DO[0];
+            default: ;
             endcase
         end
     end
@@ -857,14 +861,13 @@ always @(posedge CLK) begin : P2
         HDMA_CH_WORK <= 8'b0;
         DMA_TRMODE_STEP <= 2'b0;
         HDMA_TRMODE_STEP <= 2'b0;
-        HDMA_INIT_STEP <= 2'b0;
+        HDMA_INIT_STEP <= 0;
         HDMA_FIRST_INIT <= 1'b0;
         DS <= DS_IDLE;
         HDS <= HDS_IDLE;
 
         HDMA_INIT_EXEC <= 1'b1;
         HDMA_RUN_EXEC <= 1'b0;
-        HBLANK_OLDr <= 1'b0;
     end else begin
         if (P65_R_WN == 1'b0 && IO_SEL && INT_CLKF_CE) begin
             if (P65_A[15:8] == 8'h42) begin
@@ -971,7 +974,7 @@ always @(posedge CLK) begin : P2
                     HDMA_CH_EN <= HDMAEN;
                     HDMA_RUN_EXEC <= 1;
                 end else if (H_CNT < 277 && ~VBLANK && HDMA_RUN_EXEC)
-                    HDMA_INIT_EXCEC <= 0;
+                    HDMA_INIT_EXEC <= 0;
             end
 
             HDS_PRE_INIT : begin
@@ -1006,7 +1009,7 @@ always @(posedge CLK) begin : P2
                         end
                     end else begin
                         DAS[HCH] <= 0;
-                        HDMA_INIT_STEP <= 2'b0;
+                        HDMA_INIT_STEP <= 0;
                         HDS <= HDS_INIT_IND;
                     end
                     A2A[HCH] <= A2A[HCH] + 16'd1;

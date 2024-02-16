@@ -11,7 +11,7 @@ SRCS=$D/dsp.v $D/snestang_top.v $D/smp.v $D/spc700/_spc700_package.v $D/spc700/a
 DEPS=$D/ppu_defines.vh
 INCLUDES=-I$D -I$D/spc700 -I$D/65C816
 
-CFLAGS_SDL=$(shell sdl2-config --cflags) -O3
+CFLAGS_SDL=$(shell sdl2-config --cflags) -O2
 LIBS_SDL=$(shell sdl2-config --libs)
 
 .PHONY: build sim verilate clean gtkwave audio

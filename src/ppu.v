@@ -7,6 +7,7 @@ module SPPU(
     input wire CLK,         // master clock 21 Mhz
     // input CLK,        // half frequency of CLK
     input ENABLE,
+    input DIS_SHORTLINE,
 
     input [7:0] PA,
     input PARD_N,
@@ -14,7 +15,7 @@ module SPPU(
     input [7:0] DI /* synthesis syn_keep=1 */,
     output [7:0] DO,
 
-        input SYSCLK_CE,
+    input SYSCLK_CE,
 
     output [15:0] VRAM_ADDRA,
     output [15:0] VRAM_ADDRB,
@@ -1596,7 +1597,7 @@ always @(posedge CLK) begin     // port A
 end
 always @(posedge CLK) begin     // port B
     if (SPR_PIX_WE_B)
-        spr_buf[SPR_PIXEL_B] <= 0;
+        spr_buf[SPR_PIXEL_X] <= 0;
     else
         SPR_PIX_Q <= spr_buf[SPR_PIXEL_X];
 end
@@ -1663,7 +1664,7 @@ always @(posedge CLK) begin : bg_pixel_gen
             end
 
             if (BG_GET_PIXEL) begin
-                if (~BG_MOSAIC_EN[BG1] || ~BG_MOSAIC_X) begin
+                if (~BG_MOSAIC_EN[BG1] || BG_MOSAIC_X == 0) begin
                     if (BG_MODE != 3'b111) begin
                         N1 =  ~(({1'b0, GET_PIXEL_X[2:0]}) + ({1'b0, BG_HOFS[BG1][2:0]}));
                         BG1_PIX_DATA <= {BG_TILES_ATR[N1[3:3]][BG1],
@@ -2309,15 +2310,15 @@ always @(posedge CLK) begin : scan_screen
             if (H_CNT == LAST_DOT && V_CNT == LAST_LINE) 
                 OUT_Y <= 8'b0;
             if (BG_MATH) 
-                OUT_X_n <= WINDOW_X;
+                OUT_X <= WINDOW_X;
             FRAME_OUT <= BG_OUT;
         end
     end
 end
 
 // output COLOR_OUT using last H_CNT's SUB_R/G/B
-assign COLOR_OUT <= DOT_CLK ? {Bright(MB, SUB_B), Bright(MB, SUB_G), Bright(MB, SUB_R)} :
-                    {Bright(MB, MAIN_B), Bright(MB, MAIN_G), Bright(MB, MAIN_R)};
+assign COLOR_OUT = DOT_CLK ? {Bright(MB, SUB_B), Bright(MB, SUB_G), Bright(MB, SUB_R)} :
+                   {Bright(MB, MAIN_B), Bright(MB, MAIN_G), Bright(MB, MAIN_R)};
 
 assign DOTCLK = DOT_CLK;
 assign HBLANK = IN_HBL;

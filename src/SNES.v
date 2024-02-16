@@ -4,7 +4,6 @@
 
 module SNES(
     input MCLK,              // Master clock 21Mhz
-    // input WCLK,                 // Half of mclk
 
     input RST_N,
     input ENABLE,
@@ -67,6 +66,8 @@ module SNES(
     output HIGH_RES,
     output FIELD_OUT,
     output INTERLACE,
+    output V224_MODE,
+    output DOTCLK,
 
     output [14:0] RGB_OUT /*verilator public*/,
     output HDE,
@@ -156,20 +157,22 @@ SCPU CPU(
     .CA(INT_CA), .CPURD_N(INT_CPURD_N), .CPUWR_N(INT_CPUWR_N),
     .PA(INT_PA), .PARD_N(INT_PARD_N), .PAWR_N(INT_PAWR_N),
     .DI(CPU_DI), .DO(CPU_DO),
-    .CPURD_CYC_N(INT_CPURD_CYC_N), .PARD_CYC_N(INT_PARD_CYC_N), .DOT_CLK_CE(DOT_CLK_CE),
+    .CPURD_CYC_N(INT_CPURD_CYC_N), .PARD_CYC_N(INT_PARD_CYC_N), .DOT_CLK_CE_O(DOT_CLK_CE),
     .RAMSEL_N(INT_RAMSEL_N), .ROMSEL_N(INT_ROMSEL_N),
     .SNES_REFRESH(SNES_REFRESH), .JPIO67(JPIO67),
     .SYSCLKF_CE(INT_SYSCLKF_CE), .SYSCLKR_CE(INT_SYSCLKR_CE), 
     .JOY1_CLK(JOY1_CLK), .JOY2_CLK(JOY2_CLK), .JOY_STRB(JOY_STRB),
     .JOY1_DI(JOY1_DI), .JOY2_DI(JOY2_DI), 
     .DBG_CPU_BRK(CPU_BRK),.DBG_REG(DBG_REG),.DBG_DAT(DBG_SCPU_DAT),
-    .DBG_DAT_IN(DBG_DAT_IN), .DBG_CPU_DAT(DBG_CPU_DAT),.DBG_CPU_WR(CPU_DBG_WR));
+    .DBG_DAT_IN(DBG_DAT_IN), .DBG_CPU_DAT(DBG_CPU_DAT),.DBG_CPU_WR(CPU_DBG_WR),
+    .SYSCLK(), .TURBO()
+);
 
 assign BUSA_SEL =   INT_CA[22] == 1'b0 && INT_CA[15:8] == 8'h20 ? 1'b1 : 
                     INT_CA[22] == 1'b0 && INT_CA[15:8] >= 8'h22 ? 1'b1 : 
                     INT_CA[23:16] >= 8'h40 && INT_CA[23:16] <= 8'h7D ? 1'b1 : 
                     INT_CA[23:16] >= 8'hC0 ? 1'b1 : 1'b0;
-assign BUSA_DO =    ~INT_CA[22] && (INT_CA[15:0] == 8'h40 || INT_CA[15:0] == 8'h43) ? 8'h0 :
+assign BUSA_DO =    ~INT_CA[22] && (INT_CA[15:8] == 8'h40 || INT_CA[15:8] == 8'h43) ? 8'h0 :
                     DI;
 
 assign BUSB_SEL =   ~INT_PA[7] || INT_PA[7:2] == 6'b100000;
@@ -189,7 +192,7 @@ assign WRAM_DI =    BUSA_SEL ? BUSA_DO :
                     CPU_DO;
 
 SWRAM wram (
-    .CLK(WCLK), .SYSCLK_CE(INT_SYSCLKF_CE), .RST_N(RST_N), .ENABLE(ENABLE),
+    .CLK(MCLK), .SYSCLK_CE(INT_SYSCLKF_CE), .RST_N(RST_N), .ENABLE(ENABLE),
     .CA(INT_CA), .CPURD_N(INT_CPURD_N), .CPUWR_N(INT_CPUWR_N), .RAMSEL_N(INT_RAMSEL_N),
     .PA(INT_PA), .PARD_N(INT_PARD_N), .PAWR_N(INT_PAWR_N),
     .CPURD_CYC_N(INT_CPURD_CYC_N), .PARD_CYC_N(INT_PARD_CYC_N),
@@ -204,7 +207,7 @@ assign  PPU_DI = BUSA_SEL ? BUSA_DO :
         CPU_DO;
 
 SPPU PPU(
-    .CLK(MCLK), .RST_N(RST_N & ~SPC_MODE), .SYSCLK_CE(INT_SYSCLKF_CE), .ENABLE(ENABLE), 
+    .CLK(MCLK), .RST_N(RST_N), .SYSCLK_CE(INT_SYSCLKF_CE), .ENABLE(ENABLE), 
     .DIS_SHORTLINE(DIS_SHORTLINE),
     .PA(INT_PA), .PARD_N(INT_PARD_N), .PAWR_N(INT_PAWR_N), .DI(PPU_DI), .DO(PPU_DO),
     .VRAM_ADDRA(VRAM_ADDRA), .VRAM_ADDRB(VRAM_ADDRB), .VRAM_DAI(VRAM_DAI), .VRAM_DBI(VRAM_DBI),
@@ -238,7 +241,7 @@ SMP smp(
 DSP dsp(
     .CLK(DSPCLK), .RST_N(RST_N), .ENABLE(ENABLE), .PAL(PAL),
     .SMP_EN(SMP_EN), .SMP_A(SMP_A), .SMP_DO(SMP_DO), .SMP_DI(SMP_DI),
-    .SMP_WE_N(SMP_WE_N), 
+    .SMP_WE_N(SMP_WE_N), .SMP_CE(SMP_CE),
     .RAM_A(ARAM_ADDR), .RAM_D(ARAM_D), .RAM_Q(ARAM_Q),
     .RAM_WE_N(ARAM_WE_N), .RAM_OE_N(ARAM_OE_N), .RAM_CE_N(ARAM_CE_N), 
     .SND_RDY(AUDIO_READY), .AUDIO_L(AUDIO_L), .AUDIO_R(AUDIO_R),
@@ -262,8 +265,8 @@ assign DO = ~INT_PARD_N ? BUSB_DO : CPU_DO;
 assign SYSCLKF_CE = INT_SYSCLKF_CE;
 assign SYSCLKR_CE = INT_SYSCLKR_CE;
 
-assign JOY1_P6 = JPIO67[6];
-assign JOY2_P6 = JPIO67[7];
+// assign JOY1_P6 = JPIO67[6];
+// assign JOY2_P6 = JPIO67[7];
 
 assign CPU_DBG_WR = DBG_SEL[0] & DBG_REG_WR;
 assign WRAM_DBG_WR = DBG_SEL[2] & DBG_REG_WR;

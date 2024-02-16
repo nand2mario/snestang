@@ -75,7 +75,7 @@ reg [7:0] mem_vram2 [0:32*1024-1];
 
 initial $readmemh("random_4m_words.hex", mem_cpu);
 
-always @(posedge clkref) begin
+always @(posedge clk) begin
     if (cpu_wr) begin
         case(cpu_ds)
         2'b00: ;
@@ -98,7 +98,7 @@ always @(posedge clkref) begin
     end
 end
 
-always @(posedge clkref) begin
+always @(posedge clk) begin
     if (~cpu_rd & ~cpu_wr) begin    // simulate cpu access takes precedence
         if (bsram_wr) begin
             if (bsram_addr[0])
@@ -111,7 +111,7 @@ always @(posedge clkref) begin
     end
 end
 
-always @(posedge clkref) begin
+always @(posedge clk) begin
      if (aram_wr) begin
         if (aram_16) 
             mem_aram[aram_addr[15:1]] <= aram_din;
@@ -132,7 +132,7 @@ always @(posedge clkref) begin
     end
 end
 
-always @(posedge clkref) begin
+always @(posedge clk) begin
     if (vram1_wr) begin
         mem_vram1[vram1_addr] <= vram1_din;
         $display("vram_write_a: [%x]L <= %x", vram1_addr, vram1_din);

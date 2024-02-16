@@ -50,9 +50,8 @@ reg [7:0] RAM_DO;
 
 wire LRCK, BCK, SDAT;       // obsolete audio output interface
 
-wire EN = ENABLE & READY;
+// wire EN = ENABLE & READY;
 
-reg [7:0] REGRAM[0:127]     /* synthesis syn_ramstyle = "distributed_ram" */;
 reg [7:0] RI;               // register value from SMP
 reg [6:0] REGN_RD, REGN_WR; // current register for read/write
 wire [6:0] REGS_ADDR_WR, REGS_ADDR_RD;
@@ -66,9 +65,6 @@ reg [1:0] SUBSTEP_CNT;
 wire [4:0] STEP;            // 0-31
 wire [1:0] SUBSTEP;         // 0-3
 wire [2:0] BRR_VOICE;       // current active voice
-
-reg [11:0] GCNT_BY1;
-reg [11:0] GCNT_BY3, GCNT_BY5;
 
 reg RST_FLG, MUTE_FLG, ECEN_FLG;
 reg [7:0] WKON;             // Key-ON from register write
@@ -142,6 +138,11 @@ reg [1:0] ENV_MODE[0:7];        // envelope mode
 reg signed [11:0] ENV[0:7];
 reg [7:0] BENT_INC_MODE;
 reg [15:0] INTERP_POS[0:7];     // interpolation position, [14:12]: BBRpos, [11:0]: GTBLpos
+reg [11:0] LAST_ENV;
+
+reg [11:0] GCNT_BY1;
+reg [11:0] GCNT_BY3;
+reg [11:0] GCNT_BY5;
 
 typedef logic [11:0] GCntMask_t [0:31];
 localparam GCntMask_t GCNT_MASK = '{
@@ -183,6 +184,7 @@ reg [15:0] DBG_ADDR;
 reg DBG_DAT_WRr;
 reg [7:0] DBG_VMUTE = 8'b0;
 
+wire CE;
 wire CEGEN_RST_N = RST_N & ENABLE;
 
 CEGen cegen (
@@ -199,7 +201,7 @@ always @(posedge CLK) begin
     if (~RST_N) begin
         STEP_CNT <= 5'b0;
         SUBSTEP_CNT <= 2'b0;
-    end else if (EN && CE) begin
+    end else if (ENABLE && CE) begin
         SUBSTEP_CNT <= SUBSTEP_CNT + 1;
         if (SUBSTEP_CNT == 3)
             STEP_CNT <= STEP_CNT + 1;
@@ -223,7 +225,7 @@ assign REGS_WE = /*ENABLE == 1'b0 && DBG_REG[7] == 1'b0 ? DBG_DAT_WR : */
                 1'b0;
 
 // Dual-port BRAM for registers (128 bytes)
-reg [7:0] REGRAM [128];
+reg [7:0] REGRAM[0:127]     /* synthesis syn_ramstyle = "block_ram" */;
 always @(posedge CLK) begin
     if (REGS_WE) begin
         REGRAM[REGS_ADDR_WR] <= REGS_DI;
@@ -407,7 +409,7 @@ always @(posedge CLK) begin : ram_process
         TBRRDAT <= 16'b0;
         ECHO_BUF <= '{2{'{8{15'b0}}}};
         ECHO_DATA_TEMP <= 7'b0;
-    end else if (EN && CE) begin
+    end else if (ENABLE && CE) begin
         case (RS)
         RS_SRCNL : 
             BRR_NEXT_ADDR[7:0] <= RAM_DI;
@@ -465,8 +467,8 @@ end
 always @(posedge CLK) begin : brr_decode
     logic [1:0] FILTER;
     logic [3:0] SCALE;
-    logic signed [15:0] SOUT, P0, P1;
-    logic signed [15:0] SR;
+    logic signed [15:0] SOUT;
+    logic signed [16:0] P1;
     logic signed [16:0] SF;
     logic signed [15:0] S;   // original sample -8 ~ 7
     logic [3:0] BRR_BUF_ADDR_PREV;
@@ -478,7 +480,7 @@ always @(posedge CLK) begin : brr_decode
         BD_STATE <= BD_IDLE;
     end else begin
         BRR_BUF_WE <= 0;
-        if (EN && CE) begin
+        if (ENABLE && CE) begin
             // https://snes.nesdev.org/wiki/BRR_samples
             if (BDS.S != BDS_IDLE && BRR_DECODE_EN) begin
                 FILTER = TBRRHDR[3:2];
@@ -524,7 +526,7 @@ always @(posedge CLK) begin : brr_decode
                 // Filter application. This is Tricky.
                 // - Easy to cause overflows
                 // - Needs lots of () as shifting is lower-precedence than +/-
-                P1 = BRR_BUF[BDS.V][10] >>> 1;
+                P1 = 17'(BRR_BUF_DO) >>> 1;
 
                 case (FILTER)    
                 2'b00 : 
@@ -591,7 +593,7 @@ always @(posedge CLK) begin : main_process
         TADSR1 <= 8'b0;
         TADSR2 <= 8'b0;
         TSRCN <= 8'b0;
-        TPITCH <= 14'b0;
+        TPITCH <= 0;
         ENV <= '{8{12'b0}};
         ENV_MODE <= '{8{EM_RELEASE}};
         BENT_INC_MODE <= 8'b0;
@@ -663,7 +665,7 @@ always @(posedge CLK) begin : main_process
             NEW_KON_CNT = KON_CNT[INS.V] - 1;
             case (INS.S)
             IS_ENV : begin      // STEP 1.2, 4.2, 7.2, 10.2, 13.2, 16.2, 19.2, 30.2
-                LAST_ENV <= ENV(INS.V);
+                LAST_ENV <= ENV[INS.V];
 
                 if (KON_CNT[INS.V] != 0) begin
                     if (KON_CNT[INS.V] == 5) begin
@@ -705,10 +707,10 @@ always @(posedge CLK) begin : main_process
             // Main sound processing routine
             IS_ENV2 : begin     // STEP 1.3, 4.3, 7.3, 10.3, 13.3, 16.3, 19.3, 30.3
                 BB_POS = 4'(INTERP_POS[INS.V][14:12]);
-                BB_POS2 = {1'b0, BB_POS + BRR_BUF_ADDR[INS.V] + 1};
+                BB_POS0 = {1'b0, BB_POS + BRR_BUF_ADDR[INS.V] + 4'd1};
                 if (BB_POS0 > 11)
                     BB_POS0 = BB_POS0 - 12;
-                GTBL_ADDR = {1'b0, ~INTERP_POS[INS.V][11:4]};
+                GTBL_ADDR <= {1'b0, ~INTERP_POS[INS.V][11:4]};
                 G_VOICE <= INS.V;
                 BRR_BUF_ADDR_B[6:4] <= INS.V;
                 BRR_BUF_ADDR_B[3:0] <= BB_POS[3:0];
@@ -870,9 +872,10 @@ always @(posedge CLK) begin : main_process
 
             VS_ENVX : ;
 
-            VS_OUTX : 
+            VS_OUTX : begin
                 ENDX <= ENDX_BUF;
                 ENVX_OUT <= TENVX[VS.V];
+            end
 
             VS_ECHO : ;
 
@@ -924,7 +927,7 @@ always @(posedge CLK) begin : main_process
             TOUT <= 16'(28'(OUT_TEMP * ENV[INS.V]) >>> 11) & 16'hFFFE;
 
             // envelope
-            if (~KON_CNT[G_VOICE]) begin
+            if (KON_CNT[G_VOICE] == 0) begin
                 if (ENV_MODE[G_VOICE] == EM_RELEASE) begin
                     ENV_TEMP2 = 13'(ENV[G_VOICE]) - 8;
                     if (ENV_TEMP2 < 0) begin
@@ -969,7 +972,7 @@ always @(posedge CLK) begin : main_process
                         end
                     end
                     
-                    if (ENV_TEMP[10:0] >= 13'h600 || ENV_TEMP[12:11] != 2'b00)  
+                    if (ENV_TEMP[10:0] >= 11'h600 || ENV_TEMP[12:11] != 2'b00)  
                         BENT_INC_MODE[G_VOICE] <= 1;
                     else 
                         BENT_INC_MODE[G_VOICE] <= 0;

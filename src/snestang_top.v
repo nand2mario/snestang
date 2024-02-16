@@ -119,7 +119,7 @@ assign mclk = mclk_buf;
 always @(posedge sys_clk) begin
     clk_cnt <= clk_cnt + 3'b1; 
     if (clk_cnt == 3'd5) begin
-        clk_cnt == 0;
+        clk_cnt <= 0;
         mclk_buf <= 0;
     end
     if (clk_cnt == 3'd2)
@@ -257,7 +257,7 @@ main (
     .ARAM_ADDR(ARAM_ADDR), .ARAM_Q(ARAM_Q), .ARAM_D(ARAM_D), 
     .ARAM_CE_N(ARAM_CE_N), .ARAM_OE_N(ARAM_OE_N), .ARAM_WE_N(ARAM_WE_N),
 
-    .BLEND(BLEND), .PAL(PAL), .HIGH_RES(), .FIELD(), .INTERLACE(),
+    .BLEND(BLEND), .PAL(PAL), .HIGH_RES(), .FIELD(), .INTERLACE(), .DIS_SHORTLINE(),
     .DOTCLK(dotclk), .RGB_OUT(rgb_out), .HBLANKn(hblankn),
     .VBLANKn(vblankn), .X_OUT(x_out), .Y_OUT(y_out),
 
@@ -299,6 +299,8 @@ wire [22:0] rv_addr;
 wire [1:0] rv_ds;
 wire rv_wait;
 
+reg loader_wr_old;
+
 // Generate SDRAM signals
 always @(posedge mclk) begin
     reg bsram_rd_t = ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC) & f2;
@@ -306,14 +308,19 @@ always @(posedge mclk) begin
     r2 <= sysclkr_ce && enable;
     cpu_rd <= 0;
     cpu_wr <= 0;
-    cpu_addr <= 0;
-    cpu_din <= 0;
-    cpu_ds <= 0;
-    cpu_port <= 0;
-    if (loading && loader_do_valid && header_finished) begin
+    // cpu_addr <= 0;
+    // cpu_din <= 0;
+    // cpu_ds <= 0;
+    // cpu_port <= 0;
+    loader_wr_old <= 0;     // make cpu_wr 2 cycles
+    if (loader_wr_old) 
+        cpu_wr <= 1;
+    else if (loading && loader_do_valid && header_finished) begin
         cpu_addr <= loader_addr[22:0];
         cpu_wr <= 1;
+        loader_wr_old <= 1;
         cpu_din <= {loader_do, loader_do};
+        cpu_port <= 0;
         cpu_ds <= {loader_addr[0], ~loader_addr[0]};
     end else if (wram_rd | wram_wr) begin
         cpu_addr <= {6'b111_111, WRAM_ADDR[16:0]};  // 7E,7F:0000-FFFF, total 128KB
@@ -326,6 +333,7 @@ always @(posedge mclk) begin
         cpu_rd <= 1;
         cpu_addr <= ROM_ADDR[22:0];
         cpu_ds <= 2'b11;
+        cpu_port <= 0;
     end
 
     bsram_addr <= BSRAM_ADDR;

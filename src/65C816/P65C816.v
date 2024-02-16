@@ -5,38 +5,31 @@ import P65816::*;
 // - https://wiki.superfamicom.org/65816-reference
 // - 65C816 dataseet
 
-module P65C816(CLK, RST_N, CE, RDY_IN, NMI_N, IRQ_N, ABORT_N, D_IN, 
-               D_OUT, A_OUT, WE_N, RDY_OUT, VPA, VDA, MLB, VPB, 
-               BRK_OUT, DBG_REG, DBG_DAT_IN, DBG_DAT_OUT, DBG_DAT_WR, LAST_CYCLE);
-   input         CLK;
-   input         RST_N;
-   input         CE;       // chip enable
+module P65C816(
+   input         CLK,
+   input         RST_N,
+   input         CE,       // chip enable
 
-   input         RDY_IN;   // ready in
-   input         NMI_N;    // non-maskable interrupt
-   input         IRQ_N;    // interrupt
-   input         ABORT_N;  // abort input
-   input [7:0]   D_IN /*X synthesis syn_keep=1 */;
-   output [7:0]  D_OUT/*X synthesis syn_keep=1 */;
-   output [23:0] A_OUT/*X synthesis syn_keep=1 */;
-   output        WE_N;     // 0: write ENABLE 
-   reg           WE_N;
-   output        RDY_OUT;  // ready out
-   output        VPA;      // valid program address
-   reg           VPA;
-   output        VDA;      // valid data address
-   reg           VDA;
-   output        MLB;      // memory lock
-   reg           MLB;
-   output        VPB;      // vector pull
-   reg           VPB;
-   output        LAST_CYCLE;  // For single step 
+   input         RDY_IN,   // ready in
+   input         NMI_N,    // non-maskable interrupt
+   input         IRQ_N,    // interrupt
+   input         ABORT_N,  // abort input
+   input [7:0]   D_IN /*X synthesis syn_keep=1 */,
+   output [7:0]  D_OUT/*X synthesis syn_keep=1 */,
+   output [23:0] A_OUT/*X synthesis syn_keep=1 */,
+   output reg    WE_N,     // 0: write ENABLE 
+   output        RDY_OUT,  // ready out
+   output reg    VPA,      // valid program address
+   output reg    VDA,      // valid data address
+   output reg    MLB,      // memory lock
+   output reg    VPB,      // vector pull
 
-	output reg    BRK_OUT;
-	input [7:0]   DBG_REG;
-   input [7:0]   DBG_DAT_IN;
-   output reg [7:0] DBG_DAT_OUT;
-	input         DBG_DAT_WR;
+	output reg    BRK_OUT,
+	input [7:0]   DBG_REG,
+   input [7:0]   DBG_DAT_IN,
+   output reg [7:0] DBG_DAT_OUT,
+	input         DBG_DAT_WR
+);
 
    // pins not present: E, MX, PHI2, RWB
 
@@ -187,8 +180,7 @@ module P65C816(CLK, RST_N, CE, RDY_IN, NMI_N, IRQ_N, ABORT_N, D_IN,
             ;
       endcase
 
-   assign LAST_CYCLE = (NextState == 4'b0000) ? 1'b1 :
-                       1'b0;
+   wire LAST_CYCLE = (NextState == 4'b0000) ? 1'b1 : 1'b0;
 
    always @(posedge CLK)
       if (RST_N == 1'b0)
