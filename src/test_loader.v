@@ -1,7 +1,7 @@
 // this is basically hello.img but takes up less space
 
 module test_loader (
-    input wclk,
+    input clk,
     input resetn,
     output reg [7:0] dout,
     output reg dout_valid,
@@ -92,7 +92,7 @@ reg [$clog2(SIZE)-1:0] addr = 0;
 assign fail = 1'b0;
 assign loading = addr != SIZE;
 
-always @(posedge wclk) begin
+always @(posedge clk) begin
     if (~resetn) begin
         addr <= 0;
     end else begin

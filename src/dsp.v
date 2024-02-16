@@ -1,10 +1,10 @@
 // Timing
-// - DSP is active roughly every 4 mclk cycles
+// - DSP is active roughly once every 4 mclk cycles
 // - Every active DSP cycle increments SUBSTEP (0~3), then STEP (0~31)
 // - SMP is active (SMP_EN) when SUBSTEP == 3
 
 module DSP(
-    input CLK,                  // dclk: 24.75Mhz
+    input CLK,                  // mclk: 21.6Mhz
     input RST_N,
     input ENABLE,               // 0: switch to debug memory access
     input PAL,

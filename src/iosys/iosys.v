@@ -9,10 +9,12 @@
 //
 // This is similar to the IO controller of MIST, or HPS of MiSTer.
 //
-// The softcore runs RV32I at 10.8Mhz and uses SDRAM as main memory. Firmware is 
+// The softcore runs RV32I at 21.6Mhz and uses SDRAM as main memory. Firmware is 
 // loaded from SPI flash on the board. Firmware source is in /snestang/firmware.
 // 
 // Author: nand2mario, 1/2024
+
+// XXX: need a way to synchronize access to SDRAM
 
 `ifndef PICORV32_REGS
 `ifdef PICORV32_V
@@ -31,7 +33,7 @@
 `define PICOSOC_V
 
 module iosys (
-    input wclk,
+    input clk,
     input hclk,                     // hdmi clock
     input resetn,
 
@@ -100,7 +102,7 @@ reg flash_wr;
 
 // Load 256KB of ROM from flash address 0x500000 into SDRAM at address 0x0
 spiflash #(.ADDR(24'h500000), .LEN(FIRMWARE_SIZE)) flash (
-    .clk(wclk), .resetn(resetn),
+    .clk(clk), .resetn(resetn),
     .ncs(flash_spi_cs_n), .miso(flash_spi_miso), .mosi(flash_spi_mosi),
     .sck(flash_spi_clk),
 
@@ -108,7 +110,7 @@ spiflash #(.ADDR(24'h500000), .LEN(FIRMWARE_SIZE)) flash (
     .busy()
 );
 
-always @(posedge wclk) begin
+always @(posedge clk) begin
     if (~resetn) begin
         flash_loaded <= 0;
         flash_cnt <= 0;
@@ -189,14 +191,14 @@ picorv32 #(
     .CATCH_MISALIGN (0),
     .TWO_STAGE_SHIFT(0)
 ) rv32 (
-    .clk(wclk), .resetn(resetn & flash_loaded),
+    .clk(clk), .resetn(resetn & flash_loaded),
     .mem_valid(mem_valid), .mem_ready(mem_ready), .mem_addr(mem_addr), 
     .mem_wdata(mem_wdata), .mem_wstrb(mem_wstrb), .mem_rdata(mem_rdata)
 );
 
 // text display @ 0x0200_0000
 textdisp disp (
-    .wclk(wclk), .hclk(hclk), .resetn(resetn),
+    .clk(clk), .hclk(hclk), .resetn(resetn),
     .overlay_x(overlay_x), .overlay_y(overlay_y), .overlay_color(overlay_color),
     .reg_char_we(textdisp_reg_char_sel ? mem_wstrb : 4'b0),
     .reg_char_di(mem_wdata) 
@@ -205,7 +207,7 @@ textdisp disp (
 // toggle overlay display on/off
 reg overlay_buf = 1;
 assign overlay = overlay_buf;
-always @(posedge wclk) begin
+always @(posedge clk) begin
     if (~resetn) begin
         overlay_buf <= 1;
     end else begin
@@ -221,7 +223,7 @@ end
 
 // uart @ 0x0200_0004 & 0x200_0008
 simpleuart simpleuart (
-    .clk         (wclk         ),
+    .clk         (clk         ),
     .resetn      (resetn       ),
 
     .ser_tx      (uart_tx      ),
@@ -243,7 +245,7 @@ assign sd_dat1 = 1;
 assign sd_dat2 = 1;
 assign sd_dat3 = 0;
 simplespimaster simplespi (
-    .clk(wclk), .resetn(resetn),
+    .clk(clk), .resetn(resetn),
     .sck(sd_clk), .mosi(sd_cmd), .miso(sd_dat0),
     .reg_byte_we(simplespimaster_reg_byte_sel ? mem_wstrb[0] : 1'b0),
     .reg_word_we(simplespimaster_reg_word_sel ? mem_wstrb[0] : 1'b0),
@@ -256,7 +258,7 @@ simplespimaster simplespi (
 reg [1:0] rom_cnt;
 reg [31:0] rom_do_buf;
 assign rom_do = rom_do_buf[7:0];
-always @(posedge wclk) begin
+always @(posedge clk) begin
     rom_do_valid <= 0;
     // data register
     if (romload_reg_data_sel && mem_wstrb) begin
@@ -270,7 +272,7 @@ always @(posedge wclk) begin
         rom_do_valid <= 1;
     end
 end
-always @(posedge wclk) begin
+always @(posedge clk) begin
     if (romload_reg_ctrl_sel && mem_wstrb) begin
         // control register
         if (mem_wdata[7:0] == 8'd1)
@@ -285,7 +287,7 @@ reg [1:0] ram_cnt;
 reg ram_writing;
 reg [15:0] rv_din_hi;
 reg [1:0] rv_ds_hi;
-always @(posedge wclk) begin
+always @(posedge clk) begin
     if (~resetn) begin
         ram_cnt <= 0;
         ram_writing <= 0;

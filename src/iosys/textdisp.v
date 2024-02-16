@@ -2,7 +2,7 @@
 // to print characters to the display.
 
 module textdisp(
-	input wclk,          // main logic clock
+	input clk,          // main logic clock
     input hclk,         // hdmi clock
 	input resetn,
 
@@ -46,7 +46,7 @@ wire [6:0] text_char = reg_char_di[6:0];
 // $380-$3FF: Logo ROM (14*9 bytes)
 // $400-$800: Font ROM
 gowin_dpb_menu menu_mem (
-    .clka(wclk), .reseta(1'b0), .ocea(), .cea(1'b1), 
+    .clka(clk), .reseta(1'b0), .ocea(), .cea(1'b1), 
     .ada({1'b0, text_y, text_x}), .wrea(reg_char_we[0] && cmd == 2'd0),
     .dina({1'b0, text_char}), .douta(), 
 

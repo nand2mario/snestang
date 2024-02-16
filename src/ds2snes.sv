@@ -1,6 +1,6 @@
 
 // convert dualshock to snes controller
-module ds2snes #(parameter FREQ=10_800_000) (
+module ds2snes #(parameter FREQ=21_600_000) (
     input clk,
 
     input snes_joy_strb,
