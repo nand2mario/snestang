@@ -974,7 +974,7 @@ always @(posedge CLK) begin : P2
                     HDMA_CH_EN <= HDMAEN;
                     HDMA_RUN_EXEC <= 1;
                 end else if (H_CNT < 277 && ~VBLANK && HDMA_RUN_EXEC)
-                    HDMA_INIT_EXEC <= 0;
+                    HDMA_RUN_EXEC <= 0;
             end
 
             HDS_PRE_INIT : begin
@@ -1177,7 +1177,7 @@ always @(posedge CLK) begin
             HDMA_A_RD <= HDMA_A_RD_CYC;
             HDMA_B_WR <= HDMA_B_WR_CYC;
             HDMA_B_RD <= HDMA_B_RD_CYC;
-        end else begin
+        end else if (INT_CLKF_CE) begin
             HDMA_A_WR <= 0;
             HDMA_A_RD <= 0;
             HDMA_B_WR <= 0;

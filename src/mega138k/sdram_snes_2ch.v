@@ -22,6 +22,8 @@
 // 
 // Here we do not overlap the two CAS-DATA periods, avoiding potential bus contentions.
 //
+// DOT_CLK_CE is used as clkref. 
+//
 // Tang SDRAM v1.2 - Winbond W9825G6KH. 8K rows, 512 words per row, 16 bits per word
 
 module sdram_snes

@@ -1,6 +1,6 @@
 
-parameter MCLK_NTSC_FREQ = 2147727;
-parameter MCLK_PAL_FREQ = 2128137;
+// parameter MCLK_NTSC_FREQ = 2147727;
+// parameter MCLK_PAL_FREQ = 2128137;
 parameter ACLK_FREQ = 409600;
 
 parameter V0VOLL = 8'h00;

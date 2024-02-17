@@ -15,7 +15,7 @@
 
 module snestang_top (
     input sys_clk,
-    input s0,                     
+    input s0,
 
     // UART
     input UART_RXD,
@@ -71,7 +71,7 @@ module snestang_top (
 
 // Clock signals
 // wire wclk;                      // Actual work clock for SNES for most components, 1/2 of SNES master clock speed
-wire mclk;                      // SNES master clock at 21.6Mhz (~21.477)
+wire mclk;                      // SNES master clock at 21.5054Mhz (~21.477)
 wire fclk;                      // Fast clock for sdram for SDRAM
 wire fclk_p;                    // 180-degree shifted fclk
 wire clk27;                     // 27Mhz for hdmi clock generation
@@ -97,16 +97,19 @@ gowin_pll_27 pll_27 (
 );
 
 // DRAM and SNES clocks
+// For Mega 138K: clkout0=21.5054, clkout1=64.5161
 gowin_pll_snes pll_snes (
-    .clkout0(mclk),             // 10.8Mhz
-    .clkout1(fclk),             // 86.4Mhz
+    .clkout0(mclk),
+    .clkout1(fclk),
     .clkout2(fclk_p),            
-    // .clkout3(mclk),             // 21.6Mhz
-    .clkin(clk27));
+    .clkin(sys_clk)             // 50 Mhz
+);
 
 // HDMI clocks
 gowin_pll_hdmi pll_hdmi (
-    .clkin(clk27), .clkout0(hclk5), .clkout1(hclk)
+    .clkin(clk27), 
+    .clkin(clk50), 
+    .clkout0(hclk5), .clkout1(hclk)
 );
 
 `else

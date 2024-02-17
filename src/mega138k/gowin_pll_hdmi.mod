@@ -7,7 +7,7 @@
 
 -mod_name gowin_pll_hdmi
 -file_name gowin_pll_hdmi
--path D:/Gowin/dev/snes-experiments/10.tinysnes_m138k/src/mega138k/
+-path D:/Gowin/dev/snestang/src/mega138k/
 -type PLL_ADV
 -file_type vlg
 -ssc false
