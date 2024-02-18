@@ -41,16 +41,12 @@ module DSP(
 // set this to non-zero to mute voices corresponding to 1's
 // e.g. 8'b1111_1110 will only play voice 0
 localparam [7:0] MUTE_MASK = 8'b0;
-// localparam [7:0] MUTE_MASK = 8'b1111_1110;
-// localparam [7:0] MUTE_MASK = 8'b1111_1101;
 
 reg RAM_WE, RAM_OE, RAM_CE;
 wire [7:0] RAM_DI;
 reg [7:0] RAM_DO;
 
 wire LRCK, BCK, SDAT;       // obsolete audio output interface
-
-// wire EN = ENABLE & READY;
 
 reg [7:0] RI;               // register value from SMP
 reg [6:0] REGN_RD, REGN_WR; // current register for read/write
@@ -101,7 +97,7 @@ reg [2:0] BRR_OFFS[0:7];
 reg [15:0] TBRRDAT;             // sample data (a pair of bytes)
 reg [7:0] TBRRHDR;              // sample header
 reg [7:0] BRR_END;
-reg [3:0] BRR_BUF_ADDR [8];
+reg [3:0] BRR_BUF_ADDR [8];     // last written pos in the ring buffer
 
 reg [6:0] BRR_BUF_ADDR_A;
 reg BRR_BUF_WE;
@@ -455,10 +451,9 @@ assign RAM_CE_N = ~RAM_CE;
 reg signed [15:0] BRR_BUF [128];     // [0:7][0:11]
 
 always @(posedge CLK) begin
+    BRR_BUF_DO <= BRR_BUF[BRR_BUF_ADDR_A];
     if (BRR_BUF_WE)
         BRR_BUF[BRR_BUF_ADDR_A] <= BRR_BUF_DI;
-    else
-        BRR_BUF_DO <= BRR_BUF[BRR_BUF_ADDR_A];
 end
 always @(posedge CLK) begin
     BRR_BUF_GAUSS_DO <= BRR_BUF[BRR_BUF_ADDR_B];
@@ -498,10 +493,11 @@ always @(posedge CLK) begin : brr_decode
                 default: ;
                 endcase
 
-                if (SCALE <= 12) 
-                    SR = (S << SCALE) >>> 1;
-                else
-                    SR = S & 16'hF800;
+                SR = (S << SCALE) >>> 1;
+                // if (SCALE <= 12) 
+                //     SR = (S << SCALE) >>> 1;
+                // else
+                //     SR = S & 16'hF800;
                 BD_VOICE <= BDS.V;
                 BRR_BUF_ADDR_A[6:4] <= BDS.V;
                 BRR_BUF_ADDR_A[3:0] <= BRR_BUF_ADDR[BDS.V];
@@ -534,19 +530,19 @@ always @(posedge CLK) begin : brr_decode
                 2'b01 : 
                     // SR + P0*15/32
                     // output += output[now-1] * 15/16
-                    SF = 17'(SR) + (17'(P0) >>> 1) - (17'(P0) >>> 5);
+                    SF = 17'(SR) + (P0 >>> 1) - (P0 >>> 5);
                 2'b10 : 
                     // SR + P0*61/64 - P1*15/16
                     // output += output[now-1] * 61/32 - output[now-2] * 15/16;
                     SF = 17'(SR)  
-                        + 17'(P0) - (17'(P0) >>> 6) - (17'(P0) >>> 5) 
-                        - 17'(P1) + (17'(P1) >>> 4);
+                        + P0 - (P0 >>> 6) - (P0 >>> 5) 
+                        - P1 + (P1 >>> 4);
                 default : 
                     // SR + P0*115/128 - P1*13/16
                     // output += output[now-1] * 115/64 - output[now-2] * 13/16;
                     SF = 17'(SR) 
-                        + 17'(P0) - (17'(P0) >>> 7) - (17'(P0) >>> 5) - (17'(P0) >>> 4)
-                        - 17'(P1) + (17'(P1) >>> 4) + (17'(P1) >>> 3);
+                        + P0 - (P0 >>> 7) - (P0 >>> 5) - (P0 >>> 4)
+                        - P1 + (P1 >>> 4) + (P1 >>> 3);
                 endcase
 
                 SOUT = CLAMP16(SF) << 1;
@@ -577,12 +573,13 @@ always @(posedge CLK) begin : main_process
     logic [3:0] BB_POS;
     logic [4:0] BB_POS0;
     logic [15:0] NEW_INTERP_POS;
-    logic signed [12:0] ENV_TEMP, ENV_TEMP2;
+    logic signed [12:0] ENV_TEMP;
+    logic signed [12:0] ENV_TEMP2;
     logic [4:0] ENV_RATE;
     logic [2:0] GAIN_MODE;
     logic [2:0] NEW_KON_CNT;
     logic [4:0] NOISE_RATE;
-    logic signed [14:0] NEW_NOISE;
+    logic [14:0] NEW_NOISE;
 
     if (~RST_N) begin
         GTBL_ADDR <= 0;
@@ -647,19 +644,19 @@ always @(posedge CLK) begin : main_process
         end else if (CE) begin 
             if (SMP_EN_INT && SMP_A == 16'h00F3 && ~SMP_WE_N) begin
                 $fdisplay(32'h80000002, "SMP reg[%08x] <= %08x", RI, SMP_DO);
-                if (RI[6:0] == 7'b1001100) begin           // $4C: KON
+                if (RI[6:0] == 7'b1001100) begin            // $4C: KON
                     WKON <= SMP_DO;
                     $fdisplay(32'h80000002, "KON = %x", SMP_DO);
-                end else if (RI[6:0] == 7'b1101100) begin  // $6C: FLG
+                end else if (RI[6:0] == 7'b1101100) begin   // $6C: FLG
                     RST_FLG <= SMP_DO[7];
                     MUTE_FLG <= SMP_DO[6];
                     ECEN_FLG <= SMP_DO[5];
-                end else if (RI[6:0] == 7'b1111100) begin  // $7C: ENDX
+                end else if (RI[6:0] == 7'b1111100) begin   // $7C: ENDX
                     ENDX_BUF <= 8'b0;
                     ENDX <= 0;
                 end else if (RI[3:0] == 4'b1000)            // ENVX
                     ENVX_OUT <= 0;
-                else if (RI[3:0] == 4'b1001)
+                else if (RI[3:0] == 4'b1001)                // OUTX
                     OUTX_OUT <= 0;
             end
 
@@ -675,46 +672,45 @@ always @(posedge CLK) begin : main_process
                     end
 
                     INTERP_POS[INS.V] <= 16'b0;
-                    if (NEW_KON_CNT[1:0] != 2'b00)           // KON_CNT = 4 3 2
+                    if (NEW_KON_CNT[1:0] != 2'b0)               // KON_CNT = 4 3 2
                         INTERP_POS[INS.V] <= 16'h4000;
 
                     ENV[INS.V] <= 0;
                     LAST_ENV <= 0;
                     TPITCH <= 0;
                 end else 
-                    if (TPMON[INS.V])                // Set pitch modulation
-                        TPITCH <= signed'(TPITCH) + 14'(28'(14'(TOUT >> 5) * signed'(TPITCH)) >>> 10);
+                    if (TPMON[INS.V])                       // Set pitch modulation, uses 27x18 multiplier
+                        TPITCH <= signed'(TPITCH) + 15'(32'(16'(TOUT >> 5) * signed'(TPITCH)) >>> 10);
 
                 if (RST_FLG || (TBRRHDR[1:0] == 2'b01 && KON_CNT[INS.V] != 5)) begin
                     ENV_MODE[INS.V] <= EM_RELEASE;
-                    ENV[INS.V] <= 12'b0;
+                    ENV[INS.V] <= 0;
                 end
 
                 if (EVEN_SAMPLE && TKON[INS.V]) 
                     KON_CNT[INS.V] <= 3'b101;               // Start KON process on even sample
                 else if (KON_CNT[INS.V] != 0) 
-                    KON_CNT[INS.V] <= KON_CNT[INS.V] - 1;   // KON_CNT --
+                    KON_CNT[INS.V] <= NEW_KON_CNT;          // KON_CNT --
 
                 if (EVEN_SAMPLE) begin
                     if (TKON[INS.V]) 
-                        ENV_MODE[INS.V] <= EM_ATTACK;         // Start with ATTACK
+                        ENV_MODE[INS.V] <= EM_ATTACK;       // Start with ATTACK
                     else if (TKOFF[INS.V]) 
-                        ENV_MODE[INS.V] <= EM_RELEASE;        // End with RELEASE
+                        ENV_MODE[INS.V] <= EM_RELEASE;      // End with RELEASE
                 end
 
                 TENVX[INS.V] <= {1'b0, ENV[INS.V][10:4]};
             end
 
-            // Main sound processing routine
             IS_ENV2 : begin     // STEP 1.3, 4.3, 7.3, 10.3, 13.3, 16.3, 19.3, 30.3
-                BB_POS = 4'(INTERP_POS[INS.V][14:12]);
+                BB_POS = {1'b0, INTERP_POS[INS.V][14:12]};
                 BB_POS0 = {1'b0, BB_POS + BRR_BUF_ADDR[INS.V] + 4'd1};
                 if (BB_POS0 > 11)
                     BB_POS0 = BB_POS0 - 12;
                 GTBL_ADDR <= {1'b0, ~INTERP_POS[INS.V][11:4]};
                 G_VOICE <= INS.V;
                 BRR_BUF_ADDR_B[6:4] <= INS.V;
-                BRR_BUF_ADDR_B[3:0] <= BB_POS[3:0];
+                BRR_BUF_ADDR_B[3:0] <= BB_POS0[3:0];
                 GS_STATE <= GS_WAIT;
             end
 
@@ -733,7 +729,7 @@ always @(posedge CLK) begin : main_process
                 TPITCH[7:0] <= REGS_DO;
 
             VS_PITCHH :  begin
-                TPITCH[13:8] <= REGS_DO[5:0];
+                TPITCH[14:8] <= {1'b0, REGS_DO[5:0]};
                 OUTX_OUT <= TOUT[15:8];
             end
 
@@ -742,7 +738,7 @@ always @(posedge CLK) begin : main_process
 
             VS_SRCN : begin
                 TSRCN <= REGS_DO;
-                TDIR_ADDR <= 16'({TDIR, 8'h00}) + 16'({TSRCN, 2'b00});
+                TDIR_ADDR <= {TDIR, 8'b0} + 16'({TSRCN, 2'b0});
             end
 
             VS_VOLL : begin
@@ -754,8 +750,7 @@ always @(posedge CLK) begin : main_process
 
                 BRR_END <= 0;
                 BRR_DECODE_EN <= 1'b0;
-                if (INTERP_POS[VS.V][15:14] != 2'b00) begin
-                    // >= 4000
+                if (INTERP_POS[VS.V][15:14] != 2'b00) begin     // >= 4000
                     BRR_DECODE_EN <= 1'b1;
                     BRR_OFFS[VS.V] <= BRR_OFFS[VS.V] + 2;
                     if (BRR_OFFS[VS.V] == 6) begin
@@ -768,7 +763,7 @@ always @(posedge CLK) begin : main_process
                 end
 
                 NEW_INTERP_POS = {2'b0, INTERP_POS[VS.V][13:0]} + {1'b0, TPITCH};
-                if (NEW_INTERP_POS[15] == 1'b0) 
+                if (~NEW_INTERP_POS[15]) 
                     INTERP_POS[VS.V] <= NEW_INTERP_POS;
                 else 
                     INTERP_POS[VS.V] <= 16'h7FFF;
@@ -925,7 +920,11 @@ always @(posedge CLK) begin : main_process
 
         GS_BRR3: begin
             SUM3 = 17'(28'(GTBL_DO * BRR_BUF_GAUSS_DO) >> 11);
-            GSUM = CLAMP16(17'({SUM012[15],SUM012[15:0]} + SUM3));
+
+            GSUM = CLAMP16(SUM012 + SUM3);          
+            // nand2mario: the upstream code is probably wrong...  SUM012 is 17 bits
+            // GSUM := CLAMP16( resize(SUM012(15)&SUM012(15 downto 0) + SUM3, 17) );
+            // GSUM = CLAMP16(17'({SUM012[15],SUM012[15:0]} + SUM3));
 
             if (~TNON[G_VOICE]) 
                 OUT_TEMP = GSUM & 16'hFFFE;
@@ -933,14 +932,14 @@ always @(posedge CLK) begin : main_process
                 OUT_TEMP = {NOISE, 1'b0};
 
             // env apply
-            TOUT <= 16'(28'(OUT_TEMP * ENV[INS.V]) >>> 11) & 16'hFFFE;
+            TOUT <= 16'(28'(OUT_TEMP * LAST_ENV) >>> 11) & 16'hFFFE;
 
             // envelope
             if (KON_CNT[G_VOICE] == 0) begin
                 if (ENV_MODE[G_VOICE] == EM_RELEASE) begin
                     ENV_TEMP2 = 13'(ENV[G_VOICE]) - 8;
                     if (ENV_TEMP2 < 0) begin
-                        ENV_TEMP2 = 13'b0;
+                        ENV_TEMP2 = 0;
                     end
                     ENV[G_VOICE] <= 12'(ENV_TEMP2);
                     ENV_RATE = 5'b11111;
@@ -961,7 +960,7 @@ always @(posedge CLK) begin : main_process
                         end
                     end else begin
                         GAIN_MODE = TADSR2[7:5];
-                        if (GAIN_MODE[2] == 1'b0) begin
+                        if (~GAIN_MODE[2]) begin
                             ENV_TEMP = 13'({TADSR2[6:0], 4'b0000});
                             ENV_RATE = 5'b11111;
                         end else begin
@@ -981,7 +980,7 @@ always @(posedge CLK) begin : main_process
                         end
                     end
                     
-                    if (ENV_TEMP[10:0] >= 11'h600 || ENV_TEMP[12:11] != 2'b00)  
+                    if (unsigned'(ENV_TEMP[10:0]) >= 11'h600 || ENV_TEMP[12:11] != 2'b00)  
                         BENT_INC_MODE[G_VOICE] <= 1;
                     else 
                         BENT_INC_MODE[G_VOICE] <= 0;
