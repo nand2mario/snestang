@@ -56,11 +56,11 @@ always @(posedge clock) begin
         mem[{address_a, 2'd2}] <= data_a[5:4];
         mem[{address_a, 2'd1}] <= data_a[3:2];
         mem[{address_a, 2'd0}] <= data_a[1:0];
-        $display("HOAM[%x-%x]=%x", {address_a, 2'd0}, {address_a, 2'd3}, data_a);
+        $fdisplay(32'h80000002, "HOAM[%x-%x]=%x", {address_a, 2'd0}, {address_a, 2'd3}, data_a);
     end 
     if (wren_b) begin
         mem[address_b] <= data_b;
-        $display("HOAM[%x]=%x", address_b, data_b);
+        $fdisplay(32'h80000002, "HOAM[%x]=%x", address_b, data_b);
     end
 end
 

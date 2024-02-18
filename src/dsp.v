@@ -55,8 +55,8 @@ wire LRCK, BCK, SDAT;       // obsolete audio output interface
 reg [7:0] RI;               // register value from SMP
 reg [6:0] REGN_RD, REGN_WR; // current register for read/write
 wire [6:0] REGS_ADDR_WR, REGS_ADDR_RD;
-wire [7:0] REGS_DI;
-reg [7:0] REGS_DO;    // DI: value to write to register, DO: to read from reg
+wire [7:0] REGS_DI;         // value to write to register
+reg [7:0] REGS_DO;          // value read from reg
 wire REGS_WE;               // 1: write to register
 
 wire SMP_EN_INT;            // run SMP in this cycle when last_phase is 1
@@ -105,23 +105,23 @@ reg [3:0] BRR_BUF_ADDR [8];
 
 reg [6:0] BRR_BUF_ADDR_A;
 reg BRR_BUF_WE;
-reg [15:0] BRR_BUF_DI;
-reg [15:0] BRR_BUF_DO;
+reg signed [15:0] BRR_BUF_DI;
+reg signed [15:0] BRR_BUF_DO;
 reg [6:0] BRR_BUF_ADDR_B;
-reg [15:0] BRR_BUF_GAUSS_DO;
+reg signed [15:0] BRR_BUF_GAUSS_DO;
 reg [3:0] BRR_BUF_ADDR_B_NEXT;
 
 reg [2:0] GS_STATE;
 reg [8:0] GTBL_ADDR;
-reg [11:0] GTBL_DO;
+reg signed [11:0] GTBL_DO;
 reg [7:0] GTBL_POS;
 reg [2:0] G_VOICE;
-reg [16:0] SUM012;
+reg signed [16:0] SUM012;
 
 reg [1:0] BD_STATE;
-reg [15:0] SR;
+reg signed [15:0] SR;
 reg [2:0] BD_VOICE;
-reg [16:0] P0;
+reg signed [16:0] P0;
 
 reg [14:0] ECHO_POS;
 reg [15:0] ECHO_ADDR;
@@ -138,7 +138,7 @@ reg [1:0] ENV_MODE[0:7];        // envelope mode
 reg signed [11:0] ENV[0:7];
 reg [7:0] BENT_INC_MODE;
 reg [15:0] INTERP_POS[0:7];     // interpolation position, [14:12]: BBRpos, [11:0]: GTBLpos
-reg [11:0] LAST_ENV;
+reg signed [11:0] LAST_ENV;
 
 reg [11:0] GCNT_BY1;
 reg [11:0] GCNT_BY3;
@@ -240,7 +240,7 @@ always @(posedge CLK) begin
     if (~RST_N) begin
         RI <= 8'b0;
     end else if (ENABLE && CE) begin 
-        if (SMP_EN_INT && ~SMP_WE_N && SMP_A == 16'h00F2)
+        if (SMP_EN_INT && ~SMP_WE_N && SMP_A == 16'h00F2) 
             RI <= SMP_DO;
     end
 end
@@ -567,7 +567,8 @@ always @(posedge CLK) begin : brr_decode
     end
 end
 
-assign BRR_BUF_ADDR_B_NEXT = BRR_BUF_ADDR_B[3:0] == 4'b1011 ? 4'b0 : (BRR_BUF_ADDR_B[3:0] + 1);
+assign BRR_BUF_ADDR_B_NEXT = BRR_BUF_ADDR_B[3:0] == 4'b1011 ? 4'b0 : 
+                            (BRR_BUF_ADDR_B[3:0] + 1);
 
 always @(posedge CLK) begin : main_process
     logic signed [15:0] GSUM, OUT_TEMP;
@@ -645,10 +646,10 @@ always @(posedge CLK) begin : main_process
             end
         end else if (CE) begin 
             if (SMP_EN_INT && SMP_A == 16'h00F3 && ~SMP_WE_N) begin
-                $display("SMP reg[%08x] <= %08x", RI, SMP_DO);
+                $fdisplay(32'h80000002, "SMP reg[%08x] <= %08x", RI, SMP_DO);
                 if (RI[6:0] == 7'b1001100) begin           // $4C: KON
                     WKON <= SMP_DO;
-                    $display("KON = %x", SMP_DO);
+                    $fdisplay(32'h80000002, "KON = %x", SMP_DO);
                 end else if (RI[6:0] == 7'b1101100) begin  // $6C: FLG
                     RST_FLG <= SMP_DO[7];
                     MUTE_FLG <= SMP_DO[6];
@@ -714,6 +715,7 @@ always @(posedge CLK) begin : main_process
                 G_VOICE <= INS.V;
                 BRR_BUF_ADDR_B[6:4] <= INS.V;
                 BRR_BUF_ADDR_B[3:0] <= BB_POS[3:0];
+                GS_STATE <= GS_WAIT;
             end
 
             default: ;
@@ -896,26 +898,33 @@ always @(posedge CLK) begin : main_process
         end // if (CE)
 
         case (GS_STATE)
+        GS_WAIT: begin
+            GS_STATE <= GS_BRR0;
+            BRR_BUF_ADDR_B[3:0] <= BRR_BUF_ADDR_B_NEXT;
+            GTBL_ADDR[8] <= 1;
+        end
+
         GS_BRR0: begin
+            SUM012 <= 17'(28'(GTBL_DO * BRR_BUF_GAUSS_DO) >> 11);
+            BRR_BUF_ADDR_B[3:0] <= BRR_BUF_ADDR_B_NEXT;
             GTBL_ADDR[7:0] <= ~GTBL_ADDR[7:0];
             GS_STATE <= GS_BRR1;
         end
 
         GS_BRR1: begin
-            SUM012 <= SUM012 + 17'((GTBL_DO * BRR_BUF_GAUSS_DO) >> 11);
+            SUM012 <= SUM012 + 17'(28'(GTBL_DO * BRR_BUF_GAUSS_DO) >> 11);
             BRR_BUF_ADDR_B[3:0] <= BRR_BUF_ADDR_B_NEXT;
             GTBL_ADDR[8] <= 0;
             GS_STATE <= GS_BRR2;
         end 
 
         GS_BRR2: begin
-            SUM012 <= SUM012 + 17'((GTBL_DO * BRR_BUF_GAUSS_DO) >> 11);
+            SUM012 <= SUM012 + 17'(28'(GTBL_DO * BRR_BUF_GAUSS_DO) >> 11);
             GS_STATE <= GS_BRR3;
         end
 
         GS_BRR3: begin
-
-            SUM3 = 17'((GTBL_DO * BRR_BUF_GAUSS_DO) >> 11);
+            SUM3 = 17'(28'(GTBL_DO * BRR_BUF_GAUSS_DO) >> 11);
             GSUM = CLAMP16(17'({SUM012[15],SUM012[15:0]} + SUM3));
 
             if (~TNON[G_VOICE]) 

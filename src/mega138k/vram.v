@@ -24,7 +24,7 @@ reg [7:0] memb [0:32*1024-1];
 always @(posedge clk) begin
     if (wra) begin
         mema[addra] <= dina;
-        $display("vram_write_a: [%x]L <= %x", addra, dina);
+        // $fdisplay(32'h80000002, "vram_write_a: [%x]L <= %x", addra, dina);
     end else 
         douta <= mema[addra];
 end
@@ -32,7 +32,7 @@ end
 always @(posedge clk) begin
     if (wrb) begin
         memb[addrb] <= dinb;
-        $display("vram_write_b: [%x]H <= %x", addrb, dinb);
+        // $fdisplay(32'h80000002, "vram_write_b: [%x]H <= %x", addrb, dinb);
     end else
         doutb <= memb[addrb];
 end

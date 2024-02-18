@@ -422,7 +422,7 @@ reg [15:0] data_ram [2048];
 always @(posedge CLK) begin
     if (DATA_RAM_WE) begin
         data_ram[DATA_RAM_ADDR_A] <= OP_ID;
-        $display("DSPn[%x] <= %x", DATA_RAM_ADDR_A, OP_ID);
+        $fdisplay(32'h80000002, "DSPn[%x] <= %x", DATA_RAM_ADDR_A, OP_ID);
     end
     DATA_RAM_Q_A <= data_ram[DATA_RAM_ADDR_A];
     if (~WR_N & DP_SEL)
@@ -438,20 +438,20 @@ reg [10:0] PCr, PCrr;
 always @(posedge CLK) begin
     if (~CS_N && RD_Nr && ~RD_N && ~A0) begin
         if (DRC) 
-            $display("DSPn DO: %x", DR[7:0]);
+            $fdisplay(32'h80000002, "DSPn DO: %x", DR[7:0]);
         else if (~DRS)
-            $display("DSPn DO: %x", DR);
+            $fdisplay(32'h80000002, "DSPn DO: %x", DR);
     end
     if (~CS_N && WR_Nr && ~WR_N && ~A0) begin
         if (DRC)
-            $display("DSPn DI: %x", DI);
+            $fdisplay(32'h80000002, "DSPn DI: %x", DI);
         else if (DRS)
-            $display("DSPn DI: %x", {DI, DR[7:0]});
+            $fdisplay(32'h80000002, "DSPn DI: %x", {DI, DR[7:0]});
     end
     PCr <= PC;
     PCrr <= PCr;
     if (PCr != PCrr) begin
-        $display("DSPn: PC=%x, INST=%x, A=%x, B=%x, RP=%x, DP=%x, DR=%x, SR=%x, K=%x, L=%x, M=%x, N=%x",
+        $fdisplay(32'h80000002, "DSPn: PC=%x, INST=%x, A=%x, B=%x, RP=%x, DP=%x, DR=%x, SR=%x, K=%x, L=%x, M=%x, N=%x",
                 13'(PC)+13'(PC)+13'(PC), PROG_ROM_Q, ACC[ACC_A], ACC[ACC_B], RP, DP, DR, SR, K, L, M, N);
     end
 end

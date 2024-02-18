@@ -285,11 +285,11 @@ always @(posedge CLK) begin
           case(DBG_REG)
           8'h05 : begin
             PSW <= DBG_DAT_IN;
-            $display("PSW <= %x", DBG_DAT_IN);
+            $fdisplay(32'h80000002, "PSW <= %x", DBG_DAT_IN);
           end
           8'h06 : begin
             SP <= DBG_DAT_IN;
-            $display("SP <= %x", DBG_DAT_IN);
+            $fdisplay(32'h80000002, "SP <= %x", DBG_DAT_IN);
           end
           default : begin
           end
@@ -466,7 +466,7 @@ reg [3:0] STATEr;
 always @(posedge CLK) begin
   STATEr <= STATE;
   if (STATE == 4'd0 && STATE != STATEr) begin
-    $display("PC=%x, IR=%x, A=%x, X=%x, Y=%x, SP=%x, PSW=%x", PC, IR, A, X, Y, SP, PSW);
+    $fdisplay(32'h80000002, "PC=%x, IR=%x, A=%x, X=%x, Y=%x, SP=%x, PSW=%x", PC, IR, A, X, Y, SP, PSW);
   end
 end
 */

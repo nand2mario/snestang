@@ -1094,9 +1094,9 @@ always @(posedge CLK) begin
   DMA_RUNr <= DMA_RUN;
   DMA_CAr <= CA;
   if (DMA_RUN && ~DMA_RUNr) 
-    $display("PC=%06x, DMA Started", DMA_CAr);
+    $fdisplay(32'h80000002, "PC=%06x, DMA Started", DMA_CAr);
   else if (~DMA_RUN && DMA_RUNr)
-    $display("DMA Finished");
+    $fdisplay(32'h80000002, "DMA Finished");
 end
 
 `endif

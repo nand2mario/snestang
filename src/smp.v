@@ -84,7 +84,7 @@ always @(posedge CLK) begin
             // $2140-2143
             // PA: CPUI[ 01xx_xxPA ]
             CPUI[PA] <= CPU_DI;
-            $display("APU: CPUI%d=%02x", PA[1:0], CPU_DI);
+            $fdisplay(32'h80000002, "APU: CPUI%d=%02x", PA[1:0], CPU_DI);
         end
         if (SPC700_CE) begin
             if (SPC700_A == 16'h00F1 && ~SPC700_R_WN) begin
@@ -204,7 +204,7 @@ always @(posedge CLK) begin : spc_timers
                         end
                         4'h4, 4'h5, 4'h6, 4'h7: begin
                             CPUO[SPC700_A[1:0]] <= SPC700_D_OUT;
-                            $display("APU: CPUO%d=%02x", SPC700_A[1:0], SPC700_D_OUT);
+                            $fdisplay(32'h80000002, "APU: CPUO%d=%02x", SPC700_A[1:0], SPC700_D_OUT);
                         end
                         4'h8, 4'h9:
                             AUX[SPC700_A[0:0]] <= SPC700_D_OUT;
@@ -226,42 +226,42 @@ always @(posedge CLK) begin : spc_timers
                     endcase
                 end
             end
+        end
 
-            if (TIMER_CE) begin
-                TM_STEP = (5'b00001 << CLK_SPEED) + (5'b00010 << TM_SPEED);
-                NEW_TM01_CNT = TM01_CNT + 9'(TM_STEP);
-                if (NEW_TM01_CNT[8:7] == 2'b11) begin
-                    TM01_CNT <= NEW_TM01_CNT & 9'b001111111;
-                    if (TM_EN[0] && TIMERS_ENABLE && ~TIMERS_DISABLE) begin
-                        T0_CNT <= T0_CNT + 1;
-                        if (T0_CNT + 1 == T0DIV) begin
-                            T0_CNT <= 0;
-                            T0OUT  <= T0OUT + 1;
-                        end
+        if (TIMER_CE) begin
+            TM_STEP = (5'b00001 << CLK_SPEED) + (5'b00010 << TM_SPEED);
+            NEW_TM01_CNT = TM01_CNT + 9'(TM_STEP);
+            if (NEW_TM01_CNT[8:7] == 2'b11) begin
+                TM01_CNT <= NEW_TM01_CNT & 9'b001111111;
+                if (TM_EN[0] && TIMERS_ENABLE && ~TIMERS_DISABLE) begin
+                    T0_CNT <= T0_CNT + 1;
+                    if (T0_CNT + 1 == T0DIV) begin
+                        T0_CNT <= 0;
+                        T0OUT  <= T0OUT + 1;
                     end
-                    if (TM_EN[1] && TIMERS_ENABLE && ~TIMERS_DISABLE) begin
-                        T1_CNT <= T1_CNT + 1;
-                        if (T1_CNT + 1 == T1DIV) begin
-                            T1_CNT <= 0;
-                            T1OUT  <= T1OUT + 1;
-                        end
+                end
+                if (TM_EN[1] && TIMERS_ENABLE && ~TIMERS_DISABLE) begin
+                    T1_CNT <= T1_CNT + 1;
+                    if (T1_CNT + 1 == T1DIV) begin
+                        T1_CNT <= 0;
+                        T1OUT  <= T1OUT + 1;
                     end
-                end else 
-                    TM01_CNT <= NEW_TM01_CNT;
+                end
+            end else 
+                TM01_CNT <= NEW_TM01_CNT;
 
-                NEW_TM2_CNT = TM2_CNT + TM_STEP;
-                if (NEW_TM2_CNT[5:4] == 2'b11) begin
-                    TM2_CNT <= NEW_TM2_CNT & 6'b001111;
-                    if (TM_EN[2] && TIMERS_ENABLE && ~TIMERS_DISABLE) begin
-                        T2_CNT <= T2_CNT + 1;
-                        if (T2_CNT + 1 == T2DIV) begin
-                            T2_CNT <= 0;
-                            T2OUT  <= T2OUT + 1;
-                        end
+            NEW_TM2_CNT = TM2_CNT + TM_STEP;
+            if (NEW_TM2_CNT[5:4] == 2'b11) begin
+                TM2_CNT <= NEW_TM2_CNT & 6'b001111;
+                if (TM_EN[2] && TIMERS_ENABLE && ~TIMERS_DISABLE) begin
+                    T2_CNT <= T2_CNT + 1;
+                    if (T2_CNT + 1 == T2DIV) begin
+                        T2_CNT <= 0;
+                        T2OUT  <= T2OUT + 1;
                     end
-                end else 
-                    TM2_CNT <= NEW_TM2_CNT;
-            end
+                end
+            end else 
+                TM2_CNT <= NEW_TM2_CNT;
         end
     end
 end

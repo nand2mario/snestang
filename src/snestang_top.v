@@ -108,7 +108,7 @@ gowin_pll_snes pll_snes (
 // HDMI clocks
 gowin_pll_hdmi pll_hdmi (
     .clkin(clk27), 
-    .clkin(clk50), 
+//    .clkin(clk50), 
     .clkout0(hclk5), .clkout1(hclk)
 );
 

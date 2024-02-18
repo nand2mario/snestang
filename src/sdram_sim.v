@@ -81,11 +81,11 @@ always @(posedge clk) begin
         2'b00: ;
         2'b10: begin
             mem_cpu[cpu_addr][15:8] <= cpu_din[15:8];
-            // $display("[%06x] <= %02x", {cpu_addr, 1'b1}, cpu_din[15:8]);
+            // $fdisplay(32'h80000002, "[%06x] <= %02x", {cpu_addr, 1'b1}, cpu_din[15:8]);
         end
         2'b01: begin
             mem_cpu[cpu_addr][7:0] <= cpu_din[7:0];
-            // $display("[%06x] <= %02x", {cpu_addr, 1'b0}, cpu_din[7:0]);
+            // $fdisplay(32'h80000002, "[%06x] <= %02x", {cpu_addr, 1'b0}, cpu_din[7:0]);
         end
         2'b11:
             mem_cpu[cpu_addr] <= cpu_din;
@@ -117,10 +117,10 @@ always @(posedge clk) begin
             mem_aram[aram_addr[15:1]] <= aram_din;
         else if (aram_addr[0]) begin
             mem_aram[aram_addr[15:1]][15:8] <= aram_din[15:8];
-            // $display("ARAM[%04x] <= %02x", aram_addr, aram_din[15:8]);
+            // $fdisplay(32'h80000002, "ARAM[%04x] <= %02x", aram_addr, aram_din[15:8]);
         end else begin
             mem_aram[aram_addr[15:1]][7:0] <= aram_din[7:0];
-            // $display("ARAM[%04x] <= %02x", aram_addr, aram_din[7:0]);
+            // $fdisplay(32'h80000002, "ARAM[%04x] <= %02x", aram_addr, aram_din[7:0]);
         end
      end else if (aram_rd) begin
         if (aram_16)
@@ -135,10 +135,10 @@ end
 always @(posedge clk) begin
     if (vram1_wr) begin
         mem_vram1[vram1_addr] <= vram1_din;
-        $display("vram_write_a: [%x]L <= %x", vram1_addr, vram1_din);
+        // $fdisplay(32'h80000002, "vram_write_a: [%x]L <= %x", vram1_addr, vram1_din);
     end else if (vram2_wr) begin
         mem_vram2[vram2_addr] <= vram2_din;
-        $display("vram_write_b: [%x]H <= %x", vram2_addr, vram2_din);
+        // $fdisplay(32'h80000002, "vram_write_b: [%x]H <= %x", vram2_addr, vram2_din);
     end else if (vram1_rd && vram2_rd && vram1_addr == vram2_addr) begin
         vram1_dout <= mem_vram1[vram1_addr];
         vram2_dout <= mem_vram2[vram2_addr];
