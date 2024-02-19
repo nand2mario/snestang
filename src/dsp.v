@@ -461,9 +461,10 @@ assign RAM_CE_N = ~RAM_CE;
 reg signed [15:0] BRR_BUF [128];     // [0:7][0:11]
 
 always @(posedge CLK) begin
-    BRR_BUF_DO <= BRR_BUF[BRR_BUF_ADDR_A];
     if (BRR_BUF_WE)
         BRR_BUF[BRR_BUF_ADDR_A] <= BRR_BUF_DI;
+    else
+        BRR_BUF_DO <= BRR_BUF[BRR_BUF_ADDR_A];
 end
 always @(posedge CLK) begin
     BRR_BUF_GAUSS_DO <= BRR_BUF[BRR_BUF_ADDR_B];
