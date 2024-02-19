@@ -269,31 +269,31 @@ localparam BRRDecodeStep_r BDS_TBL [0:31][0:3] = '{
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_SMPL0,3'd1}, {BDS_SMPL1,3'd1}},
 '{{BDS_SMPL2,3'd1}, {BDS_SMPL3,3'd1}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
-'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
+'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},  // 4
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_SMPL0,3'd2}, {BDS_SMPL1,3'd2}},
 '{{BDS_SMPL2,3'd2}, {BDS_SMPL3,3'd2}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
-'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_SMPL0,3'd3}, {BDS_SMPL1,3'd3}},
+'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_SMPL0,3'd3}, {BDS_SMPL1,3'd3}},  // 8
 '{{BDS_SMPL2,3'd3}, {BDS_SMPL3,3'd3}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_SMPL0,3'd4}, {BDS_SMPL1,3'd4}},
-'{{BDS_SMPL2,3'd4}, {BDS_SMPL3,3'd4}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
+'{{BDS_SMPL2,3'd4}, {BDS_SMPL3,3'd4}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},  // 12
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_SMPL0,3'd5}, {BDS_SMPL1,3'd5}},
 '{{BDS_SMPL2,3'd5}, {BDS_SMPL3,3'd5}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
-'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
+'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},  // 16
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_SMPL0,3'd6}, {BDS_SMPL1,3'd6}},
 '{{BDS_SMPL2,3'd6}, {BDS_SMPL3,3'd6}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
-'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_SMPL0,3'd7}, {BDS_SMPL1,3'd7}},
+'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_SMPL0,3'd7}, {BDS_SMPL1,3'd7}},  // 20
 '{{BDS_SMPL2,3'd7}, {BDS_SMPL3,3'd7}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
+'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},  // 24
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
-'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
-'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
+'{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},  // 28
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}},
 '{{BDS_IDLE, 3'd0}, {BDS_IDLE, 3'd0}, {BDS_SMPL0,3'd0}, {BDS_SMPL1,3'd0}}

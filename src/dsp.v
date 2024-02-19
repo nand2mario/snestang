@@ -41,6 +41,7 @@ module DSP(
 // set this to non-zero to mute voices corresponding to 1's
 // e.g. 8'b1111_1110 will only play voice 0
 localparam [7:0] MUTE_MASK = 8'b0;
+// reg started;                // for debug: when first KON is set
 
 reg RAM_WE, RAM_OE, RAM_CE;
 wire [7:0] RAM_DI;
@@ -315,7 +316,7 @@ always @* begin : ram_addrgen
         RAM_CE = 1'b1;
     end
 
-    RS_BRR1 : begin       // 2: read BRR block 1
+    RS_BRR1 : begin       // 2: read BRR higher 2 nibble
         RAM_A = BRR_ADDR[BRR_VOICE] + 16'(BRR_OFFS[BRR_VOICE]) + 16'd1;
         RAM_WE = 1'b0;
         RAM_OE = 1'b1;
@@ -411,12 +412,21 @@ always @(posedge CLK) begin : ram_process
             BRR_NEXT_ADDR[7:0] <= RAM_DI;
         RS_SRCNH : 
             BRR_NEXT_ADDR[15:8] <= RAM_DI;
-        RS_BRRH : 
+        RS_BRRH :  begin
             TBRRHDR <= RAM_DI;
-        RS_BRR1 : 
+            // if (started && BRR_VOICE == 3)
+            //     $fdisplay(32'h80000002, "BRR header=%x", RAM_DI);
+        end
+        RS_BRR1 :  begin
             TBRRDAT[15:8] <= RAM_DI;
-        RS_BRR2 : 
+            // if (started && BRR_VOICE == 3)
+            //     $fdisplay(32'h80000002, "BRR datah=%x", RAM_DI);
+        end
+        RS_BRR2 : begin
             TBRRDAT[7:0] <= RAM_DI;
+            // if (started && BRR_VOICE == 3)
+            //     $fdisplay(32'h80000002, "BRR datal=%x", RAM_DI);
+        end
         RS_ECHORDL,RS_ECHORDH : begin
             if (STEP == 22) 
                 LR = 0;
@@ -503,63 +513,65 @@ always @(posedge CLK) begin : brr_decode
                 BRR_BUF_ADDR_A[3:0] <= BRR_BUF_ADDR[BDS.V];
                 BD_STATE <= BD_WAIT;
             end
-
-            case (BD_STATE)
-            BD_WAIT: begin
-                BD_STATE <= BD_P0;
-                BRR_BUF_ADDR_PREV = BRR_BUF_ADDR[BD_VOICE];
-                if (BRR_BUF_ADDR_PREV == 0)
-                    BRR_BUF_ADDR_PREV = 11;
-                else
-                    BRR_BUF_ADDR_PREV = BRR_BUF_ADDR_PREV - 1;
-                BRR_BUF_ADDR_A[3:0] <= BRR_BUF_ADDR_PREV;
-            end
-            BD_P0: begin
-                BD_STATE <= BD_P1;
-                P0 <= 17'(BRR_BUF_DO);
-            end
-            BD_P1: begin
-                // Filter application. This is Tricky.
-                // - Easy to cause overflows
-                // - Needs lots of () as shifting is lower-precedence than +/-
-                P1 = 17'(BRR_BUF_DO) >>> 1;
-
-                case (FILTER)    
-                2'b00 : 
-                    SF = 17'(SR);
-                2'b01 : 
-                    // SR + P0*15/32
-                    // output += output[now-1] * 15/16
-                    SF = 17'(SR) + (P0 >>> 1) - (P0 >>> 5);
-                2'b10 : 
-                    // SR + P0*61/64 - P1*15/16
-                    // output += output[now-1] * 61/32 - output[now-2] * 15/16;
-                    SF = 17'(SR)  
-                        + P0 - (P0 >>> 6) - (P0 >>> 5) 
-                        - P1 + (P1 >>> 4);
-                default : 
-                    // SR + P0*115/128 - P1*13/16
-                    // output += output[now-1] * 115/64 - output[now-2] * 13/16;
-                    SF = 17'(SR) 
-                        + P0 - (P0 >>> 7) - (P0 >>> 5) - (P0 >>> 4)
-                        - P1 + (P1 >>> 4) + (P1 >>> 3);
-                endcase
-
-                SOUT = CLAMP16(SF) << 1;
-                if (BRR_BUF_ADDR[BD_VOICE] == 4'd11)
-                    BRR_BUF_ADDR_NEXT = 0;
-                else
-                    BRR_BUF_ADDR_NEXT = BRR_BUF_ADDR[BD_VOICE] + 1;
-                BRR_BUF_ADDR_A[3:0] <= BRR_BUF_ADDR_NEXT;
-                BRR_BUF_DI <= SOUT;                
-                BRR_BUF_WE <= 1;
-                BRR_BUF_ADDR[BD_VOICE] <= BRR_BUF_ADDR_NEXT;
-
-                BD_STATE <= BD_IDLE;
-            end
-            default: ;
-            endcase
         end
+
+        case (BD_STATE)
+        BD_WAIT: begin
+            BD_STATE <= BD_P0;
+            BRR_BUF_ADDR_PREV = BRR_BUF_ADDR[BD_VOICE];
+            if (BRR_BUF_ADDR_PREV == 0)
+                BRR_BUF_ADDR_PREV = 11;
+            else
+                BRR_BUF_ADDR_PREV = BRR_BUF_ADDR_PREV - 1;
+            BRR_BUF_ADDR_A[3:0] <= BRR_BUF_ADDR_PREV;
+        end
+        BD_P0: begin
+            BD_STATE <= BD_P1;
+            P0 <= 17'(BRR_BUF_DO);
+        end
+        BD_P1: begin
+            // Filter application. This is Tricky.
+            // - Easy to cause overflows
+            // - Needs lots of () as shifting is lower-precedence than +/-
+            P1 = 17'(BRR_BUF_DO) >>> 1;
+
+            case (FILTER)    
+            2'b00 : 
+                SF = 17'(SR);
+            2'b01 : 
+                // SR + P0*15/32
+                // output += output[now-1] * 15/16
+                SF = 17'(SR) + (P0 >>> 1) - (P0 >>> 5);
+            2'b10 : 
+                // SR + P0*61/64 - P1*15/16
+                // output += output[now-1] * 61/32 - output[now-2] * 15/16;
+                SF = 17'(SR)  
+                    + P0 - (P0 >>> 6) - (P0 >>> 5) 
+                    - P1 + (P1 >>> 4);
+            default : 
+                // SR + P0*115/128 - P1*13/16
+                // output += output[now-1] * 115/64 - output[now-2] * 13/16;
+                SF = 17'(SR) 
+                    + P0 - (P0 >>> 7) - (P0 >>> 5) - (P0 >>> 4)
+                    - P1 + (P1 >>> 4) + (P1 >>> 3);
+            endcase
+
+            SOUT = CLAMP16(SF) << 1;
+            if (BRR_BUF_ADDR[BD_VOICE] == 4'd11)
+                BRR_BUF_ADDR_NEXT = 0;
+            else
+                BRR_BUF_ADDR_NEXT = BRR_BUF_ADDR[BD_VOICE] + 1;
+            BRR_BUF_ADDR_A[3:0] <= BRR_BUF_ADDR_NEXT;
+            BRR_BUF_DI <= SOUT;                
+            BRR_BUF_WE <= 1;
+            BRR_BUF_ADDR[BD_VOICE] <= BRR_BUF_ADDR_NEXT;
+
+            $fdisplay(32'h80000002, "BRR decoded[%d]=%x", BRR_BUF_ADDR_NEXT, SOUT);
+
+            BD_STATE <= BD_IDLE;
+        end
+        default: ;
+        endcase
     end
 end
 
@@ -645,8 +657,10 @@ always @(posedge CLK) begin : main_process
             if (SMP_EN_INT && SMP_A == 16'h00F3 && ~SMP_WE_N) begin
                 $fdisplay(32'h80000002, "SMP reg[%08x] <= %08x", RI, SMP_DO);
                 if (RI[6:0] == 7'b1001100) begin            // $4C: KON
-                    WKON <= SMP_DO;
+                    WKON <= SMP_DO & ~MUTE_MASK;
                     $fdisplay(32'h80000002, "KON = %x", SMP_DO);
+                    // if (SMP_DO != 0)
+                    //     started <= 1;
                 end else if (RI[6:0] == 7'b1101100) begin   // $6C: FLG
                     RST_FLG <= SMP_DO[7];
                     MUTE_FLG <= SMP_DO[6];
