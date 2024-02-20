@@ -160,7 +160,7 @@ wire        textdisp_reg_char_sel /* synthesis syn_keep=1 */= mem_valid && (mem_
 wire        simpleuart_reg_div_sel = mem_valid && (mem_addr == 32'h 0200_0010);
 wire [31:0] simpleuart_reg_div_do;
 
-wire        simpleuart_reg_dat_sel = mem_valid && (mem_addr == 32'h 0200_0014);
+wire        simpleuart_reg_dat_sel /* synthesis syn_keep=1 */ = mem_valid && (mem_addr == 32'h 0200_0014);
 wire [31:0] simpleuart_reg_dat_do;
 wire        simpleuart_reg_dat_wait;
 
@@ -234,11 +234,11 @@ simpleuart simpleuart (
     .ser_tx      (uart_tx      ),
     .ser_rx      (uart_rx      ),
 
-    .reg_div_we  (simpleuart_reg_div_sel ? mem_wstrb : 4'b 0000),
+    .reg_div_we  (simpleuart_reg_div_sel ? mem_wstrb : 4'b0),
     .reg_div_di  (mem_wdata),
     .reg_div_do  (simpleuart_reg_div_do),
 
-    .reg_dat_we  (simpleuart_reg_dat_sel ? mem_wstrb[0] : 1'b 0),
+    .reg_dat_we  (simpleuart_reg_dat_sel ? mem_wstrb[0] : 1'b0),
     .reg_dat_re  (simpleuart_reg_dat_sel && !mem_wstrb),
     .reg_dat_di  (mem_wdata),
     .reg_dat_do  (simpleuart_reg_dat_do),

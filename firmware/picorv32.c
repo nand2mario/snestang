@@ -132,11 +132,6 @@ void clear() {
    }
 }
 
-void uart_init() {
-   // "system clock frequency divided by the baud rate"
-   reg_uart_clkdiv = 93; // FREQ / 115200;
-}
-
 int uart_putchar(int c) {
    reg_uart_data = c;
    return c;

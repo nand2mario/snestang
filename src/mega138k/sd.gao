@@ -114,6 +114,9 @@
             <Signal capture_enable="true">iosys/ram_ready</Signal>
             <Signal capture_enable="true">iosys/simplespimaster_reg_byte_sel</Signal>
             <Signal capture_enable="true">iosys/simplespimaster_reg_word_sel</Signal>
+            <Signal capture_enable="true">sd_clk</Signal>
+            <Signal capture_enable="true">iosys/simplespi/miso</Signal>
+            <Signal capture_enable="true">sd_cmd</Signal>
             <Bus capture_enable="true" name="iosys/simpleuart/send_divcnt[15:0]">
                 <Signal>iosys/simpleuart/send_divcnt[15]</Signal>
                 <Signal>iosys/simpleuart/send_divcnt[14]</Signal>
@@ -132,10 +135,31 @@
                 <Signal>iosys/simpleuart/send_divcnt[1]</Signal>
                 <Signal>iosys/simpleuart/send_divcnt[0]</Signal>
             </Bus>
+            <Bus capture_enable="true" name="iosys/simpleuart/send_bitcnt[3:0]">
+                <Signal>iosys/simpleuart/send_bitcnt[3]</Signal>
+                <Signal>iosys/simpleuart/send_bitcnt[2]</Signal>
+                <Signal>iosys/simpleuart/send_bitcnt[1]</Signal>
+                <Signal>iosys/simpleuart/send_bitcnt[0]</Signal>
+            </Bus>
             <Signal capture_enable="true">UART_TXD</Signal>
-            <Signal capture_enable="true">sd_clk</Signal>
-            <Signal capture_enable="true">iosys/simplespi/miso</Signal>
-            <Signal capture_enable="true">sd_cmd</Signal>
+            <Bus capture_enable="true" name="iosys/cfg_divider[15:0]">
+                <Signal>iosys/cfg_divider[15]</Signal>
+                <Signal>iosys/cfg_divider[14]</Signal>
+                <Signal>iosys/cfg_divider[13]</Signal>
+                <Signal>iosys/cfg_divider[12]</Signal>
+                <Signal>iosys/cfg_divider[11]</Signal>
+                <Signal>iosys/cfg_divider[10]</Signal>
+                <Signal>iosys/cfg_divider[9]</Signal>
+                <Signal>iosys/cfg_divider[8]</Signal>
+                <Signal>iosys/cfg_divider[7]</Signal>
+                <Signal>iosys/cfg_divider[6]</Signal>
+                <Signal>iosys/cfg_divider[5]</Signal>
+                <Signal>iosys/cfg_divider[4]</Signal>
+                <Signal>iosys/cfg_divider[3]</Signal>
+                <Signal>iosys/cfg_divider[2]</Signal>
+                <Signal>iosys/cfg_divider[1]</Signal>
+                <Signal>iosys/cfg_divider[0]</Signal>
+            </Bus>
             <Signal capture_enable="false">rv_rd_Z</Signal>
             <Signal capture_enable="false">rv_wr_Z</Signal>
         </SignalList>
@@ -150,7 +174,11 @@
                     <Signal>iosys/simplespimaster_reg_byte_sel</Signal>
                 </SignalList>
             </Trigger>
-            <Trigger index="2"/>
+            <Trigger index="2">
+                <SignalList>
+                    <Signal>iosys/rv32/simpleuart_reg_dat_sel</Signal>
+                </SignalList>
+            </Trigger>
             <Trigger index="3"/>
             <Trigger index="4"/>
             <Trigger index="5"/>
@@ -168,7 +196,7 @@
         <MatchUnits>
             <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="0"/>
             <MatchUnit index="1" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="1"/>
-            <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="2" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="2"/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
@@ -184,8 +212,8 @@
             <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
         </MatchUnits>
         <Expressions type="Static">
-            <Expression>M1</Expression>
+            <Expression>M2</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>0110100111100001</GAO_ID>
+    <GAO_ID>1110100010001000</GAO_ID>
 </GAO_CONFIG>

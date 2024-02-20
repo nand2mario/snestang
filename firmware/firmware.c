@@ -490,12 +490,10 @@ loadrom_end:
 }
 
 int main() {
-	// reg_uart_clkdiv = 94;       // 10800000 / 115200
-	// reg_uart_clkdiv = 187;       // 21505400 / 115200
-	reg_uart_clkdiv = 2240;       // 21505400 / 9600
 	overlay(1);
 
-	uart_init();		// init UART output for DEBUG(...)
+	// initialize UART
+	reg_uart_clkdiv = 187; // 21505400 / 115200;
 
 	int mounted = 0;
 	while(!mounted) {
