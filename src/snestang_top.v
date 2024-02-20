@@ -83,9 +83,9 @@ wire pause;
 reg [15:0] resetcnt = 16'hffff;
 always @(posedge mclk) begin
     resetcnt <= resetcnt == 0 ? 0 : resetcnt - 1;
-    if (resetcnt == 0)
+//    if (resetcnt == 0)
 //   if (resetcnt == 0 && s0)   // primer25k
-//     if (resetcnt == 0 && ~s0)   // mega138k
+     if (resetcnt == 0 && ~s0)   // mega138k
         resetn <= 1'b1;
 end
 
@@ -361,8 +361,11 @@ always @(posedge mclk) begin
     vram2_read_delay_r <= vram2_read_delay;
 end
 
+reg sdram_clkref;     // every 2 mclk clock cycles
+always @(posedge mclk) sdram_clkref = ~sdram_clkref;
+
 sdram_snes sdram(
-    .clk(fclk), .clkref(dotclk), .resetn(resetn), .busy(sdram_busy),
+    .clk(fclk), .clkref(clkref), .resetn(resetn), .busy(sdram_busy),
 
     // SDRAM pins
     .SDRAM_DQ(IO_sdram_dq), .SDRAM_A(O_sdram_addr), .SDRAM_BA(O_sdram_ba), 
@@ -475,7 +478,7 @@ snes2hdmi s2h(
 
 // IOSys for menu, rom loading...
 iosys iosys (
-    .clk(mclk), .hclk(hclk), .resetn(resetn),
+    .clk(mclk), .hclk(hclk), .clkref(sdram_clkref), .resetn(resetn),
 
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color),

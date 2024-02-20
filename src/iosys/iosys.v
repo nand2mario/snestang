@@ -33,8 +33,9 @@
 `define PICOSOC_V
 
 module iosys (
-    input clk,
+    input clk,                      // SNES mclk
     input hclk,                     // hdmi clock
+    input clkref,                   // 1/2 of mclk, for sdram access synchronization
     input resetn,
 
     // OSD display interface
@@ -98,7 +99,7 @@ wire flash_out_strb;
 assign flash_spi_hold_n = 1;
 assign flash_spi_wp_n = 0;
 reg [15:0] flash_d;
-reg flash_wr;
+reg flash_wr, flash_wr_r;
 
 // Load 256KB of ROM from flash address 0x500000 into SDRAM at address 0x0
 spiflash #(.ADDR(24'h500000), .LEN(FIRMWARE_SIZE)) flash (
@@ -117,16 +118,20 @@ always @(posedge clk) begin
     end else begin
         flash_start <= 0;
         flash_wr <= 0;
+        flash_wr_r <= 0;
         if (~flash_loaded && ~flash_loading && ~ram_busy) begin
             // start loading
             flash_start <= 1;
             flash_loading <= 1;
         end
         if (flash_loading) begin
+            if (flash_wr_r)     // make write pulse 2 mclk cycles to make sdram happy
+                flash_wr <= 1;
             if (flash_out_strb) begin
                 if (flash_cnt[0]) begin
                     flash_d[15:8] <= flash_dout;
                     flash_wr <= 1;
+                    flash_wr_r <= 1;
                     flash_addr <= flash_cnt;
                 end else
                     flash_d[7:0] <= flash_dout;
@@ -283,76 +288,81 @@ always @(posedge clk) begin
 end
 
 // RV memory access
-reg [1:0] ram_cnt;
+reg [1:0] ramst;
 reg ram_writing;
 reg [15:0] rv_din_hi;
 reg [1:0] rv_ds_hi;
 always @(posedge clk) begin
     if (~resetn) begin
-        ram_cnt <= 0;
+        ramst <= 0;
         ram_writing <= 0;
         ram_ready <= 0;
     end else begin
-        rv_rd <= 0;
-        rv_wr <= 0;
+        // rv_rd <= 0;
+        // rv_wr <= 0;
         if (flash_loading) begin
             rv_addr <= flash_addr;
+            rv_rd <= 0;
             rv_wr <= flash_wr;
             rv_din <= flash_d;        
             rv_ds <= 2'b11;    
         end else begin
             reg wr = (| mem_wstrb);
             ram_ready <= 0;
-            case (ram_cnt)
-            2'd0:
-                if (mem_valid && ~ram_ready && mem_addr < 8*1024*1024) begin
-                    rv_addr <= {mem_addr[22:2], 2'b00};
-                    if (wr) begin
-                        ram_ready <= 1;                 // allow cpu to move on
-                        rv_wr <= 1;
-                        ram_writing <= 1;
-                        rv_din <= mem_wdata[15:0];      // low 16-bit request
-                        rv_ds <= mem_wstrb[1:0];
-                        rv_din_hi <= mem_wdata[31:16];  // store hi 16-bit request
-                        rv_ds_hi <= mem_wstrb[3:2];
+            if (~clkref) begin                              // everything happens for CPU/RV when clkref == 0
+                case (ramst)
+                2'd0:                                       // issue 1st read/write
+                    if (mem_valid && ~ram_ready && mem_addr < 8*1024*1024) begin
+                        rv_addr <= {mem_addr[22:2], 2'b00};
+                        if (wr) begin
+                            ram_ready <= 1;                 // allow cpu to move on
+                            rv_wr <= 1;
+                            ram_writing <= 1;
+                            rv_din <= mem_wdata[15:0];      // low 16-bit request
+                            rv_ds <= mem_wstrb[1:0];
+                            rv_din_hi <= mem_wdata[31:16];  // store hi 16-bit request
+                            rv_ds_hi <= mem_wstrb[3:2];
+                        end else begin
+                            rv_rd <= 1;
+                        end
+                        ramst <= 2'd1;
+                    end
+                2'd1:                                       // issue 2nd read/write, wait if sdram busy
+                    if (~rv_wait) begin
+                        if (ram_writing) begin  // write hi 16-bit
+                            rv_wr <= 1;
+                            rv_din <= rv_din_hi;
+                            rv_ds <= rv_ds_hi;
+                            rv_addr <= {mem_addr[22:2], 2'b10};                
+                        end else begin          // read hi 16-bit
+                            rv_rd <= 1;
+                            rv_addr <= {mem_addr[22:2], 2'b10};                
+                        end
+                        ramst <= 2;
                     end else begin
-                        rv_rd <= 1;
+                        // retry current request
                     end
-                    ram_cnt <= 1;
-                end
-            2'd1: 
-                if (~rv_wait) begin
-                    if (ram_writing) begin  // write hi 16-bit
-                        rv_wr <= 1;
-                        rv_din <= rv_din_hi;
-                        rv_ds <= rv_ds_hi;
-                        rv_addr <= {mem_addr[22:2], 2'b10};                
-                    end else begin // read hi 16-bit
-                        rv_rd <= 1;
-                        rv_addr <= {mem_addr[22:2], 2'b10};                
-                    end
-                    ram_cnt <= 2;
-                end else begin
-                    {rv_rd, rv_wr} <= {rv_rd, rv_wr};   // retry
-                end
-            2'd2: 
-                if (~rv_wait) begin
-                    if (ram_writing) begin
-                        ram_writing <= 0;
-                        ram_cnt <= 0;
+                2'd2:                                       // write done / collect 1st read, wait if sdram busy
+                    if (~rv_wait) begin
+                        if (ram_writing) begin
+                            ram_writing <= 0;
+                            rv_wr <= 0;
+                            ramst <= 0;
+                        end else begin
+                            ram_rdata[15:0] <= rv_dout; 
+                            rv_rd <= 0;
+                            ramst <= 3;
+                        end
                     end else begin
-                        ram_rdata[15:0] <= rv_dout; 
-                        ram_cnt <= 3;
+                        // retry current request
                     end
-                end else begin
-                    {rv_rd, rv_wr} <= {rv_rd, rv_wr};   // retry
+                2'd3: begin                                 // collect 2nd read
+                    ram_rdata[31:16] <= rv_dout; 
+                    ram_ready <= 1;
+                    ramst <= 0;
                 end
-            2'd3: begin
-                ram_rdata[31:16] <= rv_dout; 
-                ram_ready <= 1;
-                ram_cnt <= 0;
-            end
-            endcase            
+                endcase           
+            end 
         end
 
     end
