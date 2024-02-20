@@ -32,8 +32,8 @@ IO_LOC "sd_clk" D23;
 IO_PORT "sd_clk" PULL_MODE=NONE IO_TYPE=LVCMOS33; 
 IO_LOC "sd_cmd" D24;        // MOSI
 IO_PORT "sd_cmd" PULL_MODE=NONE IO_TYPE=LVCMOS33;
-IO_LOC "sd_dat0" H23;       // MISO
-IO_PORT "sd_dat0" PULL_MODE=NONE IO_TYPE=LVCMOS33;
+IO_LOC "sd_dat0" H23;       // MISO or SD card DO, needs pull-up
+IO_PORT "sd_dat0" PULL_MODE=UP IO_TYPE=LVCMOS33;
 IO_LOC "sd_dat1" J23;       // 1
 IO_PORT "sd_dat1" PULL_MODE=NONE IO_TYPE=LVCMOS33;
 IO_LOC "sd_dat2" A25;       // 1

@@ -249,7 +249,11 @@ always @(posedge MCLK) begin
     end
 end
 
-assign DO = ROM_SEL == 1'b1 ? ROM_Q[7:0] : DSP_SEL == 1'b1 || DP_SEL == 1'b1 ? DSP_DO : SRTC_SEL == 1'b1 ? SRTC_DO : BSRAM_SEL == 1'b1 || OBC1_SEL == 1'b1 ? BSRAM_Q : OPENBUS;
+assign  DO = ROM_SEL == 1'b1 ? ROM_Q[7:0] :
+        DSP_SEL == 1'b1 || DP_SEL == 1'b1 ? DSP_DO :
+        SRTC_SEL == 1'b1 ? SRTC_DO :
+        BSRAM_SEL == 1'b1 || OBC1_SEL == 1'b1 ? BSRAM_Q :
+        OPENBUS;
 assign IRQ_N = 1'b1;
 
 endmodule

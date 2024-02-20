@@ -186,7 +186,13 @@ int load_dir(char *dir, int start, int len, int *count) {
 	DIR d;
 	file_len = 0;
 	// initiaze sd again to be sure
-	if (sd_init() != 0) return 99;
+	int init_ok = 0;
+	for (int i = 0; i <= 10; i++)
+		if (sd_init() == 0) {
+			init_ok = 1;
+			break;
+		}
+	if (!init_ok) return 99;
 
 	if (f_opendir(&d, dir) != 0) {
 		return -1;
@@ -485,7 +491,8 @@ loadrom_end:
 
 int main() {
 	// reg_uart_clkdiv = 94;       // 10800000 / 115200
-	reg_uart_clkdiv = 187;       // 21505400 / 115200
+	// reg_uart_clkdiv = 187;       // 21505400 / 115200
+	reg_uart_clkdiv = 2240;       // 21505400 / 9600
 	overlay(1);
 
 	uart_init();		// init UART output for DEBUG(...)

@@ -13,9 +13,9 @@ module simplespimaster (
 	input resetn,
 
 	// SPI mode: SD_DAT[3]=0, SD_DAT[2]=1, SD_DAT[1]=1
-	output sck,			// SD_SCK
-	output mosi,		// SD_CMD
-	input  miso,		// SD_DAT[0]
+	output sck /* synthesis syn_keep=1*/,			// SD_SCK
+	output mosi /* synthesis syn_keep=1*/,		// SD_CMD
+	input  miso /* synthesis syn_keep=1*/,		// SD_DAT[0]
 	// output cs,			// SD_DAT[3]
 
     input             reg_byte_we,  // 1: write-read a byte 

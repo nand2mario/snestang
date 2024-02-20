@@ -101,7 +101,7 @@ gowin_pll_27 pll_27 (
 gowin_pll_snes pll_snes (
     .clkout0(mclk),
     .clkout1(fclk),
-    .clkout2(fclk_p),            
+    .clkout2(fclk_p),
     .clkin(sys_clk)             // 50 Mhz
 );
 
@@ -365,7 +365,7 @@ reg sdram_clkref;     // every 2 mclk clock cycles
 always @(posedge mclk) sdram_clkref = ~sdram_clkref;
 
 sdram_snes sdram(
-    .clk(fclk), .clkref(clkref), .resetn(resetn), .busy(sdram_busy),
+    .clk(fclk), .clkref(sdram_clkref), .resetn(resetn), .busy(sdram_busy),
 
     // SDRAM pins
     .SDRAM_DQ(IO_sdram_dq), .SDRAM_A(O_sdram_addr), .SDRAM_BA(O_sdram_ba), 

@@ -277,6 +277,15 @@ assign BRR_VOICE = BRR_VOICE_TBL[STEP];
 assign BDS = BDS_TBL[STEP][SUBSTEP];
 assign INS = IS_TBL[STEP][SUBSTEP];
 
+reg [7:0] SMP_DO_buf;
+reg [15:0] SMP_A_buf;
+reg SMP_WE_N_buf;
+always @(posedge CLK) begin
+    SMP_DO_buf <= SMP_DO;
+    SMP_A_buf <= SMP_A;
+    SMP_WE_N_buf <= SMP_WE_N;
+end
+
 always @* begin : ram_addrgen
     reg [1:0] ADDR_INC;
     reg LR;
@@ -377,11 +386,11 @@ always @* begin : ram_addrgen
     // nand2mario: do memory operation in the first phase, so that read data is 
     // available to SMP in second(last) phase earlier (end of first phase), for better timing
     RS_SMP : begin
-        RAM_A = SMP_A;
-        RAM_WE = ~SMP_WE_N;
-        RAM_OE = SMP_WE_N;
-        RAM_DO = SMP_DO;            // buffered to satisfy timing checker  
-        if (SMP_A[15:4]== 12'h00F)
+        RAM_A = SMP_A_buf;
+        RAM_WE = ~SMP_WE_N_buf;
+        RAM_OE = SMP_WE_N_buf;
+        RAM_DO = SMP_DO_buf;            // buffered to satisfy timing checker  
+        if (SMP_A_buf[15:4]== 12'h00F)
             RAM_CE = 0;
         else
             RAM_CE = 1;

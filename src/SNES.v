@@ -168,6 +168,16 @@ SCPU CPU(
     .SYSCLK(), .TURBO()
 );
 
+reg INT_RAMSEL_N_buf, BUSA_SEL_buf, BUSB_SEL_buf;
+reg [7:0] BUSA_DO_buf, BUSB_DO_buf;
+always @(posedge MCLK) begin 
+    INT_RAMSEL_N_buf <= INT_RAMSEL_N;
+    BUSA_SEL_buf <= BUSA_SEL;
+    BUSA_DO_buf <= BUSA_DO;
+    BUSB_SEL_buf <= BUSB_SEL;
+    BUSB_DO_buf <= BUSB_DO;
+end
+
 assign BUSA_SEL =   INT_CA[22] == 1'b0 && INT_CA[15:8] == 8'h20 ? 1'b1 : 
                     INT_CA[22] == 1'b0 && INT_CA[15:8] >= 8'h22 ? 1'b1 : 
                     INT_CA[23:16] >= 8'h40 && INT_CA[23:16] <= 8'h7D ? 1'b1 : 
@@ -181,9 +191,11 @@ assign BUSB_DO =    INT_PA[7:6] == 2'b00 ? PPU_DO :
                     INT_PA[7:2] == 6'b100000 ? WRAM_DO : 
                      8'hFF;
 
-assign CPU_DI =     ~INT_RAMSEL_N ? WRAM_DO : 
-                    BUSA_SEL ? BUSA_DO :
-                    BUSB_SEL ? BUSB_DO : 
+// nand2mario: INT_CA and INT_RAMSEL_N has a critical path from HDMA
+//             buffer to improve timing
+assign CPU_DI =     ~INT_RAMSEL_N_buf ? WRAM_DO : 
+                    BUSA_SEL_buf ? BUSA_DO_buf :
+                    BUSB_SEL_buf ? BUSB_DO_buf : 
                     DI;
 
 // WRAM
