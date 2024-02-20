@@ -164,8 +164,8 @@ wire        simpleuart_reg_dat_sel = mem_valid && (mem_addr == 32'h 0200_0014);
 wire [31:0] simpleuart_reg_dat_do;
 wire        simpleuart_reg_dat_wait;
 
-wire        simplespimaster_reg_byte_sel = mem_valid && (mem_addr == 32'h0200_0020);
-wire        simplespimaster_reg_word_sel = mem_valid && (mem_addr == 32'h0200_0024);
+wire        simplespimaster_reg_byte_sel /* synthesis syn_keep=1 */ = mem_valid && (mem_addr == 32'h0200_0020);
+wire        simplespimaster_reg_word_sel /* synthesis syn_keep=1 */ = mem_valid && (mem_addr == 32'h0200_0024);
 wire [31:0] simplespimaster_reg_do;
 wire        simplespimaster_reg_wait /* synthesis syn_keep=1 */;
 

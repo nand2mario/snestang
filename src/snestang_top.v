@@ -494,7 +494,7 @@ iosys iosys (
     .flash_spi_mosi(flash_spi_mosi), .flash_spi_clk(flash_spi_clk),
     .flash_spi_wp_n(flash_spi_wp_n), .flash_spi_hold_n(flash_spi_hold_n),
 
-    .uart_tx(/*UART_TXD*/), .uart_rx(/*UART_RXD*/),
+    .uart_tx(UART_TXD), .uart_rx(UART_RXD),
 
     .sd_clk(sd_clk), .sd_cmd(sd_cmd), .sd_dat0(sd_dat0), .sd_dat1(sd_dat1),
     .sd_dat2(sd_dat2), .sd_dat3(sd_dat3)
