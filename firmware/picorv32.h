@@ -25,6 +25,7 @@ extern int  printf(const char *fmt,...); /* supports %s, %d, %x */
 extern int  getchar();
 extern int  putchar(int c);
 extern void print_hex(uint32_t v);
+extern void print_hex_digits(uint32_t v, int n);
 extern void print_dec(int v);
 extern int  print(const char *s);
 extern void clear();
@@ -33,8 +34,11 @@ extern char *trimwhitespace(char *str);
 extern void delay(int ms);
 
 // uart
-extern void uart_init();    // set baud rate
+extern void uart_init(int clkdiv);    // baudrate = clock_frequency / clkdiv. clock_frequency = 21505400
 extern int uart_putchar(int c);
+extern void uart_print_hex(uint32_t v);
+extern void uart_print_hex_digits(uint32_t v, int n);
+extern void uart_print_dec(int v);
 extern int uart_print(const char *s);
 extern int uart_printf(const char *fmt,...);
 

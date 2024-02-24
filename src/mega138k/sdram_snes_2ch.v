@@ -1,3 +1,7 @@
+// XXX: This design probably has a timing violation when a CPU request comes while the
+// controller is refreshing. T_RC = 63ns. So there should be 5 cycles between refresh and
+// activate. Currently there's only 4.
+//
 // Double-channel CL2 SDRAM controller for SNES on Tang Mega 138K Pro
 // nand2mario 2024.2
 // 
@@ -276,7 +280,7 @@ always @(posedge clk) begin
                     bsram_rd_buf <= bsram_rd;
                     bsram_wr_buf <= bsram_wr;
                     cpu_din_buf <= {bsram_din, bsram_din};
-                    cpu_ds_buf <= {~bsram_addr[0], bsram_addr[0]};
+                    cpu_ds_buf <= {bsram_addr[0], ~bsram_addr[0]};
                     cpu_col_addr_buf <= bsram_addr[9:1];
                 end else if (rv_rd | rv_wr) begin
                     cmd_next <= CMD_BankActivate;
@@ -335,18 +339,19 @@ always @(posedge clk) begin
 
             // ARAM RAS
             if (cycle[2]) begin
+                refresh <= 0;
                 if (aram_rd | aram_wr) begin  
                     cmd_next <= CMD_BankActivate;
-                    ba_next <= 2'b10;
+                    ba_next <= 2'd2;
                     a_next <= {7'b0, aram_addr[15:10]};
                     aram_rd_buf <= aram_rd;
                     aram_wr_buf <= aram_wr;
                     aram_16_buf <= aram_16;
                     aram_addr_buf[9:0] <= aram_addr[9:0];
                     aram_din_buf <= aram_din;
-                end else if (need_refresh && ~cpu_rd && ~cpu_wr && ~bsram_rd && ~bsram_wr && ~rv_rd && ~rv_wr) begin  
+                end else if (need_refresh && ~cpu_rd_buf && ~cpu_wr_buf && ~bsram_rd_buf && ~bsram_wr_buf && ~rv_rd_buf && ~rv_wr_buf) begin  
                     // refresh when both bank are idle
-                    refresh <= 1'b1;
+                    refresh <= 1;
                     refresh_cnt <= 0;
                     cmd_next <= CMD_AutoRefresh;                
                 end
@@ -356,7 +361,7 @@ always @(posedge clk) begin
             if (cycle[4]) begin
                 if (aram_rd_buf | aram_wr_buf) begin
                     cmd_next <= aram_wr_buf ? CMD_Write : CMD_Read;
-                    ba_next <= 2'b10;
+                    ba_next <= 2'd2;
                     a_next[10] <= 1'b1;                 // set auto precharge
                     a_next[8:0] <= aram_addr_buf[9:1];      // column address
                     SDRAM_DQM <= aram_16_buf ? 2'b0 : {~aram_addr_buf[0], aram_addr_buf[0]}; // DQM

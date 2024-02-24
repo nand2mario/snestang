@@ -26,49 +26,56 @@ module simplespimaster (
     output            reg_wait
 );
 
+assign reg_wait = wait_buf & (reg_byte_we | reg_word_we);
+
 reg [7:0] tx_byte;
 wire [7:0] rx_byte /* synthesis syn_keep=1 */;
 reg spi_start;
 
 reg wait_buf = 1;
-assign reg_wait = wait_buf & (reg_byte_we | reg_word_we);
+reg [1:0] cnt;  // how many bytes are already sent
+reg reg_byte_we_r, reg_word_we_r;
+reg active;
 
-SPI_Master spi_io_master (
+SPI_Master #(.CLKS_PER_HALF_BIT(4)) spi_io_master (
   .i_Clk(clk), .i_Rst_L(resetn),
   .i_TX_Byte(tx_byte), .i_TX_DV(spi_start), .o_TX_Ready(spi_ready),
   .o_RX_DV(spi_rxdv), .o_RX_Byte(rx_byte),
   .o_SPI_Clk(sck), .i_SPI_MISO(miso), .o_SPI_MOSI(mosi)
 );
 
-reg [1:0] cnt;  // how many bytes is already sent
-
-// receiving
+// o_TX_Ready (spi_ready) is after o_RX_DV. so we only use spi_ready
 always @(posedge clk) begin
-    if (!resetn) begin
-        wait_buf <= 1;
+    spi_start <= 0;
+    wait_buf <= 1;
+	if (~resetn) begin
+        reg_byte_we_r <= 0;
+        reg_word_we_r <= 0;
         cnt <= 0;
+        active <= 0;
     end else begin
-        wait_buf <= 1;
-        if (spi_rxdv) begin
-            cnt <= cnt + 2'd1;
-            reg_do[cnt*8 +: 8] <= rx_byte;
-            if (reg_byte_we && cnt == 2'd0 || reg_word_we && cnt == 2'd3) begin
+        reg new_request = reg_byte_we && ~reg_byte_we_r || reg_word_we && ~reg_word_we_r;
+        reg_byte_we_r <= reg_byte_we;
+        reg_word_we_r <= reg_word_we;
+		if (spi_ready && ~spi_start && (new_request || active)) begin
+            // send
+            if (new_request) begin
+                tx_byte <= reg_di[7:0];
+                spi_start <= 1;
+                active <= 1;
+            end else if (reg_word_we && cnt != 2'd3) begin
+	    		tx_byte <= reg_di[(cnt+1)*8 +: 8];
+    			spi_start <= 1;
+                cnt <= cnt + 2'd1;
+            end else begin      // last byte is trasmitted, let CPU continue
                 wait_buf <= 0;
                 cnt <= 0;
+                active <= 0;
             end
-        end        
-    end
-end
 
-// sending
-always @(posedge clk) begin
-	if (!resetn) begin
-		spi_start <= 0;
-	end else begin
-		spi_start <= 0;
-		if (spi_ready && (reg_byte_we || reg_word_we)) begin      // spi_ready is after spi_rxdv
-			spi_start <= 1;
-			tx_byte <= reg_di[cnt*8 +: 8];
+            // receive
+            if (~new_request)
+                reg_do[cnt*8 +: 8] <= rx_byte;
 		end
 	end
 end

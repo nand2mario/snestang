@@ -212,6 +212,20 @@ int sd_init() {
     return 0;
 }
 
+void debug_print_buf(uint8_t *buf, int len) {
+    for (int i = 0; i < len; i++) {
+        if ((i & 0xf) == 0 && i != 0)
+            uart_print("\n");
+        if ((i & 0xf) == 0) {
+            uart_print_hex_digits(i, 3);
+            uart_print(": ");
+        }
+        uart_print(" ");
+        uart_print_hex_digits(buf[i], 2);
+    }
+    uart_print("\n");
+}
+
 int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) {
     uint8_t response;
     uint32_t ctrl;
@@ -241,15 +255,22 @@ int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) 
         // Perform block read (512 bytes)
         spi_readblock(buffer, 512);
 
+        DEBUG("sector: %d\n", start_block-1);
+        debug_print_buf(buffer, 512);
+
         buffer += 512;
 
         // Ignore 16-bit CRC
         spi_receive();
         spi_receive();
 
+        DEBUG("sd_readsector: CRC over\n");
+
         // Additional 8 SPI clocks
         spi_sendrecv(0xFF);
+        DEBUG("sd_readsector: additional 8 spi clocks over\n");
     }
+    DEBUG("sd_readsector: return\n");
     return 1;
 }
 

@@ -181,6 +181,7 @@ int file_len;		// number of files on this page
 // set to valid entries on this page.
 // return: 0 if successful
 int load_dir(char *dir, int start, int len, int *count) {
+	DEBUG("load_dir: %s, start=%d, len=%d\n", dir, start, len);
 	int cnt = 0;
 	int r = 0;
 	DIR d;
@@ -229,6 +230,7 @@ int load_dir(char *dir, int start, int len, int *count) {
 	}
 	f_closedir(&d);
 	*count = cnt;
+	DEBUG("load_dir: count=%d\n", cnt);
 	return 0;
 }
 
