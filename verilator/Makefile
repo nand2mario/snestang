@@ -40,15 +40,15 @@ sim: ./obj_dir/V$N
 	@echo "### SIMULATION (GUI) ###"
 	@cd obj_dir && ./V$N -c 400000000
 
-trace: ./obj_dir/V$N
+trace2: ./obj_dir/V$N
 	@echo
 	@echo "### SIMULATION (trace) ###"
 	@cd obj_dir && ./V$N -t -c 60000000 -s 30000000
 
-trace2: ./obj_dir/V$N
+trace: ./obj_dir/V$N
 	@echo
 	@echo "### SIMULATION (trace) ###"
-	@cd obj_dir && ./V$N -t -c 400000000 2> stderr.log
+	@cd obj_dir && ./V$N -t -c 100000000 2> stderr.log
 
 gtkwave:
 	gtkwave obj_dir/waveform.vcd
