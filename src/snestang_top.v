@@ -83,9 +83,9 @@ wire pause;
 reg [15:0] resetcnt = 16'hffff;
 always @(posedge mclk) begin
     resetcnt <= resetcnt == 0 ? 0 : resetcnt - 1;
-//    if (resetcnt == 0)
+    if (resetcnt == 0)
 //   if (resetcnt == 0 && s0)   // primer25k
-     if (resetcnt == 0 && ~s0)   // mega138k
+//     if (resetcnt == 0 && ~s0)   // mega138k
         resetn <= 1'b1;
 end
 
@@ -240,6 +240,7 @@ parameter USE_GSU=0;
 // parameter USE_GSU=1;
 // `endif
 
+`ifndef DISABLE_SNES
 main #(.USE_DSPn(USE_DSPn), .USE_GSU(USE_GSU)) main (
     .MCLK(mclk), .RESET_N(resetn & ~loading), .ENABLE(enable), 
     .SYSCLKF_CE(sysclkf_ce), .SYSCLKR_CE(sysclkr_ce), .REFRESH(refresh),
@@ -280,6 +281,7 @@ main #(.USE_DSPn(USE_DSPn), .USE_GSU(USE_GSU)) main (
     .DBG_SEL(dbg_sel), .DBG_REG(dbg_reg), .DBG_REG_WR(dbg_reg_wr), .DBG_DAT_IN(dbg_dat_in), 
     .DBG_DAT_OUT(dbg_dat_out), .DBG_BREAK(dbg_break)
 );
+`endif
 
 // SDRAM for SNES ROM, WRAM and ARAM
 wire [15:0] cpu_port0;
@@ -320,15 +322,16 @@ always @(posedge mclk) begin
     end else begin
         
         // ROM read and load
-        if (loading && loader_do_valid && header_finished || ~loading && ~ROM_CE_N && rom_addr_sd != rom_addr) begin
+        if (loading && loader_do_valid && header_finished && loader_addr[0] 
+            || ~loading && ~ROM_CE_N && rom_addr_sd != rom_addr) begin
             rom_addr_sd <= rom_addr;
             cpu_addr <= rom_addr;
             cpu_req <= ~cpu_req;
             cpu_we <= loading;
-            cpu_din <= {loader_do, loader_do};
-            cpu_ds <= {loader_addr[0], ~loader_addr[0]};
+            cpu_din <= {loader_do, loader_do_r};    // write 16 bits on odd addresses
+            cpu_ds <= 2'b11;
             cpu_port <= 0;
-        end 
+        end
         
         // WRAM read/write
         wram_rd_r <= wram_rd; wram_wr_r <= wram_wr;
@@ -531,6 +534,7 @@ smc_parser smc (
     .header_finished(header_finished)
 );
 
+reg [7:0] loader_do_r;
 reg loading_r;
 always @(posedge mclk) begin
     if (~resetn) begin
@@ -538,8 +542,10 @@ always @(posedge mclk) begin
         loaded <= 0;
     end else begin
         loading_r <= loading;
-        if (loader_do_valid && header_finished)
+        if (loader_do_valid && header_finished) begin
             loader_addr <= loader_addr + 23'd1; 
+            loader_do_r <= loader_do;
+        end
         if (loading & ~loading_r) begin
             loader_addr <= 0;
             loaded <= 0;

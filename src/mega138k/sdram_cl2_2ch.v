@@ -71,6 +71,7 @@ module sdram_snes
     
     // Logic side interface
     input             clk,          // sdram clock, max 66.7Mhz
+    input             mclk,
     input             clkref,       // main reference clock, half speed of clk
     input             resetn,
 
