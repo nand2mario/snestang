@@ -213,6 +213,7 @@ int sd_init() {
 }
 
 void debug_print_buf(uint8_t *buf, int len) {
+#ifdef SECTOR_PRINT_FULL
     for (int i = 0; i < len; i++) {
         if ((i & 0xf) == 0 && i != 0)
             uart_print("\n");
@@ -223,6 +224,15 @@ void debug_print_buf(uint8_t *buf, int len) {
         uart_print(" ");
         uart_print_hex_digits(buf[i], 2);
     }
+#else 
+    uart_print_hex_digits(buf[0], 2);
+    uart_print(" ");
+    uart_print_hex_digits(buf[1], 2);
+    uart_print(" ... ");
+    uart_print_hex_digits(buf[510], 2);
+    uart_print(" ");
+    uart_print_hex_digits(buf[511], 2);
+#endif
     uart_print("\n");
 }
 

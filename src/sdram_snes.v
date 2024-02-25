@@ -71,6 +71,7 @@ module sdram_snes
     // Logic side interface
     input             clkref,       // main reference clock, requests are sampled on its rising edge
     input             clk,          // sdram clock
+    input             mclk,         // snes mclk
     input             resetn,
 
     // CPU access (ROM and WRAM) uses bank 0 and 1 (total 16MB)

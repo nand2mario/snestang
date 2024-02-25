@@ -35,7 +35,7 @@ reg spi_start;
 reg wait_buf = 1;
 reg [1:0] cnt;  // how many bytes are already sent
 reg reg_byte_we_r, reg_word_we_r;
-reg active;
+reg active, new_request;
 
 SPI_Master #(.CLKS_PER_HALF_BIT(4)) spi_io_master (
   .i_Clk(clk), .i_Rst_L(resetn),
@@ -54,15 +54,18 @@ always @(posedge clk) begin
         cnt <= 0;
         active <= 0;
     end else begin
-        reg new_request = reg_byte_we && ~reg_byte_we_r || reg_word_we && ~reg_word_we_r;
+        reg new_request_t = reg_byte_we && ~reg_byte_we_r || reg_word_we && ~reg_word_we_r;
+        if (new_request_t)
+            new_request <= 1;
         reg_byte_we_r <= reg_byte_we;
         reg_word_we_r <= reg_word_we;
-		if (spi_ready && ~spi_start && (new_request || active)) begin
+		if (spi_ready && ~spi_start && (new_request_t || new_request || active)) begin
             // send
-            if (new_request) begin
+            if (new_request || new_request_t) begin
                 tx_byte <= reg_di[7:0];
                 spi_start <= 1;
                 active <= 1;
+                new_request <= 0;
             end else if (reg_word_we && cnt != 2'd3) begin
 	    		tx_byte <= reg_di[(cnt+1)*8 +: 8];
     			spi_start <= 1;

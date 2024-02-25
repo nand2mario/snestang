@@ -239,6 +239,8 @@ assign SMP_CPU_DI = BUSA_SEL ? BUSA_DO :
                     ~INT_RAMSEL_N ? WRAM_DO : 
                     CPU_DO;
 
+`ifndef DISABLE_SMP
+
 // SMP
 SMP smp(
    .CLK(DSPCLK), .RST_N(RST_N), .CE(SMP_CE), .ENABLE(SMP_EN), .SYSCLKF_CE(INT_SYSCLKF_CE),
@@ -259,6 +261,8 @@ DSP dsp(
     .SND_RDY(AUDIO_READY), .AUDIO_L(AUDIO_L), .AUDIO_R(AUDIO_R),
     .DBG_REG(DBG_REG), .DBG_DAT_IN(DBG_DAT_IN), .DBG_DAT_OUT(DBG_DSP_DAT), .DBG_DAT_WR(DSP_DBG_WR)
 );
+
+`endif
 
 assign CA = INT_CA;
 assign CPURD_N = INT_CPURD_N;

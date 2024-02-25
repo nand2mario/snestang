@@ -198,7 +198,7 @@ wire pause_snes_for_frame_sync;
 wire [7:0] loader_do;
 wire loader_do_valid, loading, header_finished;
 
-reg [23:0] loader_addr = 0;
+reg [22:0] loader_addr = 0;
 
 reg [7:0] dbg_reg, dbg_sel; 
 wire [7:0] dbg_dat_out, dbg_dat_in;
@@ -235,10 +235,10 @@ parameter USE_GSU=1;
 parameter USE_GSU=0;
 `endif
 
-`ifdef VERILATOR
-parameter USE_DSPn=1;
-parameter USE_GSU=1;
-`endif
+// `ifdef VERILATOR
+// parameter USE_DSPn=1;
+// parameter USE_GSU=1;
+// `endif
 
 main #(.USE_DSPn(USE_DSPn), .USE_GSU(USE_GSU)) main (
     .MCLK(mclk), .RESET_N(resetn & ~loading), .ENABLE(enable), 
@@ -292,7 +292,7 @@ reg [15:0]  cpu_din;
 reg [22:0]  cpu_addr; 
 reg         cpu_we;
 
-wire [22:0] rom_addr = loading ? loader_addr : ROM_ADDR;
+wire [22:0] rom_addr = loading ? loader_addr : ROM_ADDR[22:0];
 reg [22:0]  rom_addr_sd;
 
 reg [16:0]  wram_addr_sd;
@@ -451,6 +451,8 @@ always @(posedge mclk) begin            // RV
             rv_ready <= 1;
             rvst <= RV_IDLE_REQ0;
         end
+
+        default:;
         endcase
     end
 end
@@ -475,7 +477,7 @@ reg sdram_clkref;     // every 2 mclk clock cycles
 always @(posedge mclk) sdram_clkref = ~sdram_clkref;
 
 sdram_snes sdram(
-    .clk(fclk), .clkref(sdram_clkref), .resetn(resetn), .busy(sdram_busy),
+    .clk(fclk), .mclk(mclk), .clkref(sdram_clkref), .resetn(resetn), .busy(sdram_busy),
 
     // SDRAM pins
     .SDRAM_DQ(IO_sdram_dq), .SDRAM_A(O_sdram_addr), .SDRAM_BA(O_sdram_ba), 
@@ -485,7 +487,7 @@ sdram_snes sdram(
     // CPU accesses
     .cpu_addr(cpu_addr[22:1]), .cpu_din(cpu_din), .cpu_port(cpu_port), 
     .cpu_port0(cpu_port0), .cpu_port1(cpu_port1), .cpu_req(cpu_req), .cpu_req_ack(),
-    .cpu_we(cpu_wr), .cpu_ds(cpu_ds),
+    .cpu_we(cpu_we), .cpu_ds(cpu_ds),
 
     // BSRAM accesses
     .bsram_addr(bsram_addr), .bsram_dout(bsram_dout), .bsram_din(bsram_din),
@@ -495,7 +497,7 @@ sdram_snes sdram(
     .aram_16(aram_16), .aram_addr(ARAM_ADDR), .aram_din({ARAM_D, ARAM_D}), 
     .aram_dout(aram_dout), .aram_req(aram_req), .aram_req_ack(), .aram_we(aram_wr),
 
-`ifndef MEGA
+`ifdef SDRAM_3CH
     // VRAM accesses
     .vram1_rd(vram1_new_read), .vram1_wr(~VRAM1_WE_N), 
     .vram2_rd(vram2_new_read & ~vram2_read_delay | vram2_read_delay_r), .vram2_wr(~VRAM2_WE_N),
@@ -505,11 +507,11 @@ sdram_snes sdram(
 `endif
 
     // IOSys risc-v softcore
-    .rv_addr({rv_addr[22:2], rv_word}), .rv_din(rv_word ? rv_wdata[31:16] : rv_wdata[16:0]), 
+    .rv_addr({rv_addr[22:2], rv_word}), .rv_din(rv_word ? rv_wdata[31:16] : rv_wdata[15:0]), 
     .rv_ds(rv_ds), .rv_dout(rv_dout), .rv_req(rv_req), .rv_req_ack(rv_req_ack), .rv_we(rv_wstrb != 0)
 );
 
-`ifdef MEGA
+`ifndef SDRAM_3CH
 // FPGA block RAM for SNES VRAM 
 vram vram(
     .clk(mclk), 
@@ -537,7 +539,7 @@ always @(posedge mclk) begin
     end else begin
         loading_r <= loading;
         if (loader_do_valid && header_finished)
-            loader_addr <= loader_addr + 24'd1; 
+            loader_addr <= loader_addr + 23'd1; 
         if (loading & ~loading_r) begin
             loader_addr <= 0;
             loaded <= 0;
