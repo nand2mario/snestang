@@ -158,6 +158,8 @@ wire [31:0] mem_rdata /* synthesis syn_keep=1 */;
 reg ram_ready;
 reg [31:0] ram_rdata;
 
+wire        ram_sel = mem_valid && mem_addr[31:23] == 0;
+
 wire        textdisp_reg_char_sel /* synthesis syn_keep=1 */= mem_valid && (mem_addr == 32'h 0200_0000);
 
 wire        simpleuart_reg_div_sel = mem_valid && (mem_addr == 32'h 0200_0010);
@@ -295,7 +297,7 @@ assign rv_addr = flash_loading ? flash_addr : mem_addr;
 assign rv_wdata = flash_loading ? {flash_d, flash_d, flash_d, flash_d} : mem_wdata;
 assign rv_wstrb = flash_loading ? flash_wstrb : mem_wstrb;
 assign ram_rdata = rv_rdata;
-assign rv_valid = flash_loading ? flash_wr : mem_valid;
+assign rv_valid = flash_loading ? flash_wr : (mem_valid & ram_sel);
 assign ram_ready = rv_ready;
 
 // assign led = ~{2'b0, (^ total_refresh[7:0]), s0, flash_cnt[12]};     // flash while loading
