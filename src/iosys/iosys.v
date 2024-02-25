@@ -47,18 +47,18 @@ module iosys (
     input [11:0] joy2,              // joystick 2
 
     // ROM loading interface
-    output reg rom_loading,             // 0-to-1 loading starts, 1-to-0 loading is finished
-    output [7:0] rom_do,                // first 64 bytes are snes header + 32 bytes after snes header 
-    output reg rom_do_valid,            // strobe for rom_do
+    output reg rom_loading,         // 0-to-1 loading starts, 1-to-0 loading is finished
+    output [7:0] rom_do,            // first 64 bytes are snes header + 32 bytes after snes header 
+    output reg rom_do_valid,        // strobe for rom_do
     
-    // SDRAM interface for risc-v softcore
-    output reg [22:0] rv_addr,
-    output reg [15:0] rv_din,
-    output reg [1:0] rv_ds,
-    input [15:0] rv_dout,
-    output reg rv_rd,
-    output reg rv_wr,
-    input rv_wait,
+    // 32-bit wide memory interface for risc-v softcore
+    output rv_valid,                // 1: active memory access
+    input rv_ready,                 // pulse when access is done
+    output [22:0] rv_addr,          // 8MB memory space
+    output [31:0] rv_wdata,         // 32-bit write data
+    output [3:0] rv_wstrb,          // 4 byte write strobe
+    input [31:0] rv_rdata,          // 32-bit read data
+
     input ram_busy,                 // iosys starts after SDRAM initialization
 
     // SPI flash
@@ -90,16 +90,16 @@ localparam FIRMWARE_SIZE = 256*1024;
 
 reg flash_loaded;
 reg flash_loading;
-reg [20:0] flash_cnt;
-reg [20:0] flash_addr /* synthesis syn_keep=1 */;
+reg [20:0] flash_addr = {21{1'b1}};
 
 reg flash_start;
 wire [7:0] flash_dout;
 wire flash_out_strb;
 assign flash_spi_hold_n = 1;
 assign flash_spi_wp_n = 0;
-reg [15:0] flash_d;
-reg flash_wr, flash_wr_r;
+reg [7:0] flash_d;
+reg [3:0] flash_wstrb;
+reg flash_wr;
 
 // Load 256KB of ROM from flash address 0x500000 into SDRAM at address 0x0
 spiflash #(.ADDR(24'h500000), .LEN(FIRMWARE_SIZE)) flash (
@@ -114,29 +114,32 @@ spiflash #(.ADDR(24'h500000), .LEN(FIRMWARE_SIZE)) flash (
 always @(posedge clk) begin
     if (~resetn) begin
         flash_loaded <= 0;
-        flash_cnt <= 0;
+        flash_addr = {21{1'b1}};
     end else begin
         flash_start <= 0;
         flash_wr <= 0;
-        flash_wr_r <= 0;
+
         if (~flash_loaded && ~flash_loading && ~ram_busy) begin
             // start loading
             flash_start <= 1;
             flash_loading <= 1;
         end
+
         if (flash_loading) begin
-            if (flash_wr_r)     // make write pulse 2 mclk cycles to make sdram happy
-                flash_wr <= 1;
             if (flash_out_strb) begin
-                if (flash_cnt[0]) begin
-                    flash_d[15:8] <= flash_dout;
-                    flash_wr <= 1;
-                    flash_wr_r <= 1;
-                    flash_addr <= flash_cnt;
-                end else
-                    flash_d[7:0] <= flash_dout;
-                flash_cnt <= flash_cnt + 1;
-                if (flash_cnt + 1 == FIRMWARE_SIZE) begin
+                reg [20:0] next_addr = flash_addr + 1;
+                flash_addr <= next_addr;
+                flash_d <= flash_dout;
+                flash_wr <= 1;
+
+                case (next_addr[1:0])
+                2'b00: flash_wstrb <= 4'b0001;
+                2'b01: flash_wstrb <= 4'b0010;
+                2'b10: flash_wstrb <= 4'b0100;
+                2'b11: flash_wstrb <= 4'b1000;
+                endcase
+
+                if (next_addr == FIRMWARE_SIZE-1) begin
                     flash_loading <= 0;
                     flash_loaded <= 1;
                 end
@@ -288,85 +291,12 @@ always @(posedge clk) begin
 end
 
 // RV memory access
-reg [1:0] ramst;
-reg ram_writing;
-reg [15:0] rv_din_hi;
-reg [1:0] rv_ds_hi;
-always @(posedge clk) begin
-    if (~resetn) begin
-        ramst <= 0;
-        ram_writing <= 0;
-        ram_ready <= 0;
-    end else begin
-        // rv_rd <= 0;
-        // rv_wr <= 0;
-        if (flash_loading) begin
-            rv_addr <= flash_addr;
-            rv_rd <= 0;
-            rv_wr <= flash_wr;
-            rv_din <= flash_d;        
-            rv_ds <= 2'b11;    
-        end else begin
-            reg wr = (| mem_wstrb);
-            ram_ready <= 0;
-            if (~clkref) begin                              // everything happens for CPU/RV when clkref == 0
-                case (ramst)
-                2'd0:                                       // issue 1st read/write
-                    if (mem_valid && ~ram_ready && mem_addr < 8*1024*1024) begin
-                        rv_addr <= {mem_addr[22:2], 2'b00};
-                        if (wr) begin
-                            ram_ready <= 1;                 // allow cpu to move on
-                            rv_wr <= 1;
-                            ram_writing <= 1;
-                            rv_din <= mem_wdata[15:0];      // low 16-bit request
-                            rv_ds <= mem_wstrb[1:0];
-                            rv_din_hi <= mem_wdata[31:16];  // store hi 16-bit request
-                            rv_ds_hi <= mem_wstrb[3:2];
-                        end else begin
-                            rv_rd <= 1;
-                        end
-                        ramst <= 2'd1;
-                    end
-                2'd1:                                       // issue 2nd read/write, wait if sdram busy
-                    if (~rv_wait) begin
-                        if (ram_writing) begin  // write hi 16-bit
-                            rv_wr <= 1;
-                            rv_din <= rv_din_hi;
-                            rv_ds <= rv_ds_hi;
-                            rv_addr <= {mem_addr[22:2], 2'b10};                
-                        end else begin          // read hi 16-bit
-                            rv_rd <= 1;
-                            rv_addr <= {mem_addr[22:2], 2'b10};                
-                        end
-                        ramst <= 2;
-                    end else begin
-                        // retry current request
-                    end
-                2'd2:                                       // write done / collect 1st read, wait if sdram busy
-                    if (~rv_wait) begin
-                        if (ram_writing) begin
-                            ram_writing <= 0;
-                            rv_wr <= 0;
-                            ramst <= 0;
-                        end else begin
-                            ram_rdata[15:0] <= rv_dout; 
-                            rv_rd <= 0;
-                            ramst <= 3;
-                        end
-                    end else begin
-                        // retry current request
-                    end
-                2'd3: begin                                 // collect 2nd read
-                    ram_rdata[31:16] <= rv_dout; 
-                    ram_ready <= 1;
-                    ramst <= 0;
-                end
-                endcase           
-            end 
-        end
-
-    end
-end
+assign rv_addr = flash_loading ? flash_addr : mem_addr;
+assign rv_wdata = flash_loading ? {flash_d, flash_d, flash_d, flash_d} : mem_wdata;
+assign rv_wstrb = flash_loading ? flash_wstrb : mem_wstrb;
+assign ram_rdata = rv_rdata;
+assign rv_valid = flash_loading ? flash_wr : mem_valid;
+assign ram_ready = rv_ready;
 
 // assign led = ~{2'b0, (^ total_refresh[7:0]), s0, flash_cnt[12]};     // flash while loading
 

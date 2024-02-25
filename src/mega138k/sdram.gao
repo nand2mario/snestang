@@ -5,37 +5,28 @@
     <AoCore index="0" sample_clock="fclk" trig_type="0" storage_depth="1024" window_num="1" capture_amount="1024" implementation="0" trigger_pos="0" module_name="snestang_top" force_trigger_by_falling_edge="false">
         <SignalList>
             <Signal capture_enable="true">mclk</Signal>
-            <Bus capture_enable="true" name="iosys/mem_addr[31:2]">
-                <Signal>iosys/mem_addr[31]</Signal>
-                <Signal>iosys/mem_addr[30]</Signal>
-                <Signal>iosys/mem_addr[29]</Signal>
-                <Signal>iosys/mem_addr[28]</Signal>
-                <Signal>iosys/mem_addr[27]</Signal>
-                <Signal>iosys/mem_addr[26]</Signal>
-                <Signal>iosys/mem_addr[25]</Signal>
-                <Signal>iosys/mem_addr[24]</Signal>
-                <Signal>iosys/mem_addr[23]</Signal>
-                <Signal>iosys/mem_addr[22]</Signal>
-                <Signal>iosys/mem_addr[21]</Signal>
-                <Signal>iosys/mem_addr[20]</Signal>
-                <Signal>iosys/mem_addr[19]</Signal>
-                <Signal>iosys/mem_addr[18]</Signal>
-                <Signal>iosys/mem_addr[17]</Signal>
-                <Signal>iosys/mem_addr[16]</Signal>
-                <Signal>iosys/mem_addr[15]</Signal>
-                <Signal>iosys/mem_addr[14]</Signal>
-                <Signal>iosys/mem_addr[13]</Signal>
-                <Signal>iosys/mem_addr[12]</Signal>
-                <Signal>iosys/mem_addr[11]</Signal>
-                <Signal>iosys/mem_addr[10]</Signal>
-                <Signal>iosys/mem_addr[9]</Signal>
-                <Signal>iosys/mem_addr[8]</Signal>
-                <Signal>iosys/mem_addr[7]</Signal>
-                <Signal>iosys/mem_addr[6]</Signal>
-                <Signal>iosys/mem_addr[5]</Signal>
-                <Signal>iosys/mem_addr[4]</Signal>
-                <Signal>iosys/mem_addr[3]</Signal>
-                <Signal>iosys/mem_addr[2]</Signal>
+            <Bus capture_enable="true" name="mem_addr[22:2]">
+                <Signal>mem_addr[22]</Signal>
+                <Signal>mem_addr[21]</Signal>
+                <Signal>mem_addr[20]</Signal>
+                <Signal>mem_addr[19]</Signal>
+                <Signal>mem_addr[18]</Signal>
+                <Signal>mem_addr[17]</Signal>
+                <Signal>mem_addr[16]</Signal>
+                <Signal>mem_addr[15]</Signal>
+                <Signal>mem_addr[14]</Signal>
+                <Signal>mem_addr[13]</Signal>
+                <Signal>mem_addr[12]</Signal>
+                <Signal>mem_addr[11]</Signal>
+                <Signal>mem_addr[10]</Signal>
+                <Signal>mem_addr[9]</Signal>
+                <Signal>mem_addr[8]</Signal>
+                <Signal>mem_addr[7]</Signal>
+                <Signal>mem_addr[6]</Signal>
+                <Signal>mem_addr[5]</Signal>
+                <Signal>mem_addr[4]</Signal>
+                <Signal>mem_addr[3]</Signal>
+                <Signal>mem_addr[2]</Signal>
             </Bus>
             <Bus capture_enable="true" name="iosys/mem_wdata[31:0]">
                 <Signal>iosys/mem_wdata[31]</Signal>
@@ -111,31 +102,143 @@
                 <Signal>iosys/mem_rdata[1]</Signal>
                 <Signal>iosys/mem_rdata[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">iosys/ram_ready</Signal>
-            <Signal capture_enable="true">rv_wait_Z</Signal>
-            <Bus capture_enable="true" name="rv_dout_Z[15:0]">
-                <Signal>rv_dout_Z[15]</Signal>
-                <Signal>rv_dout_Z[14]</Signal>
-                <Signal>rv_dout_Z[13]</Signal>
-                <Signal>rv_dout_Z[12]</Signal>
-                <Signal>rv_dout_Z[11]</Signal>
-                <Signal>rv_dout_Z[10]</Signal>
-                <Signal>rv_dout_Z[9]</Signal>
-                <Signal>rv_dout_Z[8]</Signal>
-                <Signal>rv_dout_Z[7]</Signal>
-                <Signal>rv_dout_Z[6]</Signal>
-                <Signal>rv_dout_Z[5]</Signal>
-                <Signal>rv_dout_Z[4]</Signal>
-                <Signal>rv_dout_Z[3]</Signal>
-                <Signal>rv_dout_Z[2]</Signal>
-                <Signal>rv_dout_Z[1]</Signal>
-                <Signal>rv_dout_Z[0]</Signal>
+            <Signal capture_enable="true">rv_ready</Signal>
+            <Signal capture_enable="true">rv_req</Signal>
+            <Bus capture_enable="true" name="rv_dout0[15:0]">
+                <Signal>rv_dout0[15]</Signal>
+                <Signal>rv_dout0[14]</Signal>
+                <Signal>rv_dout0[13]</Signal>
+                <Signal>rv_dout0[12]</Signal>
+                <Signal>rv_dout0[11]</Signal>
+                <Signal>rv_dout0[10]</Signal>
+                <Signal>rv_dout0[9]</Signal>
+                <Signal>rv_dout0[8]</Signal>
+                <Signal>rv_dout0[7]</Signal>
+                <Signal>rv_dout0[6]</Signal>
+                <Signal>rv_dout0[5]</Signal>
+                <Signal>rv_dout0[4]</Signal>
+                <Signal>rv_dout0[3]</Signal>
+                <Signal>rv_dout0[2]</Signal>
+                <Signal>rv_dout0[1]</Signal>
+                <Signal>rv_dout0[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="iosys/ramst[1:0]">
+            <Bus capture_enable="true" name="sdram/cycle[11:0]">
+                <Signal>sdram/cycle[11]</Signal>
+                <Signal>sdram/cycle[10]</Signal>
+                <Signal>sdram/cycle[9]</Signal>
+                <Signal>sdram/cycle[8]</Signal>
+                <Signal>sdram/cycle[7]</Signal>
+                <Signal>sdram/cycle[6]</Signal>
+                <Signal>sdram/cycle[5]</Signal>
+                <Signal>sdram/cycle[4]</Signal>
+                <Signal>sdram/cycle[3]</Signal>
+                <Signal>sdram/cycle[2]</Signal>
+                <Signal>sdram/cycle[1]</Signal>
+                <Signal>sdram/cycle[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="flash_d[7:0]">
+                <Signal>flash_d[7]</Signal>
+                <Signal>flash_d[6]</Signal>
+                <Signal>flash_d[5]</Signal>
+                <Signal>flash_d[4]</Signal>
+                <Signal>flash_d[3]</Signal>
+                <Signal>flash_d[2]</Signal>
+                <Signal>flash_d[1]</Signal>
+                <Signal>flash_d[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="flash_wstrb[3:0]">
+                <Signal>flash_wstrb[3]</Signal>
+                <Signal>flash_wstrb[2]</Signal>
+                <Signal>flash_wstrb[1]</Signal>
+                <Signal>flash_wstrb[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="flash_addr[20:3]">
+                <Signal>flash_addr[20]</Signal>
+                <Signal>flash_addr[19]</Signal>
+                <Signal>flash_addr[18]</Signal>
+                <Signal>flash_addr[17]</Signal>
+                <Signal>flash_addr[16]</Signal>
+                <Signal>flash_addr[15]</Signal>
+                <Signal>flash_addr[14]</Signal>
+                <Signal>flash_addr[13]</Signal>
+                <Signal>flash_addr[12]</Signal>
+                <Signal>flash_addr[11]</Signal>
+                <Signal>flash_addr[10]</Signal>
+                <Signal>flash_addr[9]</Signal>
+                <Signal>flash_addr[8]</Signal>
+                <Signal>flash_addr[7]</Signal>
+                <Signal>flash_addr[6]</Signal>
+                <Signal>flash_addr[5]</Signal>
+                <Signal>flash_addr[4]</Signal>
+                <Signal>flash_addr[3]</Signal>
+            </Bus>
+            <Signal capture_enable="true">flash_loading</Signal>
+            <Bus capture_enable="true" name="rv_dout[15:0]">
+                <Signal>rv_dout[15]</Signal>
+                <Signal>rv_dout[14]</Signal>
+                <Signal>rv_dout[13]</Signal>
+                <Signal>rv_dout[12]</Signal>
+                <Signal>rv_dout[11]</Signal>
+                <Signal>rv_dout[10]</Signal>
+                <Signal>rv_dout[9]</Signal>
+                <Signal>rv_dout[8]</Signal>
+                <Signal>rv_dout[7]</Signal>
+                <Signal>rv_dout[6]</Signal>
+                <Signal>rv_dout[5]</Signal>
+                <Signal>rv_dout[4]</Signal>
+                <Signal>rv_dout[3]</Signal>
+                <Signal>rv_dout[2]</Signal>
+                <Signal>rv_dout[1]</Signal>
+                <Signal>rv_dout[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">rv_valid_Z</Signal>
+            <Signal capture_enable="true">sdram/rv_req_ack</Signal>
+            <Signal capture_enable="false">rv_rd_Z</Signal>
+            <Signal capture_enable="false">rv_wr_Z</Signal>
+            <Signal capture_enable="false">sdram/cycle_0[5]</Signal>
+            <Signal capture_enable="false">sdram/cycle_0[4]</Signal>
+            <Signal capture_enable="false">sdram/cycle_0[3]</Signal>
+            <Signal capture_enable="false">sdram/cycle_0[2]</Signal>
+            <Signal capture_enable="false">sdram/cycle_0[0]</Signal>
+            <Bus capture_enable="false" name="iosys/mem_addr[31:2]">
+                <Signal>iosys/mem_addr[31]</Signal>
+                <Signal>iosys/mem_addr[30]</Signal>
+                <Signal>iosys/mem_addr[29]</Signal>
+                <Signal>iosys/mem_addr[28]</Signal>
+                <Signal>iosys/mem_addr[27]</Signal>
+                <Signal>iosys/mem_addr[26]</Signal>
+                <Signal>iosys/mem_addr[25]</Signal>
+                <Signal>iosys/mem_addr[24]</Signal>
+                <Signal>iosys/mem_addr[23]</Signal>
+                <Signal>iosys/mem_addr[22]</Signal>
+                <Signal>iosys/mem_addr[21]</Signal>
+                <Signal>iosys/mem_addr[20]</Signal>
+                <Signal>iosys/mem_addr[19]</Signal>
+                <Signal>iosys/mem_addr[18]</Signal>
+                <Signal>iosys/mem_addr[17]</Signal>
+                <Signal>iosys/mem_addr[16]</Signal>
+                <Signal>iosys/mem_addr[15]</Signal>
+                <Signal>iosys/mem_addr[14]</Signal>
+                <Signal>iosys/mem_addr[13]</Signal>
+                <Signal>iosys/mem_addr[12]</Signal>
+                <Signal>iosys/mem_addr[11]</Signal>
+                <Signal>iosys/mem_addr[10]</Signal>
+                <Signal>iosys/mem_addr[9]</Signal>
+                <Signal>iosys/mem_addr[8]</Signal>
+                <Signal>iosys/mem_addr[7]</Signal>
+                <Signal>iosys/mem_addr[6]</Signal>
+                <Signal>iosys/mem_addr[5]</Signal>
+                <Signal>iosys/mem_addr[4]</Signal>
+                <Signal>iosys/mem_addr[3]</Signal>
+                <Signal>iosys/mem_addr[2]</Signal>
+            </Bus>
+            <Signal capture_enable="false">iosys/ram_ready</Signal>
+            <Signal capture_enable="false">rv_wait</Signal>
+            <Bus capture_enable="false" name="iosys/ramst[1:0]">
                 <Signal>iosys/ramst[1]</Signal>
                 <Signal>iosys/ramst[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="iosys/ram_rdata[31:0]">
+            <Bus capture_enable="false" name="iosys/ram_rdata[31:0]">
                 <Signal>iosys/ram_rdata[31]</Signal>
                 <Signal>iosys/ram_rdata[30]</Signal>
                 <Signal>iosys/ram_rdata[29]</Signal>
@@ -169,15 +272,28 @@
                 <Signal>iosys/ram_rdata[1]</Signal>
                 <Signal>iosys/ram_rdata[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">iosys/sdram_clkref</Signal>
-            <Signal capture_enable="true">sdram/cycle_0[5]</Signal>
-            <Signal capture_enable="true">sdram/cycle_0[4]</Signal>
-            <Signal capture_enable="true">sdram/cycle_0[3]</Signal>
-            <Signal capture_enable="true">sdram/cycle_0[2]</Signal>
-            <Signal capture_enable="true">sdram/cycle[1]</Signal>
-            <Signal capture_enable="true">sdram/cycle_0[0]</Signal>
-            <Signal capture_enable="false">rv_rd_Z</Signal>
-            <Signal capture_enable="false">rv_wr_Z</Signal>
+            <Signal capture_enable="false">iosys/sdram_clkref</Signal>
+            <Bus capture_enable="false" name="rv_dout_Z[15:0]">
+                <Signal>rv_dout_Z[15]</Signal>
+                <Signal>rv_dout_Z[14]</Signal>
+                <Signal>rv_dout_Z[13]</Signal>
+                <Signal>rv_dout_Z[12]</Signal>
+                <Signal>rv_dout_Z[11]</Signal>
+                <Signal>rv_dout_Z[10]</Signal>
+                <Signal>rv_dout_Z[9]</Signal>
+                <Signal>rv_dout_Z[8]</Signal>
+                <Signal>rv_dout_Z[7]</Signal>
+                <Signal>rv_dout_Z[6]</Signal>
+                <Signal>rv_dout_Z[5]</Signal>
+                <Signal>rv_dout_Z[4]</Signal>
+                <Signal>rv_dout_Z[3]</Signal>
+                <Signal>rv_dout_Z[2]</Signal>
+                <Signal>rv_dout_Z[1]</Signal>
+                <Signal>rv_dout_Z[0]</Signal>
+            </Bus>
+            <Signal capture_enable="false">rv_req_ack</Signal>
+            <Signal capture_enable="false">rv_valid</Signal>
+            <Signal capture_enable="false">rv_req_ack_Z</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
@@ -185,7 +301,11 @@
                     <Signal>iosys/flash_loaded</Signal>
                 </SignalList>
             </Trigger>
-            <Trigger index="1"/>
+            <Trigger index="1">
+                <SignalList>
+                    <Signal>flash_loading</Signal>
+                </SignalList>
+            </Trigger>
             <Trigger index="2"/>
             <Trigger index="3"/>
             <Trigger index="4"/>
@@ -203,7 +323,7 @@
         </Triggers>
         <MatchUnits>
             <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="0"/>
-            <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="1" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="1"/>
             <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
@@ -223,5 +343,5 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>1101100010101110</GAO_ID>
+    <GAO_ID>1000001011011111</GAO_ID>
 </GAO_CONFIG>

@@ -224,18 +224,23 @@ end
 wire sysclkf_ce, sysclkr_ce;
 wire overlay;
 
-`ifdef VERILATOR
-`define GSU_ACTIVE
+`ifdef CHIP_DSPn
+parameter USE_DSPn=1;
+`else
+parameter USE_DSPn=0;
 `endif
-`ifdef MEGA
-`define GSU_ACTIVE
+`ifdef CHIP_GSU
+parameter USE_GSU=1;
+`else
+parameter USE_GSU=0;
 `endif
 
-main 
-`ifdef GSU_ACTIVE
-#(.USE_GSU(1)) 
+`ifdef VERILATOR
+parameter USE_DSPn=1;
+parameter USE_GSU=1;
 `endif
-main (
+
+main #(.USE_DSPn(USE_DSPn), .USE_GSU(USE_GSU)) main (
     .MCLK(mclk), .RESET_N(resetn & ~loading), .ENABLE(enable), 
     .SYSCLKF_CE(sysclkf_ce), .SYSCLKR_CE(sysclkr_ce), .REFRESH(refresh),
 
@@ -277,72 +282,177 @@ main (
 );
 
 // SDRAM for SNES ROM, WRAM and ARAM
-reg [22:0] cpu_addr; 
 wire [15:0] cpu_port0;
 wire [15:0] cpu_port1;
-reg        cpu_port;
-reg  [1:0] cpu_ds;
-reg [15:0] cpu_din;
-reg        cpu_rd, cpu_wr;
-reg        f2, r2;
+reg         cpu_port;
 
-assign sdram_clk = fclk_p;
-wire aram_rd = ~ARAM_CE_N & ~ARAM_OE_N;
-wire aram_wr = ~ARAM_CE_N & ~ARAM_WE_N;
-always @(posedge mclk) if (aram_rd) aram_lsb <= ARAM_ADDR[0];
+reg         cpu_req;
+reg  [1:0]  cpu_ds;
+reg [15:0]  cpu_din;
+reg [22:0]  cpu_addr; 
+reg         cpu_we;
 
-reg bsram_rd, bsram_wr;
-reg [19:0] bsram_addr;
-reg [7:0] bsram_din;
-wire [7:0] bsram_dout;
+wire [22:0] rom_addr = loading ? loader_addr : ROM_ADDR;
+reg [22:0]  rom_addr_sd;
 
-wire rv_rd, rv_wr;
-wire [15:0] rv_din, rv_dout;
-wire [22:0] rv_addr;
-wire [1:0] rv_ds;
-wire rv_wait;
+reg [16:0]  wram_addr_sd;
+reg         wram_wr_r, wram_rd_r;
 
-reg loader_wr_old;
+reg         bsram_req, bsram_we;
+reg [19:0]  bsram_addr;
+reg [7:0]   bsram_din;
+wire [7:0]  bsram_dout;
+wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC);
+wire        bsram_wr = ~BSRAM_CE_N & ~BSRAM_WE_N;
+reg         bsram_rd_r, bsram_wr_r;
+
+wire        aram_rd = ~ARAM_CE_N & ~ARAM_OE_N;
+wire        aram_wr = ~ARAM_CE_N & ~ARAM_WE_N;
+reg [15:0]  aram_addr_sd;
+reg         aram_rd_r, aram_wr_r;
+reg         aram_req;
+
+assign      sdram_clk = fclk_p;
 
 // Generate SDRAM signals
 always @(posedge mclk) begin
-    reg bsram_rd_t = ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC) & f2;
-    f2 <= sysclkf_ce && enable;
-    r2 <= sysclkr_ce && enable;
-    cpu_rd <= 0;
-    cpu_wr <= 0;
-    // cpu_addr <= 0;
-    // cpu_din <= 0;
-    // cpu_ds <= 0;
-    // cpu_port <= 0;
-    loader_wr_old <= 0;     // make cpu_wr 2 cycles
-    if (loader_wr_old) 
-        cpu_wr <= 1;
-    else if (loading && loader_do_valid && header_finished) begin
-        cpu_addr <= loader_addr[22:0];
-        cpu_wr <= 1;
-        loader_wr_old <= 1;
-        cpu_din <= {loader_do, loader_do};
-        cpu_port <= 0;
-        cpu_ds <= {loader_addr[0], ~loader_addr[0]};
-    end else if (wram_rd | wram_wr) begin
-        cpu_addr <= {6'b111_111, WRAM_ADDR[16:0]};  // 7E,7F:0000-FFFF, total 128KB
-        cpu_ds <= {WRAM_ADDR[0], ~WRAM_ADDR[0]};
-        cpu_din <= {WRAM_D, WRAM_D};        
-        cpu_port <= 1;
-        if (wram_rd && f2) cpu_rd <= 1;
-        if (wram_wr && r2) cpu_wr <= 1;
-    end else if (~ROM_CE_N && ~bsram_rd_t && f2) begin     // ROM reads on R cycles
-        cpu_rd <= 1;
-        cpu_addr <= ROM_ADDR[22:0];
-        cpu_ds <= 2'b11;
-        cpu_port <= 0;
-    end
+    if (~resetn) begin
+    end else begin
+        
+        // ROM read and load
+        if (loading && loader_do_valid && header_finished || ~loading && ~ROM_CE_N && rom_addr_sd != rom_addr) begin
+            rom_addr_sd <= rom_addr;
+            cpu_addr <= rom_addr;
+            cpu_req <= ~cpu_req;
+            cpu_we <= loading;
+            cpu_din <= {loader_do, loader_do};
+            cpu_ds <= {loader_addr[0], ~loader_addr[0]};
+            cpu_port <= 0;
+        end 
+        
+        // WRAM read/write
+        wram_rd_r <= wram_rd; wram_wr_r <= wram_wr;
+        if ((wram_rd && WRAM_ADDR[16:1] != wram_addr_sd[16:1]) || (wram_rd & ~wram_rd_r) || (wram_wr & ~wram_wr_r)) begin
+            wram_addr_sd <= WRAM_ADDR;
+            cpu_req <= ~cpu_req;
+            cpu_addr <= {6'b111_111, WRAM_ADDR[16:0]};  // 7E,7F:0000-FFFF, total 128KB
+            cpu_we <= wram_wr;
+            cpu_ds <= {WRAM_ADDR[0], ~WRAM_ADDR[0]};
+            cpu_din <= {WRAM_D, WRAM_D};        
+            cpu_port <= 1;
+        end 
 
-    bsram_addr <= BSRAM_ADDR;
-    bsram_din <= BSRAM_D;
-    bsram_rd <= bsram_rd_t;
-    bsram_wr <= ~BSRAM_CE_N & ~BSRAM_WE_N & r2;
+        // BSRAM read/write
+        bsram_rd_r <= bsram_rd; bsram_wr_r <= bsram_wr;
+        if (bsram_rd && BSRAM_ADDR != bsram_addr || (bsram_wr & ~bsram_wr_r) || (bsram_rd & ~bsram_rd_r)) begin
+            bsram_addr <= BSRAM_ADDR;
+            bsram_req <= ~bsram_req;
+            bsram_din <= BSRAM_D;
+        end
+
+        // ARAM read/write
+        aram_rd_r <= aram_rd; aram_wr_r <= aram_wr;
+        if (aram_rd && aram_addr_sd != ARAM_ADDR || (aram_wr && aram_addr_sd != ARAM_ADDR) || (aram_rd & ~aram_rd_r) || (aram_wr & aram_wr_r)) begin
+            aram_req <= ~aram_req;
+            aram_addr_sd <= ARAM_ADDR;
+        end
+
+    end
+end
+
+localparam RV_IDLE_REQ0 = 3'd0;
+localparam RV_WAIT0_REQ1 = 3'd1;
+localparam RV_DATA0 = 3'd2;
+localparam RV_WAIT1 = 3'd3;
+localparam RV_DATA1 = 3'd4;
+reg [2:0]   rvst;
+
+wire        rv_valid;
+reg         rv_ready;
+wire [22:0] rv_addr;
+wire [31:0] rv_wdata;
+wire [3:0]  rv_wstrb;
+reg  [15:0] rv_dout0;
+wire [31:0] rv_rdata = {rv_dout, rv_dout0};
+reg         rv_valid_r;
+reg         rv_word;           // which word
+reg         rv_req;
+wire        rv_req_ack;
+wire [15:0] rv_dout;
+reg [1:0]   rv_ds;
+reg         rv_new_req;
+
+always @(posedge mclk) begin            // RV
+    if (~resetn) begin
+        rvst <= RV_IDLE_REQ0;
+        rv_ready <= 0;
+    end else begin
+        reg write = rv_wstrb != 0;
+        reg rv_new_req_t = rv_valid & ~rv_valid_r;
+        if (rv_new_req_t) rv_new_req <= 1;
+
+        rv_ready <= 0;
+        rv_valid_r <= rv_valid;
+
+        case (rvst)
+        RV_IDLE_REQ0: if (rv_new_req || rv_new_req_t) begin
+            rv_new_req <= 0;
+            rv_req <= ~rv_req;
+            if (write && rv_wstrb[1:0] == 2'b0) begin
+                // shortcut for only writing the upper word
+                rv_word <= 1;
+                rv_ds <= rv_wstrb[3:2];
+                rvst <= RV_WAIT1;
+            end else begin
+                rv_word <= 0;
+                if (write)
+                    rv_ds <= rv_wstrb[1:0];
+                else
+                    rv_ds <= 2'b11;
+                rvst <= RV_WAIT0_REQ1;
+            end
+        end
+
+        RV_WAIT0_REQ1: begin
+            if (rv_req == rv_req_ack) begin
+                rv_req <= ~rv_req;      // request 1
+                rv_word <= 1;
+                if (write) begin
+                    rvst <= RV_WAIT1;
+                    if (rv_wstrb[3:2] == 2'b0) begin
+                        // shortcut for only writing the lower word
+                        rv_req <= rv_req;
+                        rv_ready <= 1;
+                        rvst <= RV_IDLE_REQ0;
+                    end
+                    rv_ds <= rv_wstrb[3:2];
+                end else begin
+                    rv_ds <= 2'b11;
+                    rvst <= RV_DATA0;
+                end
+            end
+        end
+
+        RV_DATA0: begin
+            rv_dout0 <= rv_dout;
+            rvst <= RV_WAIT1;
+        end
+            
+        RV_WAIT1: 
+            if (rv_req == rv_req_ack) begin
+                if (write)  begin
+                    rv_ready <= 1;
+                    rvst <= RV_IDLE_REQ0;
+                end else
+                    rvst <= RV_DATA1;
+            end
+
+        RV_DATA1: begin
+            rv_ready <= 1;
+            rvst <= RV_IDLE_REQ0;
+        end
+        endcase
+    end
 end
 
 // VRAM signals are passed on in the same cycle
@@ -374,16 +484,16 @@ sdram_snes sdram(
 
     // CPU accesses
     .cpu_addr(cpu_addr[22:1]), .cpu_din(cpu_din), .cpu_port(cpu_port), 
-    .cpu_port0(cpu_port0), .cpu_port1(cpu_port1), .cpu_rd(cpu_rd), 
-    .cpu_wr(cpu_wr), .cpu_ds(cpu_ds),
+    .cpu_port0(cpu_port0), .cpu_port1(cpu_port1), .cpu_req(cpu_req), .cpu_req_ack(),
+    .cpu_we(cpu_wr), .cpu_ds(cpu_ds),
 
     // BSRAM accesses
     .bsram_addr(bsram_addr), .bsram_dout(bsram_dout), .bsram_din(bsram_din),
-    .bsram_rd(bsram_rd), .bsram_wr(bsram_wr),
+    .bsram_req(bsram_req), .bsram_req_ack(), .bsram_we(bsram_wr),
 
     // ARAM accesses
     .aram_16(aram_16), .aram_addr(ARAM_ADDR), .aram_din({ARAM_D, ARAM_D}), 
-    .aram_dout(aram_dout), .aram_wr(aram_wr), .aram_rd(aram_rd),
+    .aram_dout(aram_dout), .aram_req(aram_req), .aram_req_ack(), .aram_we(aram_wr),
 
 `ifndef MEGA
     // VRAM accesses
@@ -395,8 +505,8 @@ sdram_snes sdram(
 `endif
 
     // IOSys risc-v softcore
-    .rv_addr(rv_addr[22:1]), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
-    .rv_rd(rv_rd), .rv_wr(rv_wr), .rv_wait(rv_wait)
+    .rv_addr({rv_addr[22:2], rv_word}), .rv_din(rv_word ? rv_wdata[31:16] : rv_wdata[16:0]), 
+    .rv_ds(rv_ds), .rv_dout(rv_dout), .rv_req(rv_req), .rv_req_ack(rv_req_ack), .rv_we(rv_wstrb != 0)
 );
 
 `ifdef MEGA
@@ -487,8 +597,8 @@ iosys iosys (
     .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid), 
     .ram_busy(sdram_busy),
 
-    .rv_addr(rv_addr), .rv_din(rv_din), .rv_ds(rv_ds), .rv_dout(rv_dout),
-    .rv_rd(rv_rd), .rv_wr(rv_wr), .rv_wait(rv_wait),
+    .rv_valid(rv_valid), .rv_ready(rv_ready), .rv_addr(rv_addr),
+    .rv_wdata(rv_wdata), .rv_wstrb(rv_wstrb), .rv_rdata(rv_rdata),
 
     .flash_spi_cs_n(flash_spi_cs_n), .flash_spi_miso(flash_spi_miso),
     .flash_spi_mosi(flash_spi_mosi), .flash_spi_clk(flash_spi_clk),
