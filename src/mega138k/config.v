@@ -5,4 +5,4 @@
 
 // For debug purposes
 // `define DISABLE_SNES
-`define DISABLE_SMP
+// `define DISABLE_SMP

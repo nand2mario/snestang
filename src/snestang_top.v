@@ -169,8 +169,7 @@ wire        ARAM_CE_N;
 wire        ARAM_OE_N;
 wire        ARAM_WE_N;
 wire [15:0] aram_dout;
-reg         aram_lsb;       // select which byte to output
-wire  [7:0] ARAM_Q = aram_lsb ? aram_dout[15:8] : aram_dout[7:0];
+wire  [7:0] ARAM_Q = ARAM_ADDR[0] ? aram_dout[15:8] : aram_dout[7:0];
 wire  [7:0] ARAM_D;
 wire        aram_16 = 0;
 
@@ -355,11 +354,10 @@ always @(posedge mclk) begin
 
         // ARAM read/write
         aram_rd_r <= aram_rd; aram_wr_r <= aram_wr;
-        if (aram_rd && aram_addr_sd != ARAM_ADDR || (aram_wr && aram_addr_sd != ARAM_ADDR) || (aram_rd & ~aram_rd_r) || (aram_wr & aram_wr_r)) begin
+        if (aram_rd && aram_addr_sd != ARAM_ADDR || (aram_wr && aram_addr_sd != ARAM_ADDR) || (aram_rd & ~aram_rd_r) || (aram_wr & ~aram_wr_r)) begin
             aram_req <= ~aram_req;
             aram_addr_sd <= ARAM_ADDR;
         end
-
     end
 end
 
