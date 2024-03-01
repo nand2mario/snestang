@@ -28,7 +28,7 @@ module snestang_top (
     output [2:0] tmds_d_p,
 
     // LED
-    output [1:0] led,
+    output [4:0] led,
 
     // MicroSD
     output sd_clk,
@@ -672,10 +672,29 @@ end
 
 reg [19:0] timer;           // 21 times per second
 
-reg [11:0] reached;
+// status display on LED
 
-// LED control
-assign led = ~s0 ? ~(reached[9:5]) : ~{reached[4:0]};
+reg [9:0] status;
+assign led = s0 == 1'b0 ? ~status[9:5] : ~status[4:0];        // s0==0 when pressed, for mega138k
+
+always @(posedge mclk) begin
+    if (loading && ~loading_r)
+        status <= 0;
+    if (loaded) begin
+        case (rom_addr)
+        23'h00_000A: status[1] <= 1;
+        23'h00_00A1: status[2] <= 1;        // Clear_WRAM
+        23'h00_0645: status[3] <= 1;        // Main
+        23'h00_0111: status[4] <= 1;        // DMA_Palette
+        
+        23'h00_06AB: status[5] <= 1;        // Draw_Map
+        23'h00_072A: status[6] <= 1;        // Init_Music
+        23'h00_075F: status[7] <= 1;        // Infinite_loop
+        23'h00_0787: status[8] <= 1;        // left button
+        default: ;
+        endcase
+    end
+end
 
 `endif
 

@@ -61,16 +61,6 @@
                 <Signal>cpu_addr[1]</Signal>
                 <Signal>loading</Signal>
             </Bus>
-            <Bus capture_enable="true" name="main/SNES/CPU/P65_DI[7:0]">
-                <Signal>main/SNES/CPU/P65_DI[7]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[6]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[5]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[4]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[3]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[2]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[1]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[0]</Signal>
-            </Bus>
             <Bus capture_enable="true" name="main/SNES/CPU/P65_DO[7:0]">
                 <Signal>main/SNES/CPU/P65_DO[7]</Signal>
                 <Signal>main/SNES/CPU/P65_DO[6]</Signal>
@@ -141,6 +131,51 @@
                 <Signal>cpu_port0_Z[2]</Signal>
                 <Signal>cpu_port0_Z[1]</Signal>
                 <Signal>cpu_port0_Z[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">main/refresh</Signal>
+            <Signal capture_enable="true">enable</Signal>
+            <Bus capture_enable="true" name="main/SNES/CPU/V_CNT[8:0]">
+                <Signal>main/SNES/CPU/V_CNT[8]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[7]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[6]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[5]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[4]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[3]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[2]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[1]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/CPU/H_CNT[8:0]">
+                <Signal>main/SNES/CPU/H_CNT[8]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[7]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[6]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[5]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[4]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[3]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[2]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[1]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">pause_snes_for_frame_sync_Z</Signal>
+            <Signal capture_enable="true">wram_rd</Signal>
+            <Signal capture_enable="true">wram_wr</Signal>
+            <Bus capture_enable="true" name="WRAM_ADDR[16:1]">
+                <Signal>WRAM_ADDR[16]</Signal>
+                <Signal>WRAM_ADDR[15]</Signal>
+                <Signal>WRAM_ADDR[14]</Signal>
+                <Signal>WRAM_ADDR[13]</Signal>
+                <Signal>WRAM_ADDR[12]</Signal>
+                <Signal>WRAM_ADDR[11]</Signal>
+                <Signal>WRAM_ADDR[10]</Signal>
+                <Signal>WRAM_ADDR[9]</Signal>
+                <Signal>WRAM_ADDR[8]</Signal>
+                <Signal>WRAM_ADDR[7]</Signal>
+                <Signal>WRAM_ADDR[6]</Signal>
+                <Signal>WRAM_ADDR[5]</Signal>
+                <Signal>WRAM_ADDR[4]</Signal>
+                <Signal>WRAM_ADDR[3]</Signal>
+                <Signal>WRAM_ADDR[2]</Signal>
+                <Signal>WRAM_ADDR[1]</Signal>
             </Bus>
             <Bus capture_enable="false" name="sdram/cycle[11:0]">
                 <Signal>sdram/cycle[11]</Signal>
@@ -253,6 +288,17 @@
                 <Signal>cpu_port0[1]</Signal>
                 <Signal>cpu_port0[0]</Signal>
             </Bus>
+            <Signal capture_enable="false">pause_snes_for_frame_sync</Signal>
+            <Bus capture_enable="false" name="main/SNES/CPU/P65_DI[7:0]">
+                <Signal>main/SNES/CPU/P65_DI[7]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[6]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[5]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[4]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[3]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[2]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[1]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[0]</Signal>
+            </Bus>
         </SignalList>
         <Triggers>
             <Trigger index="0">
@@ -291,7 +337,23 @@
                     <Signal>rom_addr[16]</Signal>
                 </SignalList>
             </Trigger>
-            <Trigger index="3"/>
+            <Trigger index="3">
+                <SignalList>
+                    <Signal>main/refresh</Signal>
+                    <Bus restorename="main/SNES/CPU/V_CNT[8:0]">
+                        <Signal>main/SNES/CPU/V_CNT[8]</Signal>
+                        <Signal>main/SNES/CPU/V_CNT[7]</Signal>
+                        <Signal>main/SNES/CPU/V_CNT[6]</Signal>
+                        <Signal>main/SNES/CPU/V_CNT[5]</Signal>
+                        <Signal>main/SNES/CPU/V_CNT[4]</Signal>
+                        <Signal>main/SNES/CPU/V_CNT[3]</Signal>
+                        <Signal>main/SNES/CPU/V_CNT[2]</Signal>
+                        <Signal>main/SNES/CPU/V_CNT[1]</Signal>
+                        <Signal>main/SNES/CPU/V_CNT[0]</Signal>
+                    </Bus>
+                    <Signal>status[6]</Signal>
+                </SignalList>
+            </Trigger>
             <Trigger index="4"/>
             <Trigger index="5">
                 <SignalList>
@@ -327,7 +389,7 @@
             <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="11" value1="00" trigger="0"/>
             <MatchUnit index="1" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="1"/>
             <MatchUnit index="2" enabled="1" match_type="0" counter_enable="0" counter_width="16" counter="16000" countinuous="1" func="0" value0="000011000000000010011" value1="000000000000000000000" trigger="2"/>
-            <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="1" counter="2" countinuous="0" func="0" value0="0001011111101100" value1="0000000000000000" trigger="3"/>
+            <MatchUnit index="3" enabled="1" match_type="0" counter_enable="0" counter_width="1" counter="2" countinuous="0" func="0" value0="10000000101" value1="00000000000" trigger="3"/>
             <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0001000111101100" value1="0000000000000000" trigger="4"/>
             <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1000000000000000" value1="0000000000000000" trigger="4"/>
             <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="1" value0="000000000" value1="000000000" trigger="5"/>
@@ -342,8 +404,8 @@
             <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
         </MatchUnits>
         <Expressions type="Static">
-            <Expression>M2</Expression>
+            <Expression>M3</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>0101000011010101</GAO_ID>
+    <GAO_ID>1001011000100011</GAO_ID>
 </GAO_CONFIG>
