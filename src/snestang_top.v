@@ -272,7 +272,7 @@ main #(.USE_DSPn(USE_DSPn), .USE_GSU(USE_GSU)) main (
 
     .AUDIO_L(audio_l), .AUDIO_R(audio_r), .AUDIO_READY(audio_ready), .AUDIO_EN(audio_en),
 
-    .JOY1_P6(), .JOY2_P6(), .JOY2_P6_in(), .DOT_CLK_CE(), .EXT_RTC(),
+    .JOY1_P6(), .JOY2_P6(), .JOY2_P6_in(), .DOT_CLK_CE(DOT_CLK_CE), .EXT_RTC(),
     .SPC_MODE(), .IO_ADDR(), .IO_DAT(), .IO_WR(), 
 
     .DBG_SEL(dbg_sel), .DBG_REG(dbg_reg), .DBG_REG_WR(dbg_reg_wr), .DBG_DAT_IN(dbg_dat_in), 
@@ -311,6 +311,7 @@ reg [15:0]  aram_addr_sd;
 reg         aram_rd_r, aram_wr_r;
 reg         aram_req;
 
+wire        DOT_CLK_CE;
 assign      sdram_clk = fclk_p;
 
 // Generate SDRAM signals
@@ -477,11 +478,8 @@ always @(posedge mclk) begin
     end
 end
 
-reg sdram_clkref;     // every 2 mclk clock cycles
-always @(posedge mclk) sdram_clkref = ~sdram_clkref;
-
 sdram_snes sdram(
-    .clk(fclk), .mclk(mclk), .clkref(sdram_clkref), .resetn(resetn), .busy(sdram_busy),
+    .clk(fclk), .mclk(mclk), .clkref(DOT_CLK_CE), .resetn(resetn), .busy(sdram_busy),
 
     // SDRAM pins
     .SDRAM_DQ(IO_sdram_dq), .SDRAM_A(O_sdram_addr), .SDRAM_BA(O_sdram_ba), 
@@ -519,10 +517,10 @@ sdram_snes sdram(
 // FPGA block RAM for SNES VRAM 
 vram vram(
     .clk(mclk), 
-    .vram1_addr(VRAM1_ADDR[14:0]), .vram1_req(vram1_req), .vram1_we(~VRAM1_WE_N), 
-    .vram1_din(vram1_din), .vram1_dout(VRAM1_Q), 
-    .vram2_addr(VRAM2_ADDR[14:0]), .vram2_req(vram2_req), .vram2_we(~VRAM2_WE_N), 
-    .vram2_din(vram2_din), .vram2_dout(VRAM2_Q)
+    .vram1_addr(vram1_addr_sd), .vram1_req(vram1_req), .vram1_ack(), 
+    .vram1_we(~vram1_we_n_old), .vram1_din(vram1_din), .vram1_dout(VRAM1_Q), 
+    .vram2_addr(vram2_addr_sd), .vram2_req(vram2_req), .vram2_ack(),
+    .vram2_we(~vram2_we_n_old),  .vram2_din(vram2_din), .vram2_dout(VRAM2_Q)
 );
 `endif
 

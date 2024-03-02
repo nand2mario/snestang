@@ -78,5 +78,6 @@
         <File path="src/iosys.gao" type="file.gao" enable="0"/>
         <File path="src/mega138k/snestang.gao" type="file.gao" enable="0"/>
         <File path="src/smp.gao" type="file.gao" enable="0"/>
+        <File path="src/vram.gao" type="file.gao" enable="1"/>
     </FileList>
 </Project>

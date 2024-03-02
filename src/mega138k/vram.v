@@ -34,7 +34,6 @@ always @(posedge clk) begin
     end
 end
 
-reg vram2_req_r;
 always @(posedge clk) begin
     if (vram2_req ^ vram2_ack) begin
         vram2_ack <= vram2_req;
