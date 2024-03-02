@@ -76,6 +76,7 @@
         <File path="src/snestang.sdc" type="file.sdc" enable="1"/>
         <File path="src/bsram.gao" type="file.gao" enable="0"/>
         <File path="src/iosys.gao" type="file.gao" enable="0"/>
-        <File path="src/mega138k/snestang.gao" type="file.gao" enable="1"/>
+        <File path="src/mega138k/snestang.gao" type="file.gao" enable="0"/>
+        <File path="src/smp.gao" type="file.gao" enable="0"/>
     </FileList>
 </Project>

@@ -36,16 +36,6 @@
                 <Signal>main/SNES/CPU/P65C816/STATE[1]</Signal>
                 <Signal>main/SNES/CPU/P65C816/STATE[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="main/SNES/CPU/P65_DI[7:0]">
-                <Signal>main/SNES/CPU/P65_DI[7]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[6]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[5]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[4]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[3]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[2]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[1]</Signal>
-                <Signal>main/SNES/CPU/P65_DI[0]</Signal>
-            </Bus>
             <Signal capture_enable="true">cpu_req_8</Signal>
             <Signal capture_enable="true">sdram/cpu_req_ack</Signal>
             <Signal capture_enable="true">main/SNES/CPU/DMA_ACTIVEr</Signal>
@@ -304,6 +294,16 @@
                 <Signal>dq_out[2]</Signal>
                 <Signal>dq_out[1]</Signal>
                 <Signal>dq_out[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="main/SNES/CPU/P65_DI[7:0]">
+                <Signal>main/SNES/CPU/P65_DI[7]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[6]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[5]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[4]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[3]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[2]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[1]</Signal>
+                <Signal>main/SNES/CPU/P65_DI[0]</Signal>
             </Bus>
         </SignalList>
         <Triggers>

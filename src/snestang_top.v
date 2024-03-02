@@ -212,7 +212,7 @@ reg enable; // && ~dbg_break && ~pause;
 reg loaded;
 
 always @(posedge mclk) begin        // wait until memory initialize to start SNES
-    if (~sdram_busy  && ~pause_snes_for_frame_sync && loaded)
+    if (~sdram_busy  /* && ~pause_snes_for_frame_sync */&& loaded)
         enable <= 1;
     else 
         enable <= 0;
@@ -456,20 +456,25 @@ always @(posedge mclk) begin            // RV
     end
 end
 
-// VRAM signals are passed on in the same cycle
-reg [14:0] vram1_addr_old, vram2_addr_old;
-reg vram_oe_n_old;
-// a new VRAM read request is present - this removes duplicate requests
-wire vram1_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram1_addr_old != VRAM1_ADDR[14:0]);
-wire vram2_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram2_addr_old != VRAM2_ADDR[14:0]);
-// vram1/vram2 reading different addresses, then delay vram2 read one cycle
-wire vram2_read_delay = vram1_new_read && vram2_new_read && VRAM1_ADDR != VRAM2_ADDR;
-reg vram2_read_delay_r;     
+reg [14:0] vram1_addr_sd, vram2_addr_sd;
+reg vram1_we_n_old, vram2_we_n_old;
+reg vram1_req, vram2_req;
+reg [7:0] vram1_din, vram2_din;
+
 always @(posedge mclk) begin
-    vram_oe_n_old <= VRAM_OE_N;
-    vram1_addr_old <= VRAM1_ADDR[14:0];
-    vram2_addr_old <= VRAM2_ADDR[14:0];
-    vram2_read_delay_r <= vram2_read_delay;
+    vram1_we_n_old <= VRAM1_WE_N;
+    if ((~VRAM1_WE_N & vram1_we_n_old) || (VRAM1_ADDR[14:0] != vram1_addr_sd && ~VRAM_OE_N)) begin
+        vram1_addr_sd <= VRAM1_ADDR[14:0];
+        vram1_din <= VRAM1_D;
+        vram1_req <= ~vram1_req;
+    end
+
+    vram2_we_n_old <= VRAM2_WE_N;
+    if ((~VRAM2_WE_N & vram2_we_n_old) || (VRAM2_ADDR[14:0] != vram2_addr_sd && ~VRAM_OE_N)) begin
+        vram2_addr_sd <= VRAM2_ADDR[14:0];
+        vram2_din <= VRAM2_D;
+        vram2_req <= ~vram2_req;
+    end
 end
 
 reg sdram_clkref;     // every 2 mclk clock cycles
@@ -514,10 +519,10 @@ sdram_snes sdram(
 // FPGA block RAM for SNES VRAM 
 vram vram(
     .clk(mclk), 
-    .addra(VRAM1_ADDR[14:0]), .rda(vram1_new_read), .wra(~VRAM1_WE_N), 
-    .dina(VRAM1_D), .douta(VRAM1_Q), 
-    .addrb(VRAM2_ADDR[14:0]), .rdb(vram2_new_read), .wrb(~VRAM2_WE_N), 
-    .dinb(VRAM2_D), .doutb(VRAM2_Q)
+    .vram1_addr(VRAM1_ADDR[14:0]), .vram1_req(vram1_req), .vram1_we(~VRAM1_WE_N), 
+    .vram1_din(vram1_din), .vram1_dout(VRAM1_Q), 
+    .vram2_addr(VRAM2_ADDR[14:0]), .vram2_req(vram2_req), .vram2_we(~VRAM2_WE_N), 
+    .vram2_din(vram2_din), .vram2_dout(VRAM2_Q)
 );
 `endif
 
