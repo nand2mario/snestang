@@ -28,7 +28,7 @@ module snestang_top (
     output [2:0] tmds_d_p,
 
     // LED
-    output [1:0] led,
+    output [4:0] led,
 
     // MicroSD
     output sd_clk,
@@ -70,7 +70,6 @@ module snestang_top (
 );
 
 // Clock signals
-// wire wclk;                      // Actual work clock for SNES for most components, 1/2 of SNES master clock speed
 wire mclk;                      // SNES master clock at 21.5054Mhz (~21.477)
 wire fclk;                      // Fast clock for sdram for SDRAM
 wire fclk_p;                    // 180-degree shifted fclk
@@ -91,24 +90,23 @@ end
 
 `ifndef VERILATOR
 
-gowin_pll_27 pll_27 (
-    .clkin(sys_clk),
-    .clkout0(clk27)
-);
-
 // DRAM and SNES clocks
 // For Mega 138K: clkout0=21.5054, clkout1=64.5161
+// For Primer 25K: clkout0=21.4844, clkout1=85.9375
 gowin_pll_snes pll_snes (
     .clkout0(mclk),
     .clkout1(fclk),
     .clkout2(fclk_p),
-    .clkin(sys_clk)             // 50 Mhz
+    .clkin(sys_clk)             // 50 Mhz input
 );
 
 // HDMI clocks
+gowin_pll_27 pll_27 (
+    .clkin(sys_clk),
+    .clkout0(clk27)
+);
 gowin_pll_hdmi pll_hdmi (
-    .clkin(clk27), 
-//    .clkin(clk50), 
+    .clkin(clk27),              // 27 Mhz input
     .clkout0(hclk5), .clkout1(hclk)
 );
 
@@ -214,7 +212,7 @@ reg enable; // && ~dbg_break && ~pause;
 reg loaded;
 
 always @(posedge mclk) begin        // wait until memory initialize to start SNES
-    if (~sdram_busy && ~pause_snes_for_frame_sync && loaded)
+    if (~sdram_busy  /* && ~pause_snes_for_frame_sync */&& loaded)
         enable <= 1;
     else 
         enable <= 0;
@@ -274,7 +272,7 @@ main #(.USE_DSPn(USE_DSPn), .USE_GSU(USE_GSU)) main (
 
     .AUDIO_L(audio_l), .AUDIO_R(audio_r), .AUDIO_READY(audio_ready), .AUDIO_EN(audio_en),
 
-    .JOY1_P6(), .JOY2_P6(), .JOY2_P6_in(), .DOT_CLK_CE(), .EXT_RTC(),
+    .JOY1_P6(), .JOY2_P6(), .JOY2_P6_in(), .DOT_CLK_CE(DOT_CLK_CE), .EXT_RTC(),
     .SPC_MODE(), .IO_ADDR(), .IO_DAT(), .IO_WR(), 
 
     .DBG_SEL(dbg_sel), .DBG_REG(dbg_reg), .DBG_REG_WR(dbg_reg_wr), .DBG_DAT_IN(dbg_dat_in), 
@@ -313,6 +311,7 @@ reg [15:0]  aram_addr_sd;
 reg         aram_rd_r, aram_wr_r;
 reg         aram_req;
 
+wire        DOT_CLK_CE;
 assign      sdram_clk = fclk_p;
 
 // Generate SDRAM signals
@@ -458,27 +457,29 @@ always @(posedge mclk) begin            // RV
     end
 end
 
-// VRAM signals are passed on in the same cycle
-reg [14:0] vram1_addr_old, vram2_addr_old;
-reg vram_oe_n_old;
-// a new VRAM read request is present - this removes duplicate requests
-wire vram1_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram1_addr_old != VRAM1_ADDR[14:0]);
-wire vram2_new_read = ~VRAM_OE_N && (vram_oe_n_old || vram2_addr_old != VRAM2_ADDR[14:0]);
-// vram1/vram2 reading different addresses, then delay vram2 read one cycle
-wire vram2_read_delay = vram1_new_read && vram2_new_read && VRAM1_ADDR != VRAM2_ADDR;
-reg vram2_read_delay_r;     
+reg [14:0] vram1_addr_sd, vram2_addr_sd;
+reg vram1_we_n_old, vram2_we_n_old;
+reg vram1_req, vram2_req;
+reg [7:0] vram1_din, vram2_din;
+
 always @(posedge mclk) begin
-    vram_oe_n_old <= VRAM_OE_N;
-    vram1_addr_old <= VRAM1_ADDR[14:0];
-    vram2_addr_old <= VRAM2_ADDR[14:0];
-    vram2_read_delay_r <= vram2_read_delay;
+    vram1_we_n_old <= VRAM1_WE_N;
+    if ((~VRAM1_WE_N & vram1_we_n_old) || (VRAM1_ADDR[14:0] != vram1_addr_sd && ~VRAM_OE_N)) begin
+        vram1_addr_sd <= VRAM1_ADDR[14:0];
+        vram1_din <= VRAM1_D;
+        vram1_req <= ~vram1_req;
+    end
+
+    vram2_we_n_old <= VRAM2_WE_N;
+    if ((~VRAM2_WE_N & vram2_we_n_old) || (VRAM2_ADDR[14:0] != vram2_addr_sd && ~VRAM_OE_N)) begin
+        vram2_addr_sd <= VRAM2_ADDR[14:0];
+        vram2_din <= VRAM2_D;
+        vram2_req <= ~vram2_req;
+    end
 end
 
-reg sdram_clkref;     // every 2 mclk clock cycles
-always @(posedge mclk) sdram_clkref = ~sdram_clkref;
-
 sdram_snes sdram(
-    .clk(fclk), .mclk(mclk), .clkref(sdram_clkref), .resetn(resetn), .busy(sdram_busy),
+    .clk(fclk), .mclk(mclk), .clkref(DOT_CLK_CE), .resetn(resetn), .busy(sdram_busy),
 
     // SDRAM pins
     .SDRAM_DQ(IO_sdram_dq), .SDRAM_A(O_sdram_addr), .SDRAM_BA(O_sdram_ba), 
@@ -516,10 +517,10 @@ sdram_snes sdram(
 // FPGA block RAM for SNES VRAM 
 vram vram(
     .clk(mclk), 
-    .addra(VRAM1_ADDR[14:0]), .rda(vram1_new_read), .wra(~VRAM1_WE_N), 
-    .dina(VRAM1_D), .douta(VRAM1_Q), 
-    .addrb(VRAM2_ADDR[14:0]), .rdb(vram2_new_read), .wrb(~VRAM2_WE_N), 
-    .dinb(VRAM2_D), .doutb(VRAM2_Q)
+    .vram1_addr(vram1_addr_sd), .vram1_req(vram1_req), .vram1_ack(), 
+    .vram1_we(~vram1_we_n_old), .vram1_din(vram1_din), .vram1_dout(VRAM1_Q), 
+    .vram2_addr(vram2_addr_sd), .vram2_req(vram2_req), .vram2_ack(),
+    .vram2_we(~vram2_we_n_old),  .vram2_din(vram2_din), .vram2_dout(VRAM2_Q)
 );
 `endif
 
@@ -672,10 +673,29 @@ end
 
 reg [19:0] timer;           // 21 times per second
 
-reg [11:0] reached;
+// status display on LED
 
-// LED control
-assign led = ~s0 ? ~(reached[9:5]) : ~{reached[4:0]};
+reg [9:0] status;
+assign led = s0 == 1'b0 ? ~status[9:5] : ~status[4:0];        // s0==0 when pressed, for mega138k
+
+always @(posedge mclk) begin
+    if (loading && ~loading_r)
+        status <= 0;
+    if (loaded) begin
+        case (rom_addr)
+        23'h00_000A: status[1] <= 1;
+        23'h00_00A1: status[2] <= 1;        // Clear_WRAM
+        23'h00_0645: status[3] <= 1;        // Main
+        23'h00_0111: status[4] <= 1;        // DMA_Palette
+        
+        23'h00_06AB: status[5] <= 1;        // Draw_Map
+        23'h00_072A: status[6] <= 1;        // Init_Music
+        23'h00_075F: status[7] <= 1;        // Infinite_loop
+        23'h00_0787: status[8] <= 1;        // left button
+        default: ;
+        endcase
+    end
+end
 
 `endif
 

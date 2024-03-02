@@ -80,6 +80,20 @@ always @* begin
     endcase
 end
 
+reg py_logo_active;
+
+always @(posedge hclk) begin
+    if (py == LOGO_Y)
+        py_logo_active <= 1;
+    if (py == LOGO_Y + 14)
+        py_logo_active <= 0;
+
+    if (px >= LOGO_X && px < LOGO_X+71 && py_logo_active)
+        logo_active <= 1;
+    else
+        logo_active <= 0;
+end
+
 always @(posedge hclk) begin
 
     // mem_cnt: cycle counter (0,1,2)
@@ -120,13 +134,10 @@ always @(posedge hclk) begin
         xoff <= px[2:0];
         yoff <= py[2:0];
 
-        if (px >= LOGO_X && px < LOGO_X+71 && py >= LOGO_Y && py < LOGO_Y + 14)
-            logo_active <= 1;
-        else
-            logo_active <= 0;
         logo_x = px - LOGO_X;
         logo_y = py - LOGO_Y;
-        logo_addr <= logo_y * 9 + logo_x[6:3];
+        // logo_addr <= logo_y * 9 + logo_x[6:3];
+        logo_addr <= {logo_y, 3'b0} + logo_y + logo_x[6:3];
         logo_xoff <= logo_x[2:0];
 
         // mem_do_b is character after cycle 0

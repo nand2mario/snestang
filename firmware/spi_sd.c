@@ -241,14 +241,14 @@ int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) 
     uint32_t ctrl;
     int retries = 0;
     int i;
-    DEBUG("sd_readsector: %d %d\n", start_block, sector_count);
+    // DEBUG("sd_readsector: %d %d\n", start_block, sector_count);
     if (sector_count == 0)
         return 0;
     while (sector_count--) {
         // Request block read
         response = sd_send_command(CMD17_READ_SINGLE_BLOCK, start_block++);
         if(response != 0x00) {
-            DEBUG("sd_readsector: Bad response %x\n", response);
+            // DEBUG("sd_readsector: Bad response %x\n", response);
             return 0;
         }
 
@@ -256,7 +256,7 @@ int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) 
         while(spi_receive() != CMD_START_OF_BLOCK) {
             // Timeout
             if(retries > 5000) {
-                DEBUG("sd_readsector: Timeout\n");
+                // DEBUG("sd_readsector: Timeout\n");
                 return 0;
             }
             ++retries;
@@ -265,8 +265,8 @@ int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) 
         // Perform block read (512 bytes)
         spi_readblock(buffer, 512);
 
-        DEBUG("sector: %d\n", start_block-1);
-        debug_print_buf(buffer, 512);
+        // DEBUG("sector: %d\n", start_block-1);
+        // debug_print_buf(buffer, 512);
 
         buffer += 512;
 

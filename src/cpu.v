@@ -21,14 +21,15 @@ module SCPU(
     output reg RAMSEL_N,
     output reg ROMSEL_N,
 
+    output [7:6] JPIO67,
+    output SNES_REFRESH,
+
     // Sys clock: \___/   \___/   
     //            F   R   F   R
     // output LAST_CYCLE,      // Last cycle for current instruction
     output SYSCLK,
     output SYSCLKF_CE,  // Falling edge of SNES sys clock, for CPU operations.
     output SYSCLKR_CE,  // Rising edge of SNES sys clock, for memory accesses.
-    output [7:6] JPIO67,
-    output SNES_REFRESH,
 
     input HBLANK,
     input VBLANK,
@@ -53,10 +54,8 @@ module SCPU(
 
 // clocks
 reg INT_CLK;
-reg INT_CLKF_CE, INT_CLKR_CE;
-
 wire EN;
-reg DOT_CLK_CE;
+reg INT_CLKF_CE, INT_CLKR_CE, DOT_CLK_CE;
 reg [3:0] P65_CLK_CNT;
 reg [2:0] DMA_CLK_CNT;
 localparam [2:0] DMA_LAST_CLOCK = 3'b111;
@@ -74,9 +73,9 @@ wire P65_R_WN;
 wire [23:0] P65_A;
 wire [7:0] P65_DO;
 reg [7:0] P65_DI;
-wire P65_NMI_N; wire P65_IRQ_N;
+wire P65_NMI_N, P65_IRQ_N;
 wire P65_EN;
-wire P65_VPA; wire P65_VDA;
+wire P65_VPA, P65_VDA;
 wire P65_BRK;
 
 parameter [1:0] XSLOW = 0, SLOW = 1, FAST = 2, SLOWFAST = 3;
@@ -102,9 +101,9 @@ reg [1:0] HVIRQ_EN;
 reg AUTO_JOY_EN;
 reg [7:0] WRIO;
 reg [7:0] WRMPYA;
-reg [7:0] WRMPYB;
+// reg [7:0] WRMPYB;
 reg [15:0] WRDIVA;
-reg [7:0] WRDIVB;
+// reg [7:0] WRDIVB;
 reg [8:0] HTIME = 9'b1_1111_1111;
 reg [8:0] VTIME = 9'b1_1111_1111;
 reg [7:0] MDMAEN;
@@ -156,7 +155,7 @@ reg [7:0] HDMA_CH_WORK, HDMA_CH_RUN, HDMA_CH_DO;
 reg [7:0] HDMA_CH_EN;
 reg HDMA_INIT_EXEC, HDMA_RUN_EXEC;
 
-parameter [1:0] DS_IDLE = 0, DS_CH_SEL = 1, DS_TRANSFER = 2;
+parameter [1:0] DS_IDLE = 0, DS_INIT = 1, DS_CH_SEL = 2, DS_TRANSFER = 3;
 reg [1:0] DS;     // DMA state
 
 parameter [2:0] HDS_IDLE = 0, HDS_PRE_INIT = 1, HDS_INIT = 2,
@@ -167,8 +166,6 @@ reg [2:0] HDS;
 reg HDMA_INIT_STEP;
 reg [1:0] DMA_TRMODE_STEP, HDMA_TRMODE_STEP;
 reg HDMA_FIRST_INIT;
-// MMM: manually translated
-// typedef logic [1:0] DmaTransMode[0:7][0:3];
 parameter [1:0] DMA_TRMODE_TAB[0:7][0:3] = '{
     '{2'b00,2'b00,2'b00,2'b00},
     '{2'b00,2'b01,2'b00,2'b01},
@@ -182,15 +179,31 @@ parameter [1:0] DMA_TRMODE_TAB[0:7][0:3] = '{
 // typedef logic [1:0] DmaTransLenth[0:7];
 parameter [1:0] DMA_TRMODE_LEN[0:7] = '{2'b00,2'b01,2'b01,2'b11,2'b11,2'b11,2'b01,2'b11};
 
-function logic [2:0] NextDMACh(logic [7:0] data);
-    return  data[0] ? 0 :
-            data[1] ? 1 :
-            data[2] ? 2 :
-            data[3] ? 3 :
-            data[4] ? 4 :
-            data[5] ? 5 :
-            data[6] ? 6 :
-            data[7] ? 7 : 0;
+//  function logic [2:0] GetDMACh(logic [7:0] data);
+//      return  data[0] ? 0 :
+//              data[1] ? 1 :
+//              data[2] ? 2 :
+//              data[3] ? 3 :
+//              data[4] ? 4 :
+//              data[5] ? 5 :
+//              data[6] ? 6 :
+//              data[7] ? 7 : 0;
+//  endfunction
+
+function logic [2:0] GetDMACh(logic [7:0] data);
+    reg b1,b2,b3,b4,b5,b6,b7;
+    reg [2:0] v;
+    b1 = ~data[0] & data[1];
+    b2 = ~data[0] & ~data[1] & data[2];
+    b3 = ~data[0] & ~data[1] & ~data[2] & data[3];
+    b4 = ~data[0] & ~data[1] & ~data[2] & ~data[3] & data[4];
+    b5 = ~data[0] & ~data[1] & ~data[2] & ~data[3] & ~data[4] & data[5];
+    b6 = ~data[0] & ~data[1] & ~data[2] & ~data[3] & ~data[4] & ~data[5] & data[6];
+    b7 = ~data[0] & ~data[1] & ~data[2] & ~data[3] & ~data[4] & ~data[5] & ~data[6] & data[7];
+   v[0] = b1 | b3 | b5 | b7;
+   v[1] = b2 | b3 | b6 | b7;
+   v[2] = b4 | b5 | b6 | b7;
+   return v;
 endfunction
 
 function logic IsLastHDMACh(logic [7:0] data, logic [2:0] ch);
@@ -230,7 +243,7 @@ always @* begin
         CPU_LAST_CLOCK = 4'd4;	
     else if (REFRESHED && CPU_ACTIVEr)
         CPU_LAST_CLOCK = 4'd7;	
-    else if (SPEED == FAST || (SPEED == SLOWFAST && ~MEMSEL))
+    else if (SPEED == FAST || (SPEED == SLOWFAST && MEMSEL))
         CPU_LAST_CLOCK = 4'd5;
     else if (SPEED == SLOW || (SPEED == SLOWFAST && ~MEMSEL))
         CPU_LAST_CLOCK = 4'd7;
@@ -239,7 +252,7 @@ always @* begin
 end
 
 always @(posedge CLK) begin : cpu_clk_gen
-    if(RST_N == 1'b0) begin
+    if (~RST_N) begin
         P65_CLK_CNT <= 0;
         DMA_CLK_CNT <= 0;
         INT_CLK <= 1;
@@ -267,12 +280,12 @@ always @(posedge CLK) begin : cpu_clk_gen
         if (DMA_ACTIVEr || ~ENABLE) begin
             if (DMA_CLK_CNT == DMA_MID_CLOCK)
                 INT_CLK <= 1;
-            else
+            else if (DMA_CLK_CNT == DMA_LAST_CLOCK)
                 INT_CLK <= 0;
         end else if (CPU_ACTIVEr) begin
             if (P65_CLK_CNT == CPU_MID_CLOCK)
                 INT_CLK <= 1;
-            else
+            else if (P65_CLK_CNT >= CPU_LAST_CLOCK)
                 INT_CLK <= 0;
         end
     end
@@ -334,7 +347,7 @@ always @* begin
                  P65_A[15:13] == 3'b011)                // $6000-$7FFF | Slow
             SPEED = SLOW;
         else if (P65_A[15]) begin                       // $8000-$FFFF | Fast,Slow
-            if (P65_A[23] == 1'b0)
+            if (~P65_A[23])
                 SPEED = SLOW;
             else
                 SPEED = SLOWFAST;
@@ -356,15 +369,15 @@ always @* begin
 
     CA = INT_A;
     
-    if(~INT_A[22]) begin                        //$00-$3F, $80-$BF
-        if(INT_A[15:13] <= 3'b000) begin        //$0000-$1FFF | Slow  | Address Bus A + /WRAM (mirror $7E:0000-$1FFF)
+    if (~INT_A[22]) begin                       //$00-$3F, $80-$BF
+        if (INT_A[15:13] <= 3'b000) begin       //$0000-$1FFF | Slow  | Address Bus A + /WRAM (mirror $7E:0000-$1FFF)
             CA[23:13] = {8'h7E,3'b000};
             RAMSEL_N = 1'b0;
-        end else if(INT_A[15])                  //$8000-$FFFF | Slow  | Address Bus A + /CART
+        end else if (INT_A[15])                 //$8000-$FFFF | Slow  | Address Bus A + /CART
             ROMSEL_N = 1'b0;
     end else begin                              //$40-$7F, $C0-$FF
         if (INT_A[23:17] == 7'b0111111)         //$7E-$7F | $0000-$FFFF | Slow  | Address Bus A + /WRAM
-            RAMSEL_N = 1'b0;      
+            RAMSEL_N = 1'b0;
         else if (INT_A[23:22] == 2'b01          //$40-$7D | $0000-$FFFF | Slow  | Address Bus A + /CART
               || INT_A[23:22] == 2'b11)         //$C0-$FF | $0000-$FFFF | Fast,Slow | Address Bus A + /CART
             ROMSEL_N = 1'b0;
@@ -375,18 +388,15 @@ always @(posedge CLK) begin
     if (~RST_N) begin
         CPU_WR <= 0;
         CPU_RD <= 0;
-    end else if (EN) begin
-        if (SYSCLKR_CE) begin
-            if (P65_EN && (P65_VPA || P65_VDA)) begin
+    end else begin
+        if (EN) begin
+            if (P65_EN && (P65_VPA || P65_VDA) && INT_CLKR_CE) begin
                 CPU_WR <= ~P65_R_WN;
                 CPU_RD <= P65_R_WN;
-            end else begin
+            end else if (INT_CLKF_CE) begin
                 CPU_WR <= 0;
                 CPU_RD <= 0;
             end   
-        end if (SYSCLKF_CE) begin
-            CPU_WR <= 0;
-            CPU_RD <= 0;
         end
     end
 end
@@ -400,7 +410,7 @@ always @* begin
         PA = DMA_B;
         PARD_N =  ~DMA_B_RD;
         PAWR_N =  ~DMA_B_WR;
-    end else if (P65_A[22] == 1'b0 && P65_A[15:8] == 8'h21 && P65_EN) begin
+    end else if (~P65_A[22] && P65_A[15:8] == 8'h21 && P65_EN) begin
         PA = P65_A[7:0];
         PARD_N = ~CPU_RD; 
         PAWR_N = ~CPU_WR;
@@ -431,7 +441,7 @@ always @* begin
         PARD_CYC_N = ~HDMA_B_RD_CYC;
     else if (DMA_RUN && EN)
         PARD_CYC_N = ~DMA_B_RD_CYC;
-    else if (P65_A[22] == 1'b0 && P65_A[15:8] == 8'h21 && P65_EN)
+    else if (~P65_A[22] && P65_A[15:8] == 8'h21 && P65_EN)
         PARD_CYC_N = ~P65_R_WN;
     else
         PARD_CYC_N = 1'b1;
@@ -464,9 +474,9 @@ always @(posedge CLK) begin
         if (P65_A[15:8] == 8'h42 && ~P65_R_WN && IO_SEL) begin
             case (P65_A[7:0])
             8'h00 : begin
-                NMI_EN <= P65_DO[7];
-                HVIRQ_EN <= P65_DO[5:4];
                 AUTO_JOY_EN <= P65_DO[0];
+                HVIRQ_EN <= P65_DO[5:4];
+                NMI_EN <= P65_DO[7];
             end
             8'h01 :
                 WRIO <= P65_DO;
@@ -565,10 +575,10 @@ always @(posedge CLK) begin
             if (HVIRQ_EN != 2'b00 && IRQ_VALID && ~IRQ_VALID_OLD && DOT_CLK_CE) begin
                 IRQ_FLAG <= 1;
                 IRQ_LOCK <= 1;
-            end else if (TIMEUP_READ && ~IRQ_LOCK && SYSCLKF_CE) 
+            end else if (TIMEUP_READ && ~IRQ_LOCK && INT_CLKF_CE) 
                 IRQ_FLAG <= 0;
         
-            if (HVIRQ_DISABLE && SYSCLKF_CE)
+            if (HVIRQ_DISABLE && INT_CLKF_CE)
                 IRQ_FLAG <= 0;
             
             if (~HBLANK && HBLANK_OLD)
@@ -693,7 +703,7 @@ always @* begin : P4
             default : 
                 P65_DI = MDR;
             endcase
-        end else if (P65_A[15:8] == 8'h43) begin
+        end else if (P65_A[15:7] == {8'h43, 1'b0}) begin
             i = P65_A[6:4];
             case (P65_A[3:0])
             4'h0 :
@@ -718,12 +728,12 @@ always @* begin : P4
                 P65_DI = A2A[i][15:8];                           //A2AxH
             4'hA :
                 P65_DI = NTLR[i];                                //NTLRx
-            4'hB :
+            4'hB, 4'hF :
                 P65_DI = UNUSED[i];                              //UNUSEDx
             default : 
                 P65_DI = MDR;
             endcase
-        end else if(P65_A[15:8] == 8'h40) begin
+        end else if (P65_A[15:8] == 8'h40) begin
             case (P65_A[7:0])
             8'h16 :
                 P65_DI = {MDR[7:2], ~JOY1_DI[1], ~JOY1_DI[0]};
@@ -757,9 +767,6 @@ always @(posedge CLK) begin
 end
 
 assign DO = MDR;
-// nand2mario: we need the P65_DO for writes in phase 0 or 1
-// assign DO = P65_EN && (P65_VPA || P65_VDA) && ~P65_R_WN ?
-//        P65_DO : MDR;
 
 // H/V Counters
 always @(posedge CLK) begin
@@ -800,7 +807,7 @@ end
 
 // WRAM refresh once per scanline
 always @(posedge CLK) begin
-    if (RST_N == 1'b0) begin
+    if (~RST_N) begin
         REFRESHED <= 1'b0;
         REFS <= REFS_IDLE;
         REFRESH_CNT <= 0;
@@ -809,7 +816,7 @@ always @(posedge CLK) begin
         HBLANK_REF_OLD <= HBLANK;
         case(REFS)
         REFS_IDLE:     
-            if(H_CNT >= 133) begin
+            if (H_CNT >= 133) begin
                 REFRESHED <= 1;
                 REFS <= REFS_EXEC;
             end
@@ -869,7 +876,7 @@ always @(posedge CLK) begin : P2
         HDMA_INIT_EXEC <= 1'b1;
         HDMA_RUN_EXEC <= 1'b0;
     end else begin
-        if (P65_R_WN == 1'b0 && IO_SEL && INT_CLKF_CE) begin
+        if (~P65_R_WN && IO_SEL && INT_CLKF_CE) begin
             if (P65_A[15:8] == 8'h42) begin
                 case (P65_A[7:0])
                 8'h0B :
@@ -881,38 +888,26 @@ always @(posedge CLK) begin : P2
             end else if (P65_A[15:7] == {8'h43, 1'b0}) begin
                 i = P65_A[6:4];
                 case (P65_A[3:0])
-                4'h0 :
-                    DMAP[i] <= P65_DO;
-                4'h1 :
-                    BBAD[i] <= P65_DO;
-                4'h2 :
-                    A1T[i][7:0] <= P65_DO;
-                4'h3 :
-                    A1T[i][15:8] <= P65_DO;
-                4'h4 :
-                    A1B[i] <= P65_DO;
-                4'h5 :
-                    DAS[i][7:0] <= P65_DO;
-                4'h6 :
-                    DAS[i][15:8] <= P65_DO;
-                4'h7 :
-                    DASB[i] <= P65_DO;
-                4'h8 :
-                    A2A[i][7:0] <= P65_DO;
-                4'h9 :
-                    A2A[i][15:8] <= P65_DO;
-                4'hA :
-                    NTLR[i] <= P65_DO;
-                4'hB,4'hF :
-                    UNUSED[i] <= P65_DO;
-                default : begin end
+                4'h0 : DMAP[i] <= P65_DO;
+                4'h1 : BBAD[i] <= P65_DO;
+                4'h2 : A1T[i][7:0] <= P65_DO;
+                4'h3 : A1T[i][15:8] <= P65_DO;
+                4'h4 : A1B[i] <= P65_DO;
+                4'h5 : DAS[i][7:0] <= P65_DO;
+                4'h6 : DAS[i][15:8] <= P65_DO;
+                4'h7 : DASB[i] <= P65_DO;
+                4'h8 : A2A[i][7:0] <= P65_DO;
+                4'h9 : A2A[i][15:8] <= P65_DO;
+                4'hA : NTLR[i] <= P65_DO;
+                4'hB,4'hF : UNUSED[i] <= P65_DO;
+                default : ;
                 endcase
             end
         end
 
         if (EN && INT_CLKF_CE) begin
             //DMA
-            if(~HDMA_RUN) begin
+            if (~HDMA_RUN) begin
                 case(DS)
                 DS_IDLE : begin
                     if (MDMAEN != 8'h00) begin
@@ -923,7 +918,7 @@ always @(posedge CLK) begin : P2
                 DS_CH_SEL : begin
                     if (MDMAEN != 8'h00) begin
                         DAS[DCH] <= DAS[DCH] - 16'd1;
-                        DMA_TRMODE_STEP <= {2{1'b0}};
+                        DMA_TRMODE_STEP <= 0;
                         DS <= DS_TRANSFER;
                     end else begin
                         DMA_RUN <= 1'b0;
@@ -952,7 +947,7 @@ always @(posedge CLK) begin : P2
             end
 
             //HDMA
-            case(HDS)
+            case (HDS)
             HDS_IDLE : begin
                 if (H_CNT >= 6 && V_CNT == 0 && ~HDMA_INIT_EXEC) begin
                     HDMA_CH_RUN <= 8'b1111_1111;
@@ -967,7 +962,7 @@ always @(posedge CLK) begin : P2
                     HDMA_INIT_EXEC <= 0;
 
                 if (H_CNT >= 277 && ~VBLANK && ~HDMA_RUN_EXEC) begin
-                    if((HDMA_CH_RUN & HDMAEN) != 8'h00) begin
+                    if ((HDMA_CH_RUN & HDMAEN) != 8'h00) begin
                         HDMA_RUN <= 1'b1;
                         HDS <= HDS_PRE_TRANSFER;
                     end
@@ -992,7 +987,7 @@ always @(posedge CLK) begin : P2
 
             HDS_INIT : begin
                 NEXT_NTLR = NTLR[HCH] - 8'd1;
-                if(NEXT_NTLR[6:0] == 7'b0000000 || HDMA_FIRST_INIT) begin
+                if (NEXT_NTLR[6:0] == 7'b0 || HDMA_FIRST_INIT) begin
                     NTLR[HCH] <= DI;
 
                     if (DI == 8'h00) begin
@@ -1101,8 +1096,8 @@ end
 
 `endif
 
-assign HCH = NextDMACh(HDMA_CH_WORK);
-assign DCH = NextDMACh(MDMAEN);
+assign HCH = GetDMACh(HDMA_CH_WORK);
+assign DCH = GetDMACh(MDMAEN);
 
 assign DMA_A = DS == DS_TRANSFER ? {A1B[DCH],A1T[DCH]} : 0;
 
@@ -1114,8 +1109,6 @@ assign HDMA_A = DMAP[HCH][6] && HDS == HDS_TRANSFER ? {DASB[HCH], DAS[HCH]} :
                 {24{1'b1}};
 assign HDMA_B = HDS == HDS_TRANSFER ? BBAD[HCH] + {6'b0, DMA_TRMODE_TAB[DMAP[HCH][2:0]][HDMA_TRMODE_STEP]} :
                 {8{1'b1}};
-
-//XXX TODO here
 
 // These controls DMA between A and B bus, in both directions
 // - DMA_A, DMA_A_RD, DMA_A_WR
@@ -1131,8 +1124,8 @@ always @* begin
     if (DS == DS_TRANSFER) begin
         DMA_A_WR_CYC = DMAP[DCH][7];
         DMA_A_RD_CYC = ~DMAP[DCH][7];
-        DMA_B_RD_CYC = DMAP[DCH][7];
         DMA_B_WR_CYC = ~DMAP[DCH][7];
+        DMA_B_RD_CYC = DMAP[DCH][7];
     end
 
     HDMA_A_WR_CYC = 1'b0;
