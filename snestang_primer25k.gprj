@@ -28,7 +28,6 @@
         <File path="src/gowin_dpb_cgram.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_dpb_hoam.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_dpb_oam.v" type="file.verilog" enable="1"/>
-        <File path="src/gowin_dpb_spr_buf.v" type="file.verilog" enable="1"/>
         <File path="src/hdmi2/audio_clock_regeneration_packet.sv" type="file.verilog" enable="1"/>
         <File path="src/hdmi2/audio_info_frame.sv" type="file.verilog" enable="1"/>
         <File path="src/hdmi2/audio_sample_packet.sv" type="file.verilog" enable="1"/>
@@ -48,16 +47,17 @@
         <File path="src/iosys/spiflash.v" type="file.verilog" enable="1"/>
         <File path="src/iosys/textdisp.v" type="file.verilog" enable="1"/>
         <File path="src/main.v" type="file.verilog" enable="1"/>
+        <File path="src/mega138k/vram.v" type="file.verilog" enable="1"/>
         <File path="src/ppu.v" type="file.verilog" enable="1"/>
         <File path="src/ppucgram.v" type="file.verilog" enable="1"/>
         <File path="src/ppuhoam.v" type="file.verilog" enable="1"/>
         <File path="src/ppuoam.v" type="file.verilog" enable="1"/>
-        <File path="src/ppusprbuf.v" type="file.verilog" enable="1"/>
         <File path="src/primer25k/config.v" type="file.verilog" enable="1"/>
         <File path="src/primer25k/gowin_pll_27.v" type="file.verilog" enable="1"/>
         <File path="src/primer25k/gowin_pll_hdmi.v" type="file.verilog" enable="1"/>
         <File path="src/primer25k/gowin_pll_snes.v" type="file.verilog" enable="1"/>
         <File path="src/sdram_snes.v" type="file.verilog" enable="1"/>
+        <File path="src/smc_parser.v" type="file.verilog" enable="1"/>
         <File path="src/smp.v" type="file.verilog" enable="1"/>
         <File path="src/snes.v" type="file.verilog" enable="1"/>
         <File path="src/snes2hdmi.v" type="file.verilog" enable="1"/>

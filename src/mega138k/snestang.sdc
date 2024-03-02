@@ -1,4 +1,3 @@
-
 // set_multicycle_path: https://docs.xilinx.com/r/en-US/ug903-vivado-using-constraints/set_multicycle_path-Syntax
 
 create_clock -name sys_clk -period 20 -waveform {0 10} [get_ports {sys_clk}]
