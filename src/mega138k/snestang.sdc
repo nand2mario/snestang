@@ -17,14 +17,14 @@ set_multicycle_path 2 -setup -end -from [get_clocks {mclk}] -to [get_clocks {fcl
 set_multicycle_path 1 -hold -end -from [get_clocks {mclk}] -to [get_clocks {fclk}]
 
 // sdram to SNES
-set_multicycle_path 3 -setup -start -from [get_clocks {fclk}] -to [get_clocks {mclk}]
-set_multicycle_path 2 -hold -start -from [get_clocks {fclk}] -to [get_clocks {mclk}]
+set_multicycle_path 2 -setup -start -from [get_clocks {fclk}] -to [get_clocks {mclk}]
+set_multicycle_path 1 -hold -start -from [get_clocks {fclk}] -to [get_clocks {mclk}]
 
 // Last constraint takes precedence: PPU to sdram is even longer at 6 fclk cycles
 //set_multicycle_path 6 -setup -end -from [get_nets {main/SNES/PPU/BG*}] -to [get_clocks {fclk}]
 //set_multicycle_path 5 -hold -end -from [get_nets {main/SNES/PPU/BG*}] -to [get_clocks {fclk}]
 
 // false paths
-//set_false_path -from [get_regs {main/SNES/smp/CPUO*}] -to [get_regs {sdram/dq_out*}]
-//set_false_path -from [get_clocks {fclk}] -through [get_nets {main/SNES/smp/SPC700_D_IN*}] -to [get_clocks {fclk}]
+set_false_path -from [get_regs {main/SNES/smp/CPUO*}] -to [get_regs {sdram/dq_out*}]
+set_false_path -from [get_clocks {fclk}] -through [get_nets {main/SNES/smp/SPC700_D_IN*}] -to [get_clocks {fclk}]
 
