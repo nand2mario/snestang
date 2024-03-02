@@ -72,7 +72,7 @@ module snes2hdmi (
     // BRAM line buffer for 16 lines. Each pixel is 5:5:5 RGB
     // Each BRAM block holds 4 lines. So 16 lines needs 4 blocks.
     //
-    localparam BUF_WIDTH = 4;        // 2 ^ BUF_WIDTH lines
+    localparam BUF_WIDTH = 3;        // 2 ^ BUF_WIDTH lines
     localparam BUF_SIZE = 1 << BUF_WIDTH;
     reg [14:0] mem [0:BUF_SIZE*256-1];
     reg [11:0] mem_portA_addr;
