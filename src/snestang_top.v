@@ -595,7 +595,7 @@ snes2hdmi s2h(
 
 // IOSys for menu, rom loading...
 iosys iosys (
-    .clk(mclk), .hclk(hclk), .clkref(sdram_clkref), .resetn(resetn),
+    .clk(mclk), .hclk(hclk), /*.clkref(DOTCLK),*/ .resetn(resetn),
 
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color),

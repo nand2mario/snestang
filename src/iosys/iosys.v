@@ -35,7 +35,7 @@
 module iosys (
     input clk,                      // SNES mclk
     input hclk,                     // hdmi clock
-    input clkref,                   // 1/2 of mclk, for sdram access synchronization
+//    input clkref,                   // 1/2 of mclk, for sdram access synchronization
     input resetn,
 
     // OSD display interface
