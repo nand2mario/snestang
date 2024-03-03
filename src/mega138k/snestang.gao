@@ -2,7 +2,7 @@
 <GAO_CONFIG>
     <Version>3.0</Version>
     <Mode>Standard</Mode>
-    <AoCore index="0" sample_clock="fclk" trig_type="0" storage_depth="2048" window_num="1" capture_amount="2048" implementation="0" trigger_pos="0" module_name="snestang_top" force_trigger_by_falling_edge="false">
+    <AoCore index="0" sample_clock="mclk" trig_type="0" storage_depth="1024" window_num="1" capture_amount="1024" implementation="0" trigger_pos="0" module_name="snestang_top" force_trigger_by_falling_edge="false">
         <SignalList>
             <Signal capture_enable="true">mclk</Signal>
             <Bus capture_enable="true" name="rom_addr_sd[22:0]">
@@ -67,104 +67,7 @@
                 <Signal>cpu_port0_Z[1]</Signal>
                 <Signal>cpu_port0_Z[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="sdram/cycle[11:0]">
-                <Signal>sdram/cycle[11]</Signal>
-                <Signal>sdram/cycle[10]</Signal>
-                <Signal>sdram/cycle[9]</Signal>
-                <Signal>sdram/cycle[8]</Signal>
-                <Signal>sdram/cycle[7]</Signal>
-                <Signal>sdram/cycle[6]</Signal>
-                <Signal>sdram/cycle[5]</Signal>
-                <Signal>sdram/cycle[4]</Signal>
-                <Signal>sdram/cycle[3]</Signal>
-                <Signal>sdram/cycle[2]</Signal>
-                <Signal>sdram/cycle[1]</Signal>
-                <Signal>sdram/cycle[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="IO_sdram_dq_in[15:0]">
-                <Signal>IO_sdram_dq_in[15]</Signal>
-                <Signal>IO_sdram_dq_in[14]</Signal>
-                <Signal>IO_sdram_dq_in[13]</Signal>
-                <Signal>IO_sdram_dq_in[12]</Signal>
-                <Signal>IO_sdram_dq_in[11]</Signal>
-                <Signal>IO_sdram_dq_in[10]</Signal>
-                <Signal>IO_sdram_dq_in[9]</Signal>
-                <Signal>IO_sdram_dq_in[8]</Signal>
-                <Signal>IO_sdram_dq_in[7]</Signal>
-                <Signal>IO_sdram_dq_in[6]</Signal>
-                <Signal>IO_sdram_dq_in[5]</Signal>
-                <Signal>IO_sdram_dq_in[4]</Signal>
-                <Signal>IO_sdram_dq_in[3]</Signal>
-                <Signal>IO_sdram_dq_in[2]</Signal>
-                <Signal>IO_sdram_dq_in[1]</Signal>
-                <Signal>IO_sdram_dq_in[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="SDRAM_CMD" restorename="group_0[3:0]">
-                <Signal>O_sdram_cs_n</Signal>
-                <Signal>O_sdram_ras_n</Signal>
-                <Signal>O_sdram_cas_n</Signal>
-                <Signal>O_sdram_wen_n</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="O_sdram_addr[12:0]">
-                <Signal>O_sdram_addr[12]</Signal>
-                <Signal>O_sdram_addr[11]</Signal>
-                <Signal>O_sdram_addr[10]</Signal>
-                <Signal>O_sdram_addr[9]</Signal>
-                <Signal>O_sdram_addr[8]</Signal>
-                <Signal>O_sdram_addr[7]</Signal>
-                <Signal>O_sdram_addr[6]</Signal>
-                <Signal>O_sdram_addr[5]</Signal>
-                <Signal>O_sdram_addr[4]</Signal>
-                <Signal>O_sdram_addr[3]</Signal>
-                <Signal>O_sdram_addr[2]</Signal>
-                <Signal>O_sdram_addr[1]</Signal>
-                <Signal>O_sdram_addr[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="O_sdram_ba[1:0]">
-                <Signal>O_sdram_ba[1]</Signal>
-                <Signal>O_sdram_ba[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="dq_out[15:0]">
-                <Signal>dq_out[15]</Signal>
-                <Signal>dq_out[14]</Signal>
-                <Signal>dq_out[13]</Signal>
-                <Signal>dq_out[12]</Signal>
-                <Signal>dq_out[11]</Signal>
-                <Signal>dq_out[10]</Signal>
-                <Signal>dq_out[9]</Signal>
-                <Signal>dq_out[8]</Signal>
-                <Signal>dq_out[7]</Signal>
-                <Signal>dq_out[6]</Signal>
-                <Signal>dq_out[5]</Signal>
-                <Signal>dq_out[4]</Signal>
-                <Signal>dq_out[3]</Signal>
-                <Signal>dq_out[2]</Signal>
-                <Signal>dq_out[1]</Signal>
-                <Signal>dq_out[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="main/SNES/CPU/V_CNT[8:0]">
-                <Signal>main/SNES/CPU/V_CNT[8]</Signal>
-                <Signal>main/SNES/CPU/V_CNT[7]</Signal>
-                <Signal>main/SNES/CPU/V_CNT[6]</Signal>
-                <Signal>main/SNES/CPU/V_CNT[5]</Signal>
-                <Signal>main/SNES/CPU/V_CNT[4]</Signal>
-                <Signal>main/SNES/CPU/V_CNT[3]</Signal>
-                <Signal>main/SNES/CPU/V_CNT[2]</Signal>
-                <Signal>main/SNES/CPU/V_CNT[1]</Signal>
-                <Signal>main/SNES/CPU/V_CNT[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="main/SNES/CPU/H_CNT[8:0]">
-                <Signal>main/SNES/CPU/H_CNT[8]</Signal>
-                <Signal>main/SNES/CPU/H_CNT[7]</Signal>
-                <Signal>main/SNES/CPU/H_CNT[6]</Signal>
-                <Signal>main/SNES/CPU/H_CNT[5]</Signal>
-                <Signal>main/SNES/CPU/H_CNT[4]</Signal>
-                <Signal>main/SNES/CPU/H_CNT[3]</Signal>
-                <Signal>main/SNES/CPU/H_CNT[2]</Signal>
-                <Signal>main/SNES/CPU/H_CNT[1]</Signal>
-                <Signal>main/SNES/CPU/H_CNT[0]</Signal>
-            </Bus>
-            <Bus capture_enable="false" name="sdram/cycle" restorename="group_0[10:0]">
+            <Bus capture_enable="true" name="cycle" restorename="group_0[11:0]">
                 <Signal>sdram/cycle_0[11]</Signal>
                 <Signal>sdram/cycle_0[10]</Signal>
                 <Signal>sdram/cycle_0[9]</Signal>
@@ -172,11 +75,97 @@
                 <Signal>sdram/cycle_0[7]</Signal>
                 <Signal>sdram/cycle_0[6]</Signal>
                 <Signal>sdram/cycle_0[5]</Signal>
+                <Signal>sdram/cycle[4]</Signal>
                 <Signal>sdram/cycle_0[3]</Signal>
                 <Signal>sdram/cycle_0[2]</Signal>
                 <Signal>sdram/cycle_0[1]</Signal>
                 <Signal>sdram/cycle_0[0]</Signal>
             </Bus>
+            <Signal capture_enable="true">DOT_CLK_CE_Z</Signal>
+            <Signal capture_enable="true">vram1_req</Signal>
+            <Signal capture_enable="true">sdram/vram1_ack</Signal>
+            <Signal capture_enable="true">vram2_req</Signal>
+            <Signal capture_enable="true">sdram/vram2_ack</Signal>
+            <Bus capture_enable="true" name="VRAM1_ADDR[14:0]">
+                <Signal>VRAM1_ADDR[14]</Signal>
+                <Signal>VRAM1_ADDR[13]</Signal>
+                <Signal>VRAM1_ADDR[12]</Signal>
+                <Signal>VRAM1_ADDR[11]</Signal>
+                <Signal>VRAM1_ADDR[10]</Signal>
+                <Signal>VRAM1_ADDR[9]</Signal>
+                <Signal>VRAM1_ADDR[8]</Signal>
+                <Signal>VRAM1_ADDR[7]</Signal>
+                <Signal>VRAM1_ADDR[6]</Signal>
+                <Signal>VRAM1_ADDR[5]</Signal>
+                <Signal>VRAM1_ADDR[4]</Signal>
+                <Signal>VRAM1_ADDR[3]</Signal>
+                <Signal>VRAM1_ADDR[2]</Signal>
+                <Signal>VRAM1_ADDR[1]</Signal>
+                <Signal>VRAM1_ADDR[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="VRAM2_ADDR[13:0]">
+                <Signal>VRAM2_ADDR[13]</Signal>
+                <Signal>VRAM2_ADDR[12]</Signal>
+                <Signal>VRAM2_ADDR[11]</Signal>
+                <Signal>VRAM2_ADDR[10]</Signal>
+                <Signal>VRAM2_ADDR[9]</Signal>
+                <Signal>VRAM2_ADDR[8]</Signal>
+                <Signal>VRAM2_ADDR[7]</Signal>
+                <Signal>VRAM2_ADDR[6]</Signal>
+                <Signal>VRAM2_ADDR[5]</Signal>
+                <Signal>VRAM2_ADDR[4]</Signal>
+                <Signal>VRAM2_ADDR[3]</Signal>
+                <Signal>VRAM2_ADDR[2]</Signal>
+                <Signal>VRAM2_ADDR[1]</Signal>
+                <Signal>VRAM2_ADDR[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">vram1_we_n_old</Signal>
+            <Signal capture_enable="true">vram2_we_n_old</Signal>
+            <Bus capture_enable="true" name="main/SNES/PPU/H_CNT[8:0]">
+                <Signal>main/SNES/PPU/H_CNT[8]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[7]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[6]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[5]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[4]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[3]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[2]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[1]</Signal>
+                <Signal>main/SNES/PPU/H_CNT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/V_CNT[8:0]">
+                <Signal>main/SNES/PPU/V_CNT[8]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[7]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[6]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[5]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[4]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[3]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[2]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[1]</Signal>
+                <Signal>main/SNES/PPU/V_CNT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/CLK_CNT[2:0]">
+                <Signal>main/SNES/PPU/CLK_CNT[2]</Signal>
+                <Signal>main/SNES/PPU/CLK_CNT[1]</Signal>
+                <Signal>main/SNES/PPU/CLK_CNT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="main/SNES/PPU/TM[4:0]">
+                <Signal>main/SNES/PPU/TM[4]</Signal>
+                <Signal>main/SNES/PPU/TM[3]</Signal>
+                <Signal>main/SNES/PPU/TM[2]</Signal>
+                <Signal>main/SNES/PPU/TM[1]</Signal>
+                <Signal>main/SNES/PPU/TM[0]</Signal>
+            </Bus>
+            <Signal capture_enable="false">sdram/cycle[11]</Signal>
+            <Signal capture_enable="false">sdram/cycle[10]</Signal>
+            <Signal capture_enable="false">sdram/cycle[9]</Signal>
+            <Signal capture_enable="false">sdram/cycle[8]</Signal>
+            <Signal capture_enable="false">sdram/cycle[7]</Signal>
+            <Signal capture_enable="false">sdram/cycle[6]</Signal>
+            <Signal capture_enable="false">sdram/cycle[5]</Signal>
+            <Signal capture_enable="false">sdram/cycle[3]</Signal>
+            <Signal capture_enable="false">sdram/cycle[2]</Signal>
+            <Signal capture_enable="false">sdram/cycle[1]</Signal>
+            <Signal capture_enable="false">sdram/cycle[0]</Signal>
             <Bus capture_enable="false" name="cpu_din[15:0]">
                 <Signal>cpu_din[15]</Signal>
                 <Signal>cpu_din[14]</Signal>
@@ -318,6 +307,89 @@
                 <Signal>main/SNES/CPU/P65_DO[1]</Signal>
                 <Signal>main/SNES/CPU/P65_DO[0]</Signal>
             </Bus>
+            <Bus capture_enable="false" name="main/SNES/CPU/V_CNT[8:0]">
+                <Signal>main/SNES/CPU/V_CNT[8]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[7]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[6]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[5]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[4]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[3]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[2]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[1]</Signal>
+                <Signal>main/SNES/CPU/V_CNT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="main/SNES/CPU/H_CNT[8:0]">
+                <Signal>main/SNES/CPU/H_CNT[8]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[7]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[6]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[5]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[4]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[3]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[2]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[1]</Signal>
+                <Signal>main/SNES/CPU/H_CNT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="SDRAM_CMD" restorename="group_0[3:0]">
+                <Signal>O_sdram_cs_n</Signal>
+                <Signal>O_sdram_ras_n</Signal>
+                <Signal>O_sdram_cas_n</Signal>
+                <Signal>O_sdram_wen_n</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="O_sdram_addr[12:0]">
+                <Signal>O_sdram_addr[12]</Signal>
+                <Signal>O_sdram_addr[11]</Signal>
+                <Signal>O_sdram_addr[10]</Signal>
+                <Signal>O_sdram_addr[9]</Signal>
+                <Signal>O_sdram_addr[8]</Signal>
+                <Signal>O_sdram_addr[7]</Signal>
+                <Signal>O_sdram_addr[6]</Signal>
+                <Signal>O_sdram_addr[5]</Signal>
+                <Signal>O_sdram_addr[4]</Signal>
+                <Signal>O_sdram_addr[3]</Signal>
+                <Signal>O_sdram_addr[2]</Signal>
+                <Signal>O_sdram_addr[1]</Signal>
+                <Signal>O_sdram_addr[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="O_sdram_ba[1:0]">
+                <Signal>O_sdram_ba[1]</Signal>
+                <Signal>O_sdram_ba[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="dq_out[15:0]">
+                <Signal>dq_out[15]</Signal>
+                <Signal>dq_out[14]</Signal>
+                <Signal>dq_out[13]</Signal>
+                <Signal>dq_out[12]</Signal>
+                <Signal>dq_out[11]</Signal>
+                <Signal>dq_out[10]</Signal>
+                <Signal>dq_out[9]</Signal>
+                <Signal>dq_out[8]</Signal>
+                <Signal>dq_out[7]</Signal>
+                <Signal>dq_out[6]</Signal>
+                <Signal>dq_out[5]</Signal>
+                <Signal>dq_out[4]</Signal>
+                <Signal>dq_out[3]</Signal>
+                <Signal>dq_out[2]</Signal>
+                <Signal>dq_out[1]</Signal>
+                <Signal>dq_out[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="IO_sdram_dq_in[15:0]">
+                <Signal>IO_sdram_dq_in[15]</Signal>
+                <Signal>IO_sdram_dq_in[14]</Signal>
+                <Signal>IO_sdram_dq_in[13]</Signal>
+                <Signal>IO_sdram_dq_in[12]</Signal>
+                <Signal>IO_sdram_dq_in[11]</Signal>
+                <Signal>IO_sdram_dq_in[10]</Signal>
+                <Signal>IO_sdram_dq_in[9]</Signal>
+                <Signal>IO_sdram_dq_in[8]</Signal>
+                <Signal>IO_sdram_dq_in[7]</Signal>
+                <Signal>IO_sdram_dq_in[6]</Signal>
+                <Signal>IO_sdram_dq_in[5]</Signal>
+                <Signal>IO_sdram_dq_in[4]</Signal>
+                <Signal>IO_sdram_dq_in[3]</Signal>
+                <Signal>IO_sdram_dq_in[2]</Signal>
+                <Signal>IO_sdram_dq_in[1]</Signal>
+                <Signal>IO_sdram_dq_in[0]</Signal>
+            </Bus>
         </SignalList>
         <Triggers>
             <Trigger index="0">
@@ -358,19 +430,19 @@
             </Trigger>
             <Trigger index="3">
                 <SignalList>
-                    <Signal>main/refresh</Signal>
-                    <Bus restorename="main/SNES/CPU/V_CNT[8:0]">
-                        <Signal>main/SNES/CPU/V_CNT[8]</Signal>
-                        <Signal>main/SNES/CPU/V_CNT[7]</Signal>
-                        <Signal>main/SNES/CPU/V_CNT[6]</Signal>
-                        <Signal>main/SNES/CPU/V_CNT[5]</Signal>
-                        <Signal>main/SNES/CPU/V_CNT[4]</Signal>
-                        <Signal>main/SNES/CPU/V_CNT[3]</Signal>
-                        <Signal>main/SNES/CPU/V_CNT[2]</Signal>
-                        <Signal>main/SNES/CPU/V_CNT[1]</Signal>
-                        <Signal>main/SNES/CPU/V_CNT[0]</Signal>
+                    <Bus restorename="main/SNES/PPU/V_CNT[8:0]">
+                        <Signal>main/SNES/PPU/V_CNT[8]</Signal>
+                        <Signal>main/SNES/PPU/V_CNT[7]</Signal>
+                        <Signal>main/SNES/PPU/V_CNT[6]</Signal>
+                        <Signal>main/SNES/PPU/V_CNT[5]</Signal>
+                        <Signal>main/SNES/PPU/V_CNT[4]</Signal>
+                        <Signal>main/SNES/PPU/V_CNT[3]</Signal>
+                        <Signal>main/SNES/PPU/V_CNT[2]</Signal>
+                        <Signal>main/SNES/PPU/V_CNT[1]</Signal>
+                        <Signal>main/SNES/PPU/V_CNT[0]</Signal>
                     </Bus>
-                    <Signal>status[6]</Signal>
+                    <Signal>main/SNES/PPU/TM[0]</Signal>
+                    <Signal>loaded</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="4"/>
@@ -408,7 +480,7 @@
             <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="11" value1="00" trigger="0"/>
             <MatchUnit index="1" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="1"/>
             <MatchUnit index="2" enabled="1" match_type="0" counter_enable="0" counter_width="16" counter="16000" countinuous="1" func="0" value0="000011000000000010011" value1="000000000000000000000" trigger="2"/>
-            <MatchUnit index="3" enabled="1" match_type="0" counter_enable="0" counter_width="1" counter="2" countinuous="0" func="0" value0="10000000101" value1="00000000000" trigger="3"/>
+            <MatchUnit index="3" enabled="1" match_type="0" counter_enable="0" counter_width="1" counter="2" countinuous="0" func="0" value0="00100000011" value1="00000000000" trigger="3"/>
             <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0001000111101100" value1="0000000000000000" trigger="4"/>
             <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1000000000000000" value1="0000000000000000" trigger="4"/>
             <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="1" value0="000000000" value1="000000000" trigger="5"/>
@@ -423,8 +495,8 @@
             <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
         </MatchUnits>
         <Expressions type="Static">
-            <Expression>M1</Expression>
+            <Expression>M3</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>0000100111011111</GAO_ID>
+    <GAO_ID>0111011010100000</GAO_ID>
 </GAO_CONFIG>

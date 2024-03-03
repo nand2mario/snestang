@@ -502,11 +502,10 @@ sdram_snes sdram(
 
 `ifdef SDRAM_3CH
     // VRAM accesses
-    .vram1_rd(vram1_new_read), .vram1_wr(~VRAM1_WE_N), 
-    .vram2_rd(vram2_new_read & ~vram2_read_delay | vram2_read_delay_r), .vram2_wr(~VRAM2_WE_N),
-    .vram1_addr(VRAM1_ADDR[14:0]), .vram2_addr(VRAM2_ADDR[14:0]), 
-    .vram1_din(VRAM1_D), .vram2_din(VRAM2_D),
-    .vram1_dout(VRAM1_Q), .vram2_dout(VRAM2_Q),
+    .vram1_addr(vram1_addr_sd), .vram1_req(vram1_req), .vram1_ack(), 
+    .vram1_we(~vram1_we_n_old), .vram1_din(vram1_din), .vram1_dout(VRAM1_Q), 
+    .vram2_addr(vram2_addr_sd), .vram2_req(vram2_req), .vram2_ack(),
+    .vram2_we(~vram2_we_n_old),  .vram2_din(vram2_din), .vram2_dout(VRAM2_Q),
 `endif
 
     // IOSys risc-v softcore
