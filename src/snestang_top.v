@@ -459,7 +459,8 @@ end
 
 reg [14:0] vram1_addr_sd, vram2_addr_sd;
 reg vram1_we_n_old, vram2_we_n_old;
-reg vram1_req, vram2_req;
+reg vram1_req /* synthesis syn_keep=1 */; 
+reg vram2_req /* synthesis syn_keep=1 */;
 reg [7:0] vram1_din, vram2_din;
 
 always @(posedge mclk) begin

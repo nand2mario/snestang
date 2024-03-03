@@ -225,7 +225,7 @@ always @(*) begin
 	next_oe[0] = 0;
 	next_ds[0] = 0;
 	next_din[0] = 0;
-	if (refresh) next_port[0] = PORT_NONE; else 
+//	if (refresh) next_port[0] = PORT_NONE; else         // Refresh may delay CPU requests by 2 mclk cycles
     if (cpu_req ^ cpu_req_ack) begin
 		next_port[0] = PORT_CPU;
 		next_addr[0] = { 2'b00, cpu_addr, 1'b0 };       // CPU uses bank 0
@@ -258,7 +258,8 @@ always @* begin
 	next_oe[1] = 0;
 	next_ds[1] = 0;
 	next_din[1] = 0;
-	if (refresh) next_port[1] <= PORT_NONE;	else 
+	// if (refresh) next_port[1] <= PORT_NONE;	else        
+    // T_RC=6, refresh starts cycle 3 and ends exactly at cycle 1, so causes no delay to ARAM
     if (aram_req ^ aram_req_ack) begin
 		next_port[1] = PORT_ARAM;
 		next_addr[1] = { 9'b10_1111000, aram_addr };   // ARAM uses bank 2
@@ -395,8 +396,6 @@ always @(posedge clk) begin
 
             // bank 3 - VRAM
             if (cycle[4]) begin
-                refresh <= 1'b0;
-
                 port[2] <= next_port[2];
                 { we_latch[2], oe_latch[2] } <= { next_we[2], next_oe[2] };
                 addr_latch[2] <= next_addr[2];
@@ -406,15 +405,19 @@ always @(posedge clk) begin
                 ds[2] <= next_ds[2];
                 if (next_port[2] != PORT_NONE) 
                     cmd <= CMD_BankActivate;
-                else if (!we_latch[0] && !oe_latch[0] && !we_latch[1] && !oe_latch[1] 
-                        && next_port[0] == PORT_NONE && next_port[1] == PORT_NONE && need_refresh) begin
-                    // REFRESH if there's no ongoing or upcoming requests
-                    refresh <= 1'b1;
-                    refresh_cnt <= 0;
-                    cmd <= CMD_AutoRefresh;
-                    total_refresh <= total_refresh + 1;
-                end
             end
+
+            // Refresh
+            if (cycle[2] && need_refresh && !(vram1_req^vram1_ack) && !(vram2_req^vram2_ack)    // timing critical for vram1_req and vram2_req
+                && !we_latch[0] && !oe_latch[0] && !we_latch[1] && !oe_latch[1]) begin
+                // REFRESH if there's no ongoing CPU/ARAM nor upcoming VRAM requests
+                refresh <= 1'b1;
+                refresh_cnt <= 0;
+                cmd <= CMD_AutoRefresh;
+                total_refresh <= total_refresh + 1;
+            end
+            if (cycle[0])           // T_RC=6
+                refresh <= 1'b0;
 
             // CAS
             // ROM, WRAM, BSRAM and RV
