@@ -212,7 +212,7 @@ reg enable; // && ~dbg_break && ~pause;
 reg loaded;
 
 always @(posedge mclk) begin        // wait until memory initialize to start SNES
-    if (~sdram_busy  /* && ~pause_snes_for_frame_sync */&& loaded)
+    if (~sdram_busy && ~pause_snes_for_frame_sync && loaded)
         enable <= 1;
     else 
         enable <= 0;

@@ -81,7 +81,6 @@
                 <Signal>sdram/cycle_0[1]</Signal>
                 <Signal>sdram/cycle_0[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">DOT_CLK_CE_Z</Signal>
             <Signal capture_enable="true">vram1_req</Signal>
             <Signal capture_enable="true">sdram/vram1_ack</Signal>
             <Signal capture_enable="true">vram2_req</Signal>
@@ -155,6 +154,7 @@
                 <Signal>main/SNES/PPU/TM[1]</Signal>
                 <Signal>main/SNES/PPU/TM[0]</Signal>
             </Bus>
+            <Signal capture_enable="true">DOT_CLK_CE_Z</Signal>
             <Signal capture_enable="false">sdram/cycle[11]</Signal>
             <Signal capture_enable="false">sdram/cycle[10]</Signal>
             <Signal capture_enable="false">sdram/cycle[9]</Signal>
@@ -390,6 +390,7 @@
                 <Signal>IO_sdram_dq_in[1]</Signal>
                 <Signal>IO_sdram_dq_in[0]</Signal>
             </Bus>
+            <Signal capture_enable="false">DOT_CLK_CE</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
@@ -498,5 +499,5 @@
             <Expression>M3</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>0111011010100000</GAO_ID>
+    <GAO_ID>0101110100000011</GAO_ID>
 </GAO_CONFIG>
