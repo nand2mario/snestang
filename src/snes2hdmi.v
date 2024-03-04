@@ -216,11 +216,11 @@ module snes2hdmi (
 
     // synthesizer takes care of integer const division with a few ALUs and no DSP usage
     assign x = (cx - 256) / 3;  
-    assign y = (cy - 24) / 3;
+    // assign y = (cy - 24) / 3;
     // another way that works but uses more resources
     // 0.3333 = 0.0101010101 binary
 //    assign x = (x0 + (x0 >> 2) + (x0 >> 4) + (x0 >> 6) + (x0 >> 8)) >> 2;
-//   assign y = (y0 + (y0 >> 2) + (y0 >> 4) + (y0 >> 6) + (y0 >> 8)) >> 2;
+    assign y = (y0 + (y0 >> 2) + (y0 >> 4) + (y0 >> 6) + (y0 >> 8)) >> 2;
     assign mem_portB_addr = {y[BUF_WIDTH-1:0], x};
     reg [23:0] rgb;
 

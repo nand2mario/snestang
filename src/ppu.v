@@ -815,9 +815,9 @@ always @(posedge CLK) begin : hv_counters
                 VSYNC_LINE = VSYNC_LINE + 8;
 
             H_CNT <= H_CNT + 1;
-                if (H_CNT == LAST_DOT) begin
-                    H_CNT <= 9'b0;
-                    V_CNT <= V_CNT + 1;
+            if (H_CNT == LAST_DOT) begin
+                H_CNT <= 9'b0;
+                V_CNT <= V_CNT + 1;
                 if (V_CNT == LAST_LINE) begin
                     V_CNT <= 9'b0;
                     FIELD <=  ~FIELD;
@@ -834,8 +834,8 @@ always @(posedge CLK) begin : hv_counters
             else if (V_CNT == LAST_LINE && H_CNT == LAST_DOT)
                 IN_VBL <= 0;
             
-            if (H_CNT == 19) HDE <= 1;
-            if (H_CNT == 275) HDE <= 0;
+            if (H_CNT == 19-1) HDE <= 1;
+            if (H_CNT == 275-1) HDE <= 0;
 
             if (H_CNT == HSYNC_START) HSYNC <= 1;
             if (H_CNT == HSYNC_START+23) HSYNC <= 0;
