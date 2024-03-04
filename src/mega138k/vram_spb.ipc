@@ -1,0 +1,16 @@
+[General]
+ipc_version=4
+file=vram_spb
+module=vram_spb
+target_device=gw5a25a-002
+type=ram_sp
+version=3.0
+
+[Config]
+BYTE_SIZE=0
+DEPTH=32768
+LANG=0
+READ=0
+RESET_MODE=true
+WIDTH=8
+WRITE=0

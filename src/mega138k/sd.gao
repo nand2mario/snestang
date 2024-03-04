@@ -1,0 +1,292 @@
+<?xml version="1" encoding="UTF-8"?>
+<GAO_CONFIG>
+    <Version>3.0</Version>
+    <Mode>Standard</Mode>
+    <AoCore index="0" sample_clock="fclk" trig_type="0" storage_depth="8192" window_num="1" capture_amount="8192" implementation="0" trigger_pos="0" module_name="snestang_top" force_trigger_by_falling_edge="false">
+        <SignalList>
+            <Signal capture_enable="true">mclk</Signal>
+            <Bus capture_enable="true" name="iosys/mem_addr[22:4]">
+                <Signal>iosys/mem_addr[22]</Signal>
+                <Signal>iosys/mem_addr[21]</Signal>
+                <Signal>iosys/mem_addr[20]</Signal>
+                <Signal>iosys/mem_addr[19]</Signal>
+                <Signal>iosys/mem_addr[18]</Signal>
+                <Signal>iosys/mem_addr[17]</Signal>
+                <Signal>iosys/mem_addr[16]</Signal>
+                <Signal>iosys/mem_addr[15]</Signal>
+                <Signal>iosys/mem_addr[14]</Signal>
+                <Signal>iosys/mem_addr[13]</Signal>
+                <Signal>iosys/mem_addr[12]</Signal>
+                <Signal>iosys/mem_addr[11]</Signal>
+                <Signal>iosys/mem_addr[10]</Signal>
+                <Signal>iosys/mem_addr[9]</Signal>
+                <Signal>iosys/mem_addr[8]</Signal>
+                <Signal>iosys/mem_addr[7]</Signal>
+                <Signal>iosys/mem_addr[6]</Signal>
+                <Signal>iosys/mem_addr[5]</Signal>
+                <Signal>iosys/mem_addr[4]</Signal>
+            </Bus>
+            <Signal capture_enable="true">iosys/mem_addr[3]</Signal>
+            <Signal capture_enable="true">iosys/mem_addr[2]</Signal>
+            <Bus capture_enable="true" name="iosys/mem_wdata[31:0]">
+                <Signal>iosys/mem_wdata[31]</Signal>
+                <Signal>iosys/mem_wdata[30]</Signal>
+                <Signal>iosys/mem_wdata[29]</Signal>
+                <Signal>iosys/mem_wdata[28]</Signal>
+                <Signal>iosys/mem_wdata[27]</Signal>
+                <Signal>iosys/mem_wdata[26]</Signal>
+                <Signal>iosys/mem_wdata[25]</Signal>
+                <Signal>iosys/mem_wdata[24]</Signal>
+                <Signal>iosys/mem_wdata[23]</Signal>
+                <Signal>iosys/mem_wdata[22]</Signal>
+                <Signal>iosys/mem_wdata[21]</Signal>
+                <Signal>iosys/mem_wdata[20]</Signal>
+                <Signal>iosys/mem_wdata[19]</Signal>
+                <Signal>iosys/mem_wdata[18]</Signal>
+                <Signal>iosys/mem_wdata[17]</Signal>
+                <Signal>iosys/mem_wdata[16]</Signal>
+                <Signal>iosys/mem_wdata[15]</Signal>
+                <Signal>iosys/mem_wdata[14]</Signal>
+                <Signal>iosys/mem_wdata[13]</Signal>
+                <Signal>iosys/mem_wdata[12]</Signal>
+                <Signal>iosys/mem_wdata[11]</Signal>
+                <Signal>iosys/mem_wdata[10]</Signal>
+                <Signal>iosys/mem_wdata[9]</Signal>
+                <Signal>iosys/mem_wdata[8]</Signal>
+                <Signal>iosys/mem_wdata[7]</Signal>
+                <Signal>iosys/mem_wdata[6]</Signal>
+                <Signal>iosys/mem_wdata[5]</Signal>
+                <Signal>iosys/mem_wdata[4]</Signal>
+                <Signal>iosys/mem_wdata[3]</Signal>
+                <Signal>iosys/mem_wdata[2]</Signal>
+                <Signal>iosys/mem_wdata[1]</Signal>
+                <Signal>iosys/mem_wdata[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="iosys/mem_wstrb[3:0]">
+                <Signal>iosys/mem_wstrb[3]</Signal>
+                <Signal>iosys/mem_wstrb[2]</Signal>
+                <Signal>iosys/mem_wstrb[1]</Signal>
+                <Signal>iosys/mem_wstrb[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="iosys/mem_rdata[31:0]">
+                <Signal>iosys/mem_rdata[31]</Signal>
+                <Signal>iosys/mem_rdata[30]</Signal>
+                <Signal>iosys/mem_rdata[29]</Signal>
+                <Signal>iosys/mem_rdata[28]</Signal>
+                <Signal>iosys/mem_rdata[27]</Signal>
+                <Signal>iosys/mem_rdata[26]</Signal>
+                <Signal>iosys/mem_rdata[25]</Signal>
+                <Signal>iosys/mem_rdata[24]</Signal>
+                <Signal>iosys/mem_rdata[23]</Signal>
+                <Signal>iosys/mem_rdata[22]</Signal>
+                <Signal>iosys/mem_rdata[21]</Signal>
+                <Signal>iosys/mem_rdata[20]</Signal>
+                <Signal>iosys/mem_rdata[19]</Signal>
+                <Signal>iosys/mem_rdata[18]</Signal>
+                <Signal>iosys/mem_rdata[17]</Signal>
+                <Signal>iosys/mem_rdata[16]</Signal>
+                <Signal>iosys/mem_rdata[15]</Signal>
+                <Signal>iosys/mem_rdata[14]</Signal>
+                <Signal>iosys/mem_rdata[13]</Signal>
+                <Signal>iosys/mem_rdata[12]</Signal>
+                <Signal>iosys/mem_rdata[11]</Signal>
+                <Signal>iosys/mem_rdata[10]</Signal>
+                <Signal>iosys/mem_rdata[9]</Signal>
+                <Signal>iosys/mem_rdata[8]</Signal>
+                <Signal>iosys/mem_rdata[7]</Signal>
+                <Signal>iosys/mem_rdata[6]</Signal>
+                <Signal>iosys/mem_rdata[5]</Signal>
+                <Signal>iosys/mem_rdata[4]</Signal>
+                <Signal>iosys/mem_rdata[3]</Signal>
+                <Signal>iosys/mem_rdata[2]</Signal>
+                <Signal>iosys/mem_rdata[1]</Signal>
+                <Signal>iosys/mem_rdata[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">iosys/simplespimaster_reg_byte_sel</Signal>
+            <Signal capture_enable="true">iosys/simplespimaster_reg_word_sel</Signal>
+            <Bus capture_enable="true" name="iosys/simplespi/cnt[1:0]">
+                <Signal>iosys/simplespi/cnt[1]</Signal>
+                <Signal>iosys/simplespi/cnt[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">iosys/simplespi/active</Signal>
+            <Signal capture_enable="true">iosys/simplespi/spi_ready</Signal>
+            <Signal capture_enable="true">iosys/simplespi/spi_start</Signal>
+            <Signal capture_enable="true">iosys/simplespi/wait_buf</Signal>
+            <Bus capture_enable="true" name="rv_dout_Z[15:0]">
+                <Signal>rv_dout_Z[15]</Signal>
+                <Signal>rv_dout_Z[14]</Signal>
+                <Signal>rv_dout_Z[13]</Signal>
+                <Signal>rv_dout_Z[12]</Signal>
+                <Signal>rv_dout_Z[11]</Signal>
+                <Signal>rv_dout_Z[10]</Signal>
+                <Signal>rv_dout_Z[9]</Signal>
+                <Signal>rv_dout_Z[8]</Signal>
+                <Signal>rv_dout_Z[7]</Signal>
+                <Signal>rv_dout_Z[6]</Signal>
+                <Signal>rv_dout_Z[5]</Signal>
+                <Signal>rv_dout_Z[4]</Signal>
+                <Signal>rv_dout_Z[3]</Signal>
+                <Signal>rv_dout_Z[2]</Signal>
+                <Signal>rv_dout_Z[1]</Signal>
+                <Signal>rv_dout_Z[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">iosys/mem_valid</Signal>
+            <Signal capture_enable="false">iosys/mem_addr[31]</Signal>
+            <Signal capture_enable="false">iosys/mem_addr[30]</Signal>
+            <Signal capture_enable="false">iosys/mem_addr[29]</Signal>
+            <Signal capture_enable="false">iosys/mem_addr[28]</Signal>
+            <Signal capture_enable="false">iosys/mem_addr[27]</Signal>
+            <Signal capture_enable="false">iosys/mem_addr[26]</Signal>
+            <Signal capture_enable="false">iosys/mem_addr[25]</Signal>
+            <Signal capture_enable="false">iosys/mem_addr[24]</Signal>
+            <Signal capture_enable="false">iosys/mem_addr[23]</Signal>
+            <Signal capture_enable="false">sd_clk</Signal>
+            <Signal capture_enable="false">iosys/simplespi/miso</Signal>
+            <Signal capture_enable="false">sd_cmd</Signal>
+            <Bus capture_enable="false" name="iosys/simpleuart/send_divcnt[15:0]">
+                <Signal>iosys/simpleuart/send_divcnt[15]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[14]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[13]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[12]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[11]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[10]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[9]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[8]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[7]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[6]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[5]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[4]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[3]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[2]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[1]</Signal>
+                <Signal>iosys/simpleuart/send_divcnt[0]</Signal>
+            </Bus>
+            <Bus capture_enable="false" name="iosys/simpleuart/send_bitcnt[3:0]">
+                <Signal>iosys/simpleuart/send_bitcnt[3]</Signal>
+                <Signal>iosys/simpleuart/send_bitcnt[2]</Signal>
+                <Signal>iosys/simpleuart/send_bitcnt[1]</Signal>
+                <Signal>iosys/simpleuart/send_bitcnt[0]</Signal>
+            </Bus>
+            <Signal capture_enable="false">UART_TXD</Signal>
+            <Bus capture_enable="false" name="iosys/cfg_divider[15:0]">
+                <Signal>iosys/cfg_divider[15]</Signal>
+                <Signal>iosys/cfg_divider[14]</Signal>
+                <Signal>iosys/cfg_divider[13]</Signal>
+                <Signal>iosys/cfg_divider[12]</Signal>
+                <Signal>iosys/cfg_divider[11]</Signal>
+                <Signal>iosys/cfg_divider[10]</Signal>
+                <Signal>iosys/cfg_divider[9]</Signal>
+                <Signal>iosys/cfg_divider[8]</Signal>
+                <Signal>iosys/cfg_divider[7]</Signal>
+                <Signal>iosys/cfg_divider[6]</Signal>
+                <Signal>iosys/cfg_divider[5]</Signal>
+                <Signal>iosys/cfg_divider[4]</Signal>
+                <Signal>iosys/cfg_divider[3]</Signal>
+                <Signal>iosys/cfg_divider[2]</Signal>
+                <Signal>iosys/cfg_divider[1]</Signal>
+                <Signal>iosys/cfg_divider[0]</Signal>
+            </Bus>
+            <Signal capture_enable="false">iosys/ram_ready</Signal>
+            <Signal capture_enable="false">rv_rd_Z</Signal>
+            <Signal capture_enable="false">rv_wr_Z</Signal>
+            <Signal capture_enable="false">rv_wait_Z</Signal>
+            <Bus capture_enable="false" name="rv_ds_Z[1:0]">
+                <Signal>rv_ds_Z[1]</Signal>
+                <Signal>rv_ds_Z[0]</Signal>
+            </Bus>
+            <Signal capture_enable="false">sdram/cycle_0[0]</Signal>
+            <Bus capture_enable="false" name="mem_addr[22:2]">
+                <Signal>mem_addr[22]</Signal>
+                <Signal>mem_addr[21]</Signal>
+                <Signal>mem_addr[20]</Signal>
+                <Signal>mem_addr[19]</Signal>
+                <Signal>mem_addr[18]</Signal>
+                <Signal>mem_addr[17]</Signal>
+                <Signal>mem_addr[16]</Signal>
+                <Signal>mem_addr[15]</Signal>
+                <Signal>mem_addr[14]</Signal>
+                <Signal>mem_addr[13]</Signal>
+                <Signal>mem_addr[12]</Signal>
+                <Signal>mem_addr[11]</Signal>
+                <Signal>mem_addr[10]</Signal>
+                <Signal>mem_addr[9]</Signal>
+                <Signal>mem_addr[8]</Signal>
+                <Signal>mem_addr[7]</Signal>
+                <Signal>mem_addr[6]</Signal>
+                <Signal>mem_addr[5]</Signal>
+                <Signal>mem_addr[4]</Signal>
+                <Signal>mem_addr[3]</Signal>
+                <Signal>mem_addr[2]</Signal>
+            </Bus>
+        </SignalList>
+        <Triggers>
+            <Trigger index="0">
+                <SignalList>
+                    <Signal>iosys/flash_loaded</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="1">
+                <SignalList>
+                    <Signal>iosys/simplespimaster_reg_byte_sel</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="2">
+                <SignalList>
+                    <Signal>iosys/mem_addr[15]</Signal>
+                    <Signal>iosys/mem_addr[14]</Signal>
+                    <Signal>iosys/mem_addr[13]</Signal>
+                    <Signal>iosys/mem_addr[12]</Signal>
+                    <Signal>iosys/mem_addr[11]</Signal>
+                    <Signal>iosys/mem_addr[10]</Signal>
+                    <Signal>iosys/mem_addr[9]</Signal>
+                    <Signal>iosys/mem_addr[8]</Signal>
+                    <Signal>iosys/mem_addr[7]</Signal>
+                    <Signal>iosys/mem_addr[6]</Signal>
+                    <Signal>iosys/mem_addr[5]</Signal>
+                    <Signal>iosys/mem_addr[4]</Signal>
+                    <Signal>iosys/mem_addr[3]</Signal>
+                    <Signal>iosys/mem_addr[2]</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="3">
+                <SignalList>
+                    <Signal>iosys/simplespimaster_reg_word_sel</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="4"/>
+            <Trigger index="5"/>
+            <Trigger index="6"/>
+            <Trigger index="7"/>
+            <Trigger index="8"/>
+            <Trigger index="9"/>
+            <Trigger index="10"/>
+            <Trigger index="11"/>
+            <Trigger index="12"/>
+            <Trigger index="13"/>
+            <Trigger index="14"/>
+            <Trigger index="15"/>
+        </Triggers>
+        <MatchUnits>
+            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="0"/>
+            <MatchUnit index="1" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="1"/>
+            <MatchUnit index="2" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="00100101100101" value1="00000000000000" trigger="2"/>
+            <MatchUnit index="3" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="3"/>
+            <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="8" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="10" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="11" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="12" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="13" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="14" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+        </MatchUnits>
+        <Expressions type="Static">
+            <Expression>M2</Expression>
+        </Expressions>
+    </AoCore>
+    <GAO_ID>0100000000011101</GAO_ID>
+</GAO_CONFIG>

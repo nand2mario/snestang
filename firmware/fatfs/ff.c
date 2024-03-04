@@ -1082,19 +1082,31 @@ static FRESULT move_window (	/* Returns FR_OK or FR_DISK_ERR */
 {
 	FRESULT res = FR_OK;
 
-	// printf("move_window: %d\n", sect);
 
 	if (sect != fs->winsect) {	/* Window offset changed? */
+		// DEBUG("move_window: %d\n", sect);
 #if !FF_FS_READONLY
 		res = sync_window(fs);		/* Flush the window */
 #endif
 		if (res == FR_OK) {			/* Fill sector window with new data */
+#if 0
 			if (disk_read(fs->pdrv, fs->win, sect, 1) != RES_OK) {
 				sect = (LBA_t)0 - 1;	/* Invalidate window if read data is not valid */
 				res = FR_DISK_ERR;
 			}
 			fs->winsect = sect;
+#else
+			// DEBUG("calling disk_read\n");
+			int dres = disk_read(fs->pdrv, fs->win, sect, 1);
+			// DEBUG("disk_read returns %d\n", dres);
+			if (dres != RES_OK) {
+				sect = (LBA_t)0 - 1;	/* Invalidate window if read data is not valid */
+				res = FR_DISK_ERR;
+			}
+			fs->winsect = sect;
+#endif
 		}
+		// DEBUG("move_window: return %d\n", res);
 	}
 	return res;
 }
@@ -1168,7 +1180,7 @@ static DWORD get_fat (		/* 0xFFFFFFFF:Disk error, 1:Internal error, 2..0x7FFFFFF
 	UINT wc, bc;
 	DWORD val;
 	FATFS *fs = obj->fs;
-
+	// DEBUG("get_fat: clst=%u\n", clst);
 
 	if (clst < 2 || clst >= fs->n_fatent) {	/* Check if in valid range */
 		val = 1;	/* Internal error */
@@ -1227,6 +1239,7 @@ static DWORD get_fat (		/* 0xFFFFFFFF:Disk error, 1:Internal error, 2..0x7FFFFFF
 		}
 	}
 
+	// DEBUG("get_fat: return %u\n", val);
 	return val;
 }
 
@@ -2317,6 +2330,7 @@ static FRESULT dir_read (
 	BYTE ord = 0xFF, sum = 0xFF;
 #endif
 
+	// DEBUG("dir_read: start\n");
 	while (dp->sect) {
 		res = move_window(fs, dp->sect);
 		if (res != FR_OK) break;
@@ -2324,6 +2338,7 @@ static FRESULT dir_read (
 		if (b == 0) {
 			res = FR_NO_FILE; break; /* Reached to end of the directory */
 		}
+		// DEBUG("dir_read: b=%d\n", b);
 #if FF_FS_EXFAT
 		if (fs->fs_type == FS_EXFAT) {	/* On the exFAT volume */
 			if (FF_USE_LABEL && vol) {
@@ -2367,11 +2382,14 @@ static FRESULT dir_read (
 			}
 #endif
 		}
+		// DEBUG("dir_next: start\n");
 		res = dir_next(dp, 0);		/* Next entry */
+		// DEBUG("dir_next: return %d\n", res);
 		if (res != FR_OK) break;
 	}
 
 	if (res != FR_OK) dp->sect = 0;		/* Terminate the read operation on error or EOT */
+	// DEBUG("dir_read: return %d\n", res);
 	return res;
 }
 
@@ -2631,6 +2649,7 @@ static void get_fileinfo (
 	TCHAR c;
 #endif
 
+	// DEBUG("get_fileinfo: start\n");
 
 	fno->fname[0] = 0;			/* Invaidate file info */
 	if (dp->sect == 0) return;	/* Exit if read pointer has reached end of directory */
@@ -2747,6 +2766,8 @@ static void get_fileinfo (
 	fno->fsize = ld_dword(dp->dir + DIR_FileSize);		/* Size */
 	fno->ftime = ld_word(dp->dir + DIR_ModTime + 0);	/* Time */
 	fno->fdate = ld_word(dp->dir + DIR_ModTime + 2);	/* Date */
+
+	// DEBUG("get_fileinfo: return\n");
 }
 
 #endif /* FF_FS_MINIMIZE <= 1 || FF_FS_RPATH >= 2 */
@@ -3342,10 +3363,10 @@ static UINT find_volume (	/* Returns BS status found in the hosting drive */
 	UINT fmt, i;
 	DWORD mbr_pt[4];
 
-	DEBUG("find_volume: part=%d\n", part);
+	// DEBUG("find_volume: part=%d\n", part);
 
 	fmt = check_fs(fs, 0);				/* Load sector 0 and check if it is an FAT VBR as SFD format */
-	DEBUG("find_volume: part 0 is %d\n", fmt);
+	// DEBUG("find_volume: part 0 is %d\n", fmt);
 	if (fmt != 2 && (fmt >= 3 || part == 0)) return fmt;	/* Returns if it is an FAT VBR as auto scan, not a BS or disk error */
 
 	/* Sector 0 is not an FAT VBR or forced partition number wants a partition */
@@ -3379,7 +3400,7 @@ static UINT find_volume (	/* Returns BS status found in the hosting drive */
 	i = part ? part - 1 : 0;		/* Table index to find first */
 	do {							/* Find an FAT volume */
 		fmt = mbr_pt[i] ? check_fs(fs, mbr_pt[i]) : 3;	/* Check if the partition is FAT */
-		DEBUG("find_volume: part %d is %d\n", i, fmt);
+		// DEBUG("find_volume: part %d is %d\n", i, fmt);
 	} while (part == 0 && fmt >= 2 && ++i < 4);
 	return fmt;
 }
@@ -3405,7 +3426,7 @@ static FRESULT mount_volume (	/* FR_OK(0): successful, !=0: an error occurred */
 	WORD nrsv;
 	UINT fmt;
 
-	DEBUG("start mount_volume\n");
+	// DEBUG("start mount_volume\n");
 
 	/* Get logical drive number */
 	*rfs = 0;
@@ -4617,7 +4638,7 @@ FRESULT f_opendir (
 	FATFS *fs;
 	DEF_NAMBUF
 
-	DEBUG("f_opendir: path=%s\n", path);
+	// DEBUG("f_opendir: path=%s\n", path);
 	// DEBUG("f_opendir\n");
 
 	if (!dp) return FR_INVALID_OBJECT;
@@ -4669,7 +4690,7 @@ FRESULT f_opendir (
 		if (res == FR_NO_FILE) res = FR_NO_PATH;
 	}
 	if (res != FR_OK) dp->obj.fs = 0;		/* Invalidate the directory object if function failed */
-	DEBUG("f_opendir: %d\n", res);
+	// DEBUG("f_opendir: %d\n", res);
 	LEAVE_FF(fs, res);
 }
 
@@ -4687,7 +4708,7 @@ FRESULT f_closedir (
 	FRESULT res;
 	FATFS *fs;
 
-
+	// DEBUG("f_closedir: start\n");
 	res = validate(&dp->obj, &fs);	/* Check validity of the file object */
 	if (res == FR_OK) {
 #if FF_FS_LOCK
@@ -4700,6 +4721,7 @@ FRESULT f_closedir (
 		unlock_volume(fs, FR_OK);	/* Unlock volume */
 #endif
 	}
+	// DEBUG("f_closedir: return\n");
 	return res;
 }
 
@@ -4719,6 +4741,7 @@ FRESULT f_readdir (
 	FATFS *fs;
 	DEF_NAMBUF
 
+	// DEBUG("f_readdir: start\n");
 
 	res = validate(&dp->obj, &fs);	/* Check validity of the directory object */
 	if (res == FR_OK) {
@@ -4736,6 +4759,7 @@ FRESULT f_readdir (
 			FREE_NAMBUF();
 		}
 	}
+	// DEBUG("f_readdir: return %d\n", res);
 	LEAVE_FF(fs, res);
 }
 

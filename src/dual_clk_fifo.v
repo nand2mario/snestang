@@ -5,7 +5,7 @@ module dual_clk_fifo #(
     parameter ADDRSIZE = 4,
     parameter ALMOST_GAP = 3
 )(
-    input wclk, wrst_n,
+    input clk, wrst_n,
     input [DATESIZE-1:0] wdata,         
     input winc,                         // 1: write data and increment write ptr
     input rclk, rrst_n,
@@ -27,7 +27,7 @@ localparam DEPTH = 1<<ADDRSIZE;
 reg [DATESIZE-1:0] mem [0:DEPTH-1];
 assign rdata = mem[raddr];
 
-always @(posedge wclk)
+always @(posedge clk)
     if (winc && !wfull) 
         mem[waddr] <= wdata;
 
@@ -35,7 +35,7 @@ always @(posedge wclk)
 // read-domain to write-domain synchronizer
 //--------------------------------
 reg [ADDRSIZE:0] wq1_rptr,wq2_rptr;
-always @(posedge wclk or negedge wrst_n)
+always @(posedge clk or negedge wrst_n)
     if (!wrst_n) 
         {wq2_rptr,wq1_rptr} <= 0;
     else 
@@ -84,7 +84,7 @@ reg [ADDRSIZE:0] wbin;
 wire [ADDRSIZE:0] wgraynext, wbinnext;
 
 // GRAYSTYLE2 pointer
-always @(posedge wclk or negedge wrst_n)
+always @(posedge clk or negedge wrst_n)
 if (!wrst_n) {wbin, wptr} <= 0;
 else {wbin, wptr} <= {wbinnext, wgraynext};
 
@@ -103,7 +103,7 @@ wire [ADDRSIZE:0] full_flag;
 assign full_flag = {~wq2_rptr[ADDRSIZE:ADDRSIZE-1],wq2_rptr[ADDRSIZE-2:0]};
 assign wfull_val = (wgraynext==full_flag);
 
-always @(posedge wclk or negedge wrst_n)
+always @(posedge clk or negedge wrst_n)
     if (!wrst_n) 
         wfull <= 1'b0;
     else 
@@ -145,7 +145,7 @@ wire [ADDRSIZE:0] wgap_reg;
 assign wgap_reg = (wbin[ADDRSIZE] ^ wq2_rptr_bin[ADDRSIZE])? wq2_rptr_bin[ADDRSIZE-1:0] - wbin[ADDRSIZE-1:0]:DEPTH + wq2_rptr_bin - wbin;
 assign almost_full_val = (wgap_reg <= ALMOST_GAP);
 
-always @(posedge wclk or negedge wrst_n)
+always @(posedge clk or negedge wrst_n)
     if (!wrst_n) 
         almost_full <= 1'b0;
     else 

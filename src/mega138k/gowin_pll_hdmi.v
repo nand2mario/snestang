@@ -5,7 +5,7 @@
 //Part Number: GW5AST-LV138FPG676AES
 //Device: GW5AST-138B
 //Device Version: B
-//Created Time: Wed Dec 20 00:19:38 2023
+//Created Time: Sat Feb 17 18:11:19 2024
 
 module gowin_pll_hdmi (clkout0, clkout1, clkin);
 

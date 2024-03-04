@@ -34,7 +34,7 @@ module simpleuart #(parameter integer DEFAULT_DIV = 1) (
 	output [31:0] reg_dat_do,
 	output        reg_dat_wait
 );
-	reg [15:0] cfg_divider;
+	reg [15:0] cfg_divider /* synthesis syn_keep=1 */;
 
 	reg [3:0] recv_state;
 	reg [15:0] recv_divcnt;

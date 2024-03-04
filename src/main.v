@@ -1,7 +1,7 @@
 // This adds memory map and extension chips to SNES.
 
 module main (
-	input             WCLK,
+	// input             WCLK,
 	input			  MCLK,
 	input             RESET_N,
 	input             ENABLE,
@@ -61,6 +61,7 @@ module main (
 
 	input             BLEND,
 	input             PAL,
+	input		      DIS_SHORTLINE,
 	output            HIGH_RES,
 	output            FIELD,
 	output            INTERLACE,
@@ -132,7 +133,7 @@ parameter USE_CX4 = 1'b0;
 parameter USE_SDD1 = 1'b0;
 parameter USE_GSU = 1'b0;
 parameter USE_SA1 = 1'b0;
-parameter USE_DSPn = 1'b1;
+parameter USE_DSPn = 1'b0;
 parameter USE_SPC7110 = 1'b0;
 parameter USE_BSX = 1'b0;
 parameter USE_MSU = 1'b0;
@@ -154,13 +155,13 @@ wire  [5:0] MAP_ACTIVE;
 
 SNES SNES
 (
-	.WCLK(WCLK), .RST_N(RESET_N), .ENABLE(ENABLE),
+	.MCLK(MCLK), .RST_N(RESET_N), .ENABLE(ENABLE),
 
 	.CA(CA), .CPURD_N(CPURD_N),	.CPUWR_N(CPUWR_N), .CPURD_CYC_N(CPURD_CYC_N),
 	.PA(PA), .PARD_N(PARD_N), .PAWR_N(PAWR_N), .DI(DI),	.DO(DO),
 	.RAMSEL_N(RAMSEL_N), .ROMSEL_N(ROMSEL_N),
 
-	.SYSCLKF_CE(SYSCLKF_CE), .SYSCLKR_CE(SYSCLKR_CE),
+	.SYSCLKF_CE(SYSCLKF_CE), .SYSCLKR_CE(SYSCLKR_CE), .DOT_CLK_CE(DOT_CLK_CE),
 	.SNES_REFRESH(REFRESH),
 
 	.IRQ_N(IRQ_N),
@@ -181,8 +182,9 @@ SNES SNES
 	// .JOY2_P6(JOY2_P6),
 	// .JOY2_P6_IN(JOY2_P6_IN),
 
-	.BLEND(BLEND), .PAL(PAL), .HIGH_RES(HIGH_RES), .FIELD_OUT(FIELD),
-	.INTERLACE(INTERLACE), .DOTCLK(DOTCLK),
+	.BLEND(BLEND), .PAL(PAL), .DIS_SHORTLINE(DIS_SHORTLINE),
+	.HIGH_RES(HIGH_RES), .FIELD_OUT(FIELD), .INTERLACE(INTERLACE), .DOTCLK(DOTCLK),
+	.V224_MODE(),
 
 	.RGB_OUT(RGB_OUT), .HDE(HBLANKn), .VDE(VBLANKn), .HSYNC(), .VSYNC(),
     .X_OUT(X_OUT), .Y_OUT(Y_OUT),
@@ -206,7 +208,6 @@ SNES SNES
 	
 	// .TURBO(TURBO),
 
-    .DMA_ACTIVE(), 
 	.DBG_SEL(DBG_SEL), .DBG_REG(DBG_REG), .DBG_REG_WR(DBG_REG_WR), 
 	.DBG_DAT_IN(DBG_DAT_IN), .DBG_DAT_OUT(DBG_DAT_OUT), .DBG_BREAK(DBG_BREAK)
 );
@@ -278,7 +279,7 @@ if (USE_DLH == 1'b1) begin
 
 DSP_LHRomMap #(.USE_DSPn(USE_DSPn)) DSP_LHRomMap
 (
-	.WCLK(WCLK),
+	// .WCLK(WCLK),
 	.MCLK(MCLK),
 	.RST_N(RESET_N),
     .ENABLE(1'b1),

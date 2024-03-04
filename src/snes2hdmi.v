@@ -90,13 +90,16 @@ module snes2hdmi (
     // - Once HDMI started the frame, start SNES again.
     reg sync_done = 1'b0;
     reg hdmi_first_line;
+    reg pause_sync;     // pause for even number of cycles for PPU sdram access to stay in sync
     always @(posedge clk) begin
+        if (pause_snes_for_frame_sync) pause_sync <= ~pause_sync;
         if (~sync_done) begin
             if (~pause_snes_for_frame_sync) begin
                 if (ys[7:0] == 8'd2 && snes_refresh) begin      // halt SNES during snes dram refresh on line 2
                     pause_snes_for_frame_sync <= 1'b1;
+                    pause_sync <= 0;
                 end
-            end else if (hdmi_first_line) begin                 // HDMI frame start, now resume SNES
+            end else if (hdmi_first_line && pause_sync) begin                 // HDMI frame start, now resume SNES
                 pause_snes_for_frame_sync <= 1'b0;
                 sync_done <= 1'b1;
             end
@@ -196,7 +199,7 @@ module snes2hdmi (
     wire audio_full;
     // dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(4), .ALMOST_GAP(3)) audio_fifo (
     dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(2), .ALMOST_GAP(1)) audio_fifo (
-        .wclk(clk), .wrst_n(1'b1), 
+        .clk(clk), .wrst_n(1'b1), 
         .winc(audio_ready), .wdata({audio_l, audio_r}), .wfull(audio_full),
         .rclk(clk_pixel), .rrst_n(1'b1),
         .rinc(audio_rinc), .rdata(audio_sample), .rempty(audio_empty),

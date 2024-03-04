@@ -181,12 +181,19 @@ int file_len;		// number of files on this page
 // set to valid entries on this page.
 // return: 0 if successful
 int load_dir(char *dir, int start, int len, int *count) {
+	DEBUG("load_dir: %s, start=%d, len=%d\n", dir, start, len);
 	int cnt = 0;
 	int r = 0;
 	DIR d;
 	file_len = 0;
 	// initiaze sd again to be sure
-	if (sd_init() != 0) return 99;
+	int init_ok = 0;
+	for (int i = 0; i <= 10; i++)
+		if (sd_init() == 0) {
+			init_ok = 1;
+			break;
+		}
+	if (!init_ok) return 99;
 
 	if (f_opendir(&d, dir) != 0) {
 		return -1;
@@ -223,6 +230,7 @@ int load_dir(char *dir, int start, int len, int *count) {
 	}
 	f_closedir(&d);
 	*count = cnt;
+	DEBUG("load_dir: count=%d\n", cnt);
 	return 0;
 }
 
@@ -484,10 +492,10 @@ loadrom_end:
 }
 
 int main() {
-	reg_uart_clkdiv = 94;       // 10800000 / 115200
 	overlay(1);
 
-	uart_init();		// init UART output for DEBUG(...)
+	// initialize UART
+	reg_uart_clkdiv = 187; // 21505400 / 115200;
 
 	int mounted = 0;
 	while(!mounted) {

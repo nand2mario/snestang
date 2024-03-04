@@ -69,12 +69,18 @@ void _print_hex_digits(uint32_t val, int nbdigits, int uart) {
 void print_hex_digits(uint32_t val, int nbdigits) {
    _print_hex_digits(val, nbdigits, 0);
 }
+void uart_print_hex_digits(uint32_t val, int ndigits) {
+   _print_hex_digits(val, ndigits, 1);
+}
 
 void _print_hex(uint32_t val, int uart) {
    _print_hex_digits(val, 8, uart);
 }
 void print_hex(uint32_t val) {
    _print_hex(val, 0);
+}
+void uart_print_hex(uint32_t val) {
+   _print_hex(val, 1);
 }
 
 void _print_dec(int val, int uart) {
@@ -95,6 +101,9 @@ void _print_dec(int val, int uart) {
 }
 void print_dec(int val) {
    _print_dec(val, 0);
+}
+void uart_print_dec(int val) {
+   _print_dec(val, 1);
 }
 
 int _printf(const char *fmt, va_list ap, int uart) {
@@ -132,9 +141,8 @@ void clear() {
    }
 }
 
-void uart_init() {
-   // "system clock frequency divided by the baud rate"
-   reg_uart_clkdiv = 93; // FREQ / 115200;
+void uart_init(int clkdiv) {
+   reg_uart_clkdiv = clkdiv;
 }
 
 int uart_putchar(int c) {
@@ -155,7 +163,6 @@ int uart_printf(const char *fmt,...) {
    va_end(ap);
    return 0;   
 }
-
 
 int delay_count;
 void delay(int ms) {

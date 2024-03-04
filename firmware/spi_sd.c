@@ -8,6 +8,7 @@
 
 #include "picorv32.h"
 
+// How to use MMC/SDC: http://elm-chan.org/docs/mmc/mmc_e.html
 // SD over SPI: https://onlinedocs.microchip.com/pr/GUID-F9FE1ABC-D4DD-4988-87CE-2AFD74DEA334-en-US-3/index.html?GUID-48879CB2-9C60-4279-8B98-E17C499B12AF
 // http://www.dejazzer.com/ee379/lecture_notes/lec12_sd_card.pdf
 // https://electronics.stackexchange.com/questions/77417/what-is-the-correct-command-sequence-for-microsd-card-initialization-in-spi
@@ -211,19 +212,43 @@ int sd_init() {
     return 0;
 }
 
+void debug_print_buf(uint8_t *buf, int len) {
+#ifdef SECTOR_PRINT_FULL
+    for (int i = 0; i < len; i++) {
+        if ((i & 0xf) == 0 && i != 0)
+            uart_print("\n");
+        if ((i & 0xf) == 0) {
+            uart_print_hex_digits(i, 3);
+            uart_print(": ");
+        }
+        uart_print(" ");
+        uart_print_hex_digits(buf[i], 2);
+    }
+#else 
+    uart_print_hex_digits(buf[0], 2);
+    uart_print(" ");
+    uart_print_hex_digits(buf[1], 2);
+    uart_print(" ... ");
+    uart_print_hex_digits(buf[510], 2);
+    uart_print(" ");
+    uart_print_hex_digits(buf[511], 2);
+#endif
+    uart_print("\n");
+}
+
 int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) {
     uint8_t response;
     uint32_t ctrl;
     int retries = 0;
     int i;
-    DEBUG("sd_readsector: %d %d\n", start_block, sector_count);
+    // DEBUG("sd_readsector: %d %d\n", start_block, sector_count);
     if (sector_count == 0)
         return 0;
     while (sector_count--) {
         // Request block read
         response = sd_send_command(CMD17_READ_SINGLE_BLOCK, start_block++);
         if(response != 0x00) {
-            DEBUG("sd_readsector: Bad response %x\n", response);
+            // DEBUG("sd_readsector: Bad response %x\n", response);
             return 0;
         }
 
@@ -231,7 +256,7 @@ int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) 
         while(spi_receive() != CMD_START_OF_BLOCK) {
             // Timeout
             if(retries > 5000) {
-                DEBUG("sd_readsector: Timeout\n");
+                // DEBUG("sd_readsector: Timeout\n");
                 return 0;
             }
             ++retries;
@@ -240,15 +265,22 @@ int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) 
         // Perform block read (512 bytes)
         spi_readblock(buffer, 512);
 
+        // DEBUG("sector: %d\n", start_block-1);
+        // debug_print_buf(buffer, 512);
+
         buffer += 512;
 
         // Ignore 16-bit CRC
         spi_receive();
         spi_receive();
 
+        DEBUG("sd_readsector: CRC over\n");
+
         // Additional 8 SPI clocks
         spi_sendrecv(0xFF);
+        DEBUG("sd_readsector: additional 8 spi clocks over\n");
     }
+    DEBUG("sd_readsector: return\n");
     return 1;
 }
 

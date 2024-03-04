@@ -2,7 +2,7 @@
 // to print characters to the display.
 
 module textdisp(
-	input wclk,          // main logic clock
+	input clk,          // main logic clock
     input hclk,         // hdmi clock
 	input resetn,
 
@@ -46,7 +46,7 @@ wire [6:0] text_char = reg_char_di[6:0];
 // $380-$3FF: Logo ROM (14*9 bytes)
 // $400-$800: Font ROM
 gowin_dpb_menu menu_mem (
-    .clka(wclk), .reseta(1'b0), .ocea(), .cea(1'b1), 
+    .clka(clk), .reseta(1'b0), .ocea(), .cea(1'b1), 
     .ada({1'b0, text_y, text_x}), .wrea(reg_char_we[0] && cmd == 2'd0),
     .dina({1'b0, text_char}), .douta(), 
 
@@ -78,6 +78,20 @@ always @* begin
                                                         // fetch font byte (? for non-ASCII chars)
     default: mem_addr_b <= 0;
     endcase
+end
+
+reg py_logo_active;
+
+always @(posedge hclk) begin
+    if (py == LOGO_Y)
+        py_logo_active <= 1;
+    if (py == LOGO_Y + 14)
+        py_logo_active <= 0;
+
+    if (px >= LOGO_X && px < LOGO_X+71 && py_logo_active)
+        logo_active <= 1;
+    else
+        logo_active <= 0;
 end
 
 always @(posedge hclk) begin
@@ -120,13 +134,10 @@ always @(posedge hclk) begin
         xoff <= px[2:0];
         yoff <= py[2:0];
 
-        if (px >= LOGO_X && px < LOGO_X+71 && py >= LOGO_Y && py < LOGO_Y + 14)
-            logo_active <= 1;
-        else
-            logo_active <= 0;
         logo_x = px - LOGO_X;
         logo_y = py - LOGO_Y;
-        logo_addr <= logo_y * 9 + logo_x[6:3];
+        // logo_addr <= logo_y * 9 + logo_x[6:3];
+        logo_addr <= {logo_y, 3'b0} + logo_y + logo_x[6:3];
         logo_xoff <= logo_x[2:0];
 
         // mem_do_b is character after cycle 0
