@@ -3,25 +3,32 @@ import GSU_Package::*;
 
 module GSU(
     input CLK,
+    
     input RST_N,
     input ENABLE,
+    
     input [23:0] ADDR,
     input [7:0] DI,
     output reg [7:0] DO,
     input RD_N,
     input WR_N,
+
     input SYSCLKF_CE,
     input SYSCLKR_CE,
+    
     input TURBO,
     output IRQ_N,
+    
     output [20:0] ROM_A,
     input [7:0] ROM_DI,
     output reg ROM_RD_N,
+    
     output [16:0] RAM_A,
     input [7:0] RAM_DI,
     output [7:0] RAM_DO,
     output RAM_WE_N,
     output RAM_CE_N
+    
     // output DBG_IN_CACHE,
     //  output Microcode_r DBG_MC;      //for MISTer sdram
     // output [15:0] DBG_GO_CNT
@@ -72,7 +79,7 @@ Microcode_r MC;
 reg [7:0] OPCODE;
 reg [7:0] OPDATA;
 wire [3:0] OP_N;
-reg [31:0] STATE;  
+reg [1:0] STATE;  
 
 //CPU Core
 reg EN;
@@ -192,33 +199,23 @@ always @(ADDR) begin
     if (ADDR[22] == 1'b0) begin
         if (ADDR[15:12] == 4'h3) begin
             if (ADDR[11:8] == 4'h0) begin
-                if (ADDR[7:5] == 3'b000) begin
-                    //00-3F:3000-301F, 80-BF:3000-301F
+                if (ADDR[7:5] == 3'b000)                //00-3F:3000-301F, 80-BF:3000-301F
                     MMIO_REG_SEL <= 1'b1;
-                end
-                else begin
+                else                                    //00-3F:3030-30FF, 80-BF:3030-30FF
                     MMIO_SEL <= 1'b1;
-                    //00-3F:3030-30FF, 80-BF:3030-30FF
-                end
-            end else if (ADDR[11:8] == 4'h1 || ADDR[11:8] == 4'h2) begin
-                //00-3F:3100-32FF, 80-BF:3100-32FF
+            end else if (ADDR[11:8] == 4'h1 || ADDR[11:8] == 4'h2)     //00-3F:3100-32FF, 80-BF:3100-32FF
                 MMIO_CACHE_SEL <= 1'b1;
-            end
-        end else if (ADDR[15:13] == 3'b011) begin
-            //00-3F:6000-7FFF, 80-BF:6000-7FFF
+        end else if (ADDR[15:13] == 3'b011) begin       //00-3F:6000-7FFF, 80-BF:6000-7FFF
             SRAM_SEL <= 1'b1;
             SNES_RAM_A <= {4'b0000,ADDR[12:0]};
         end else if (ADDR[15]) begin
             ROM_SEL <= 1'b1;
         end
     end else begin
-        if (ADDR[21] == 1'b0) begin
-            //40-5F:0000-FFFF, C0-DF:0000-FFFF
+        if (ADDR[21] == 1'b0)                           //40-5F:0000-FFFF, C0-DF:0000-FFFF
             ROM_SEL <= 1'b1;
-        end else if (ADDR[23:17] == {4'h7,3'b000}) begin
-            //70-71:0000-FFFF
+        else if (ADDR[23:17] == {4'h7,3'b000})          //70-71:0000-FFFF
             SRAM_SEL <= 1'b1;
-        end
     end
 end
 
@@ -248,22 +245,18 @@ always @(posedge CLK) begin
     end else begin
         if (ENABLE) begin
             if (MMIO_WR) begin
-                if (ADDR[7:0] == 8'h30) begin
-                    //SFR LSB
+                if (ADDR[7:0] == 8'h30) begin           //SFR LSB
                     GO <= DI[5];
                     GSU_MEM_ACCESS <= DI[5];
-                end else if (ADDR[7:0] == 8'h38)
-                    //SCBR
+                end else if (ADDR[7:0] == 8'h38)        //SCBR
                     SCBR <= DI;
-                else if (ADDR[7:0] == 8'h3A) begin
-                    //SCMR
+                else if (ADDR[7:0] == 8'h3A) begin      //SCMR
                     SCMR_MD <= DI[1:0];
                     SCMR_HT <= {DI[5],DI[2]};
                     RAN <= DI[3];
                     RON <= DI[4];
                 end
-            end else if (MMIO_RD && ADDR[7:0] == 8'h31) 
-                //SFR MSB
+            end else if (MMIO_RD && ADDR[7:0] == 8'h31) //SFR MSB
                 FLAG_IRQ <= 1'b0;
 
             if (~EN) begin
@@ -314,9 +307,9 @@ end
 assign GSU_ROM_ACCESS = GSU_MEM_ACCESS & RON;
 assign GSU_RAM_ACCESS = GSU_MEM_ACCESS & RAN;
 
-assign SFR = {FLAG_IRQ,1'b0,1'b0,FLAG_B,1'b0,1'b0,
-            FLAG_ALT2,FLAG_ALT1,1'b0,FLAG_R,FLAG_GO,
-            FLAG_OV,FLAG_S,FLAG_CY,FLAG_Z,1'b0};
+assign SFR = {FLAG_IRQ, 1'b0, 1'b0, FLAG_B, 1'b0, 1'b0,
+              FLAG_ALT2, FLAG_ALT1, 1'b0, FLAG_R, FLAG_GO,
+              FLAG_OV, FLAG_S, FLAG_CY, FLAG_Z, 1'b0};
 
 always @* begin
     DO = 8'h00;
@@ -417,6 +410,7 @@ end
 //CPU Code cache
 assign CACHE_POS = (R[15]) - (CBR);
 assign SNES_CACHE_ADDR = { ~ADDR[8],ADDR[7:0]};
+
 always @(posedge CLK) begin
     if (~RST_N) begin
         CACHE_RUN <= 1'b0;
@@ -1070,11 +1064,8 @@ reg RAM_LOAD_END;
 reg RAM_PCF_END;
 reg RAM_FETCH_END;
 reg RAM_CACHE_END;
-reg [2:0] RAM_CYCLES;
 reg RAM_LOAD_WORD;
 reg RAM_STORE_WORD;
-reg [7:0] NEW_COLOR;
-reg [7:0] COL_DITH;
 reg RAM_PCF_EXEC;
 reg RAM_RPIX_EXEC;
 
@@ -1176,8 +1167,15 @@ always @(negedge CLK) begin : P1
     end
 end
 
-
 always @(posedge CLK) begin
+    reg [2:0] RAM_CYCLES;
+    reg [7:0] NEW_COLOR;
+    reg [7:0] COL_DITH;
+    reg RAM_STORE_WORD_t, RAM_LOAD_WORD_t;
+
+    RAM_STORE_WORD_t = RAM_STORE_WORD;
+    RAM_LOAD_WORD_t = RAM_LOAD_WORD;
+
     if (~RST_N) begin
         RAM_WORD <= 1'b0;
         RAM_BYTES <= 1'b0;
@@ -1224,8 +1222,9 @@ always @(posedge CLK) begin
         if (EN) begin
             if (TURBO) 
                 RAM_CYCLES = 3'b001;
-            else if (~SPEED) 
-                RAM_CYCLES = 3'b001;
+            else if (SPEED) 
+            // else if (~SPEED)                 // nand2mario: SPEED=0 has shortest RAM cycle time?
+                RAM_CYCLES = 3'b001;            
             else 
                 RAM_CYCLES = 3'b011;
 
@@ -1252,8 +1251,8 @@ always @(posedge CLK) begin
                         else 
                             RAMDR <= R[OP_N];
                     end
-                    RAM_LOAD_WORD <= MC.RAMLD[1];
-                    RAM_STORE_WORD <= MC.RAMST[1];
+                    RAM_LOAD_WORD_t = MC.RAMLD[1];
+                    RAM_STORE_WORD_t = MC.RAMST[1];
                 end else if (OP.OP == OP_CMODE) begin
                     POR_TRANS <= R[SREG][0];
                     POR_DITH <= R[SREG][1];
@@ -1304,13 +1303,13 @@ always @(posedge CLK) begin
             case (RAMST)
             RAMST_IDLE : begin
                 if (RAM_SAVE_PEND) begin
-                    RAM_WORD <= RAM_STORE_WORD;
+                    RAM_WORD <= RAM_STORE_WORD_t;
                     RAM_BYTES <= 1'b0;
                     RAM_ACCESS_CNT <= RAM_CYCLES;
                     RAM_SAVE_START = 1'b1;
                     RAMST <= RAMST_SAVE;
                 end else if (RAM_LOAD_PEND) begin
-                    RAM_WORD <= RAM_LOAD_WORD;
+                    RAM_WORD <= RAM_LOAD_WORD_t;
                     RAM_BYTES <= 1'b0;
                     RAM_LOAD_BUF <= 0;
                     RAM_ACCESS_CNT <= RAM_CYCLES;
@@ -1466,6 +1465,9 @@ always @(posedge CLK) begin
             endcase
         end
     end
+
+    RAM_STORE_WORD <= RAM_STORE_WORD_t;
+    RAM_LOAD_WORD <= RAM_LOAD_WORD_t;
 end
 
 assign PCF_WR_DATA = (PCF_RD_DATA & ~PIX_CACHE[1].VALID) | (GetPCData(PIX_CACHE[1], BPP_CNT) & PIX_CACHE[1].VALID);

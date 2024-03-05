@@ -1,4 +1,4 @@
 
 
 `define CHIP_DSPn
-// `define CHIP_GSU
+`define CHIP_GSU

@@ -301,7 +301,8 @@ reg         bsram_req, bsram_we;
 reg [19:0]  bsram_addr;
 reg [7:0]   bsram_din;
 wire [7:0]  bsram_dout;
-wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC);
+// wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC);
+wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_OE_N || rom_type[7:4] == 4'hC);
 wire        bsram_wr = ~BSRAM_CE_N & ~BSRAM_WE_N;
 reg         bsram_rd_r, bsram_wr_r;
 
@@ -315,7 +316,7 @@ wire        DOT_CLK_CE;
 assign      sdram_clk = fclk_p;
 
 // Generate SDRAM signals
-always @(posedge mclk) begin
+always @(negedge mclk) begin
     if (~resetn) begin
     end else begin
         
