@@ -160,7 +160,7 @@ always @(posedge mclk) begin
                     reg [7:0] dout;
                     dout = bsram_addr[0] ? mem_bsram[bsram_addr[16:1]][15:8] : mem_bsram[bsram_addr[16:1]][7:0];
                     cpu_dout_pre <= {8'b0, dout};
-                    bsram_dout <= dout;         // one-cycle earlier for BSRAM in GSU
+                    // bsram_dout <= dout;         // one-cycle earlier for BSRAM in GSU
                 end
             end
         end

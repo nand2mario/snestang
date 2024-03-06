@@ -397,14 +397,14 @@ always @(posedge CLK) begin
                     OPDATA <= BRAM_CACHE_Q_A;
             end else if (ROM_FETCH_EN) begin
                 if (MC.LAST_CYCLE) 
-                    OPCODE <= ROM_BUF;  
+                    OPCODE <= /* ROM_BUF */ ROM_DI;  
                 else 
-                    OPDATA <= ROM_BUF;
+                    OPDATA <= /* ROM_BUF */ ROM_DI;
             end else if (RAM_FETCH_EN) begin
                 if (MC.LAST_CYCLE) 
-                    OPCODE <= RAM_BUF;
+                    OPCODE <= RAM_DI; //RAM_BUF;
                 else 
-                    OPDATA <= RAM_BUF;
+                    OPDATA <= RAM_DI; // RAM_BUF;
             end
         end
     end
@@ -501,8 +501,8 @@ assign BRAM_CACHE_DI_A = 8'h00;
 assign BRAM_CACHE_WE_A = 1'b0;
 
 assign BRAM_CACHE_ADDR_B = FLAG_GO ? CACHE_DST_ADDR : SNES_CACHE_ADDR;
-assign BRAM_CACHE_DI_B = FLAG_GO && CODE_IN_ROM ? ROM_BUF : 
-                         FLAG_GO && CODE_IN_RAM ? RAM_BUF : 
+assign BRAM_CACHE_DI_B = FLAG_GO && CODE_IN_ROM ? /* ROM_BUF */ ROM_DI : 
+                         FLAG_GO && CODE_IN_RAM ? /* RAM_BUF */ RAM_DI : 
                          DI;
 assign BRAM_CACHE_WE_B = FLAG_GO ? ROM_CACHE_EN | RAM_CACHE_EN : MMIO_CACHE_WR;
 
