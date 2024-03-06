@@ -2,6 +2,7 @@ module GSUMap(
     input MCLK,
     input RST_N,
     input ENABLE,
+    input CLKREF,       // for sdram access sync
     input [23:0] CA,
     input [7:0] DI,
     output [7:0] DO,
@@ -43,7 +44,7 @@ assign MAP_SEL = MAP_CTRL[7:4] == 4'h7 ? 1'b1 : 1'b0;
 assign MAP_ACTIVE = MAP_SEL;
 
 GSU GSU(
-    .CLK(MCLK), .RST_N(RST_N & MAP_SEL), .ENABLE(ENABLE),
+    .CLK(MCLK), .RST_N(RST_N & MAP_SEL), .ENABLE(ENABLE), .CLKREF(CLKREF),
     .ADDR(CA), .DO(DO), .DI(DI), .RD_N(CPURD_N), .WR_N(CPUWR_N),
     .SYSCLKF_CE(SYSCLKF_CE), .SYSCLKR_CE(SYSCLKR_CE),
     .IRQ_N(IRQ_N), .ROM_A(ROM_A),

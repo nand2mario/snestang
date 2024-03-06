@@ -481,6 +481,7 @@ GSUMap GSUMap
 	.MCLK(MCLK),
 	.RST_N(RESET_N),
 	.ENABLE(1'b1),
+	.CLKREF(DOT_CLK_CE),
 
 	.CA(CA),
 	.DI(DO),

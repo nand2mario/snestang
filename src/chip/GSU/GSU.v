@@ -6,6 +6,7 @@ module GSU(
     
     input RST_N,
     input ENABLE,
+    input CLKREF,       // for sdram access sync
     
     input [23:0] ADDR,
     input [7:0] DI,
@@ -360,12 +361,14 @@ assign VAL_CACHE = CACHE_VALID[CACHE_POS[8:4]];
 
 assign SPEED = CLS;
 
+reg CLKREF_r;
 always @(posedge CLK) begin
+    CLKREF_r <= CLKREF;
     if (~RST_N) begin
         CLK_CE <= 1'b0;
     end else begin
         if (ENABLE) 
-            CLK_CE <=  ~CLK_CE | SPEED | TURBO;
+            CLK_CE <= (CLKREF && ~CLKREF_r ? 1'b1 : ~CLK_CE) | SPEED | TURBO;
     end
 end
 
@@ -1222,8 +1225,8 @@ always @(posedge CLK) begin
         if (EN) begin
             if (TURBO) 
                 RAM_CYCLES = 3'b001;
-            else if (SPEED) 
-            // else if (~SPEED)                 // nand2mario: SPEED=0 has shortest RAM cycle time?
+            // else if (SPEED) 
+            else if (~SPEED)                 // nand2mario: when clock speed is slow (SPEED=0), RAM latency is only one cycle
                 RAM_CYCLES = 3'b001;            
             else 
                 RAM_CYCLES = 3'b011;

@@ -653,7 +653,7 @@ always @(posedge mclk) begin    // halt SNES during snes dram refresh on line 2
             if (~test_halt_snes) begin
                 if (y_out[7:0] == 2 && refresh) begin
                     test_halt_snes <= 1;
-                    test_halt_cnt <= 4'd12;        // halt snes for 13 cycles
+                    test_halt_cnt <= 4'd11;        // halt snes for 12 cycles
                 end
             end else begin
                 if (test_halt_cnt != 0) begin
