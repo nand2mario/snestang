@@ -55,7 +55,7 @@ GSU GSU(
 );
 
 assign ROM_ADDR = ({2'b00,ROM_A}) & ROM_MASK[22:0];
-assign ROM_CE_N = 1'b0;
+assign ROM_CE_N = ROMSEL_N; // 1'b0;        nand2mario: should not always enable ROM read, this interferes with BSRAM reads
 assign ROM_WORD = 1'b0;
 assign BSRAM_ADDR = {4'b0000,RAM_A[15:0]};
 assign BSRAM_OE_N =  ~RAM_WE_N;

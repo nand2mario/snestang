@@ -130,7 +130,8 @@ end
 `endif
 
 wire [23:0] ROM_ADDR;
-wire ROM_CE_N, ROM_OE_N, ROM_WE_N, ROM_WORD;
+wire ROM_CE_N /* synthesis syn_keep=1 */;
+wire ROM_OE_N, ROM_WE_N, ROM_WORD;
 wire [15:0] ROM_D;
 wire [15:0] ROM_Q;
 assign      ROM_Q = (ROM_WORD || ~ROM_ADDR[0]) ? cpu_port0 : { cpu_port0[7:0], cpu_port0[15:8] };
@@ -147,10 +148,10 @@ wire        wram_rd = ~WRAM_CE_N & ~WRAM_RD_N;
 wire        wram_wr = ~WRAM_CE_N & ~WRAM_WE_N;
 
 wire [19:0] BSRAM_ADDR;
-wire        BSRAM_CE_N;
-wire        BSRAM_OE_N;
+wire        BSRAM_CE_N /* synthesis syn_keep=1 */;
+wire        BSRAM_OE_N /* synthesis syn_keep=1 */;
 wire        BSRAM_WE_N;
-wire        BSRAM_RD_N;
+wire        BSRAM_RD_N /* synthesis syn_keep=1 */;
 wire  [7:0] BSRAM_Q = bsram_dout;
 wire  [7:0] BSRAM_D;
 
@@ -301,8 +302,8 @@ reg         bsram_req, bsram_we;
 reg [19:0]  bsram_addr;
 reg [7:0]   bsram_din;
 wire [7:0]  bsram_dout;
-wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC);
-// wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_OE_N || rom_type[7:4] == 4'hC);
+// wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC);        // 4'hC is OBC1, Bug: BSRAM_RD_N is 1 when REFRESH=1
+wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_OE_N || rom_type[7:4] == 4'hC);
 wire        bsram_wr = ~BSRAM_CE_N & ~BSRAM_WE_N;
 reg         bsram_rd_r, bsram_wr_r;
 
@@ -322,7 +323,7 @@ always @(negedge mclk) begin
         
         // ROM read and load
         if (loading && loader_do_valid && header_finished && loader_addr[0] 
-            || ~loading && ~ROM_CE_N && ~ROM_OE_N && rom_addr_sd != rom_addr) begin
+            || ~loading && ~ROM_CE_N && BSRAM_CE_N && rom_addr_sd != rom_addr) begin        // nand2mario: BSRAM_CE_N to remove spurious cpu requests
             rom_addr_sd <= rom_addr;
             cpu_addr <= rom_addr;
             cpu_req <= ~cpu_req;
