@@ -301,8 +301,8 @@ reg         bsram_req, bsram_we;
 reg [19:0]  bsram_addr;
 reg [7:0]   bsram_din;
 wire [7:0]  bsram_dout;
-// wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC);
-wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_OE_N || rom_type[7:4] == 4'hC);
+wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_RD_N || rom_type[7:4] == 4'hC);
+// wire        bsram_rd = ~BSRAM_CE_N & (~BSRAM_OE_N || rom_type[7:4] == 4'hC);
 wire        bsram_wr = ~BSRAM_CE_N & ~BSRAM_WE_N;
 reg         bsram_rd_r, bsram_wr_r;
 
@@ -322,7 +322,7 @@ always @(negedge mclk) begin
         
         // ROM read and load
         if (loading && loader_do_valid && header_finished && loader_addr[0] 
-            || ~loading && ~ROM_CE_N && rom_addr_sd != rom_addr) begin
+            || ~loading && ~ROM_CE_N && ~ROM_OE_N && rom_addr_sd != rom_addr) begin
             rom_addr_sd <= rom_addr;
             cpu_addr <= rom_addr;
             cpu_req <= ~cpu_req;
@@ -346,9 +346,9 @@ always @(negedge mclk) begin
 
         // BSRAM read/write
         bsram_rd_r <= bsram_rd; bsram_wr_r <= bsram_wr;
-        if (bsram_rd && BSRAM_ADDR != bsram_addr || (bsram_wr & ~bsram_wr_r) || (bsram_rd & ~bsram_rd_r)) begin
-            bsram_addr <= BSRAM_ADDR;
+        if (bsram_rd && BSRAM_ADDR[19:1] != bsram_addr[19:1] || (bsram_wr & ~bsram_wr_r) || (bsram_rd & ~bsram_rd_r)) begin
             bsram_req <= ~bsram_req;
+            bsram_addr <= BSRAM_ADDR;
             bsram_din <= BSRAM_D;
         end
 

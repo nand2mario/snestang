@@ -294,7 +294,8 @@ always @(posedge clk) begin
         end 
         if (normal) begin
             if (clkref & ~clkref_r)             // go to cycle 5 after clkref posedge
-                cycle <= 12'b0000_0010_0000;
+//                cycle <= 12'b0000_0010_0000;
+                cycle <= 12'b0000_0000_0100;    // go to cycle 2 instead
             else
                 cycle[5:0] <= {cycle[4:0], cycle[5]};
             refresh_cnt <= refresh_cnt + 1'd1;

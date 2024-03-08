@@ -24,8 +24,8 @@ module GSU(
     input [7:0] ROM_DI,
     output reg ROM_RD_N,
     
-    output [16:0] RAM_A,
-    input [7:0] RAM_DI,
+    output [16:0] RAM_A /* synthesis syn_keep=1 */,
+    input [7:0] RAM_DI /* synthesis syn_keep=1 */,
     output [7:0] RAM_DO,
     output RAM_WE_N,
     output RAM_CE_N
