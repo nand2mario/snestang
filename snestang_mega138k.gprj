@@ -56,6 +56,7 @@
         <File path="src/mega138k/gowin_pll_snes.v" type="file.verilog" enable="1"/>
         <File path="src/mega138k/sdram_cl2_2ch.v" type="file.verilog" enable="1"/>
         <File path="src/mega138k/vram.v" type="file.verilog" enable="1"/>
+        <File path="src/mega138k/vram_spb.v" type="file.verilog" enable="1"/>
         <File path="src/ppu.v" type="file.verilog" enable="1"/>
         <File path="src/ppucgram.v" type="file.verilog" enable="1"/>
         <File path="src/ppuhoam.v" type="file.verilog" enable="1"/>
@@ -80,6 +81,6 @@
         <File path="src/mega138k/sd.gao" type="file.gao" enable="0"/>
         <File path="src/mega138k/sdram.gao" type="file.gao" enable="0"/>
         <File path="src/mega138k/smp.gao" type="file.gao" enable="0"/>
-        <File path="src/mega138k/snestang.gao" type="file.gao" enable="1"/>
+        <File path="src/mega138k/snestang.gao" type="file.gao" enable="0"/>
     </FileList>
 </Project>
