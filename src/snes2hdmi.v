@@ -176,10 +176,12 @@ module snes2hdmi (
                 audio_divider++;
             else begin 
                 audio_divider <= 0; 
-                if (~audio_empty) begin     // take audio samples from FIFO @ 32Khz
-                    {audio_sample_word[0], audio_sample_word[1]} <= audio_sample;
-                    audio_rinc <= 1'b1;
-                end
+                // if (~audio_empty) begin     // take audio samples from FIFO @ 32Khz
+                //     {audio_sample_word[0], audio_sample_word[1]} <= audio_sample;
+                //     audio_rinc <= 1'b1;
+                // end
+                audio_sample_word[0] <= audio_l;
+                audio_sample_word[1] <= audio_r;
             end
         end
     end
@@ -195,17 +197,18 @@ module snes2hdmi (
             end
         end
     end
-    // Actual audio sample FIFO
-    wire audio_full;
-    // dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(4), .ALMOST_GAP(3)) audio_fifo (
-    dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(2), .ALMOST_GAP(1)) audio_fifo (
-        .clk(clk), .wrst_n(1'b1), 
-        .winc(audio_ready), .wdata({audio_l, audio_r}), .wfull(audio_full),
-        .rclk(clk_pixel), .rrst_n(1'b1),
-        .rinc(audio_rinc), .rdata(audio_sample), .rempty(audio_empty),
-        .almost_full(), .almost_empty()
-    );    
-    assign audio_en = ~audio_full;          // disable audio generation if FIFO is full
+    assign audio_en = 1;
+    // // Actual audio sample FIFO
+    // wire audio_full;
+    // // dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(4), .ALMOST_GAP(3)) audio_fifo (
+    // dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(2), .ALMOST_GAP(1)) audio_fifo (
+    //     .clk(clk), .wrst_n(1'b1), 
+    //     .winc(audio_ready), .wdata({audio_l, audio_r}), .wfull(audio_full),
+    //     .rclk(clk_pixel), .rrst_n(1'b1),
+    //     .rinc(audio_rinc), .rdata(audio_sample), .rempty(audio_empty),
+    //     .almost_full(), .almost_empty()
+    // );    
+    // assign audio_en = ~audio_full;          // disable audio generation if FIFO is full
 
     //
     // Video
