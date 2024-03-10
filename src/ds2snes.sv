@@ -39,7 +39,7 @@ dualshock_controller #(.FREQ(FREQ)) ds (
     .O_RXD_4(), .O_RXD_5(), .O_RXD_6()
 );
 
-reg [11:0] bits;
+reg [15:0] bits;
 reg snes_joy_clk_r;
 assign snes_joy_di = ~bits[0];
 
@@ -51,9 +51,9 @@ assign snes_joy_di = ~bits[0];
 
 always @(posedge clk) begin
     if (snes_joy_strb) 
-        bits <= snes_btn;
+        bits <= {4'b0, snes_btn};
     if (~snes_joy_clk && snes_joy_clk_r)    // falling edge: load new value
-        bits <= {1'b0, bits[11:1]};        // JOYx_DI is flipped, from B to Y to ... to R then 4 zeros.
+        bits <= {1'b1, bits[15:1]};         // JOYx_DI is flipped, from B to Y to ... to R then 4 zeros. After that it has to return 1.
     snes_joy_clk_r <= snes_joy_clk;
 end
 
