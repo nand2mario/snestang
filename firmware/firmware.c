@@ -5,8 +5,10 @@
 // Needs xpack-gcc risc-v gcc: https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/
 // Use build.bat to build. Then burn firmware.bin to SPI flash address 0x500000 with Gowin programmer.
 
+#include <stdbool.h>
 #include "picorv32.h"
 #include "fatfs/ff.h"
+#include "firmware.h"
 
 #define OPTION_FILE "/snestang.ini"
 #define OPTION_INVALID 2
@@ -14,15 +16,21 @@
 #define OPTION_OSD_KEY_SELECT_START 1
 #define OPTION_OSD_KEY_SELECT_RB 2
 
+// SNES BSRAM is mapped at address 7MB 
+volatile uint8_t *SNES_BSRAM = (volatile uint8_t *)0x07000000;
+
 int option_osd_key = OPTION_OSD_KEY_SELECT_RB;
-
 #define OSD_KEY_CODE (option_osd_key == 1 ? 0xC : 0x804)
+bool option_backup_bsram = false;
 
-void message(char *msg, int center);
-void status(char *msg);
+bool snes_running;
+int snes_ramsize;
+char snes_backup_name[256];
+uint16_t snes_bsram_crc16;
+uint32_t snes_backup_time;
 
 // return 0: success, 1: no option file found, 2: option file corrupt
-int load_option() {
+int load_option()  {
 	FIL f;
 	int r = 0;
 	char buf[1024];
@@ -54,6 +62,11 @@ int load_option() {
 				r = OPTION_INVALID;
 				goto load_option_close;
 			}
+		} else if (strcmp(key, "backup_bsram") == 0) {
+			if (strcasecmp(value, "true") == 0)
+				option_backup_bsram = true;
+			else
+				option_backup_bsram = false;
 		} else {
 			// just ignore unknown keys
 		}
@@ -80,6 +93,12 @@ int save_option() {
 		f_puts("1\n", &f);
 	else
 		f_puts("2\n", &f);
+	
+	f_puts("backup_bsram=", &f);
+	if (option_backup_bsram)
+		f_puts("true\n", &f);
+	else
+		f_puts("false\n", &f);
 		
 save_options_close:
 	f_close(&f);
@@ -234,8 +253,6 @@ int load_dir(char *dir, int start, int len, int *count) {
 	return 0;
 }
 
-int loadrom(int rom);
-
 // return 0: user chose a ROM (*choice), 1: no choice made, -1: error
 // file chosen: pwd / file_name[*choice]
 int menu_loadrom(int *choice) {
@@ -323,18 +340,31 @@ void menu_options() {
 			print("SELECT&START");
 		else
 			print("SELECT&RB");
+		cursor(2, 15);
+		print("Backup BSRAM:");
+		cursor(16, 16);
+		if (option_backup_bsram)
+			print("Yes");
+		else
+			print("No");
 
 		delay(300);
 
 		for (;;) {
-			if (joy_choice(12, 3, &choice, OSD_KEY_CODE) == 1) {
+			if (joy_choice(12, 4, &choice, OSD_KEY_CODE) == 1) {
 				if (choice == 0) {
 					return;
-				} if (choice == 2) {
-					if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
-						option_osd_key = OPTION_OSD_KEY_SELECT_RB;
-					else
-						option_osd_key = OPTION_OSD_KEY_SELECT_START;
+				} else if (choice == 1) {
+					// nothing
+				} else {
+					if (choice == 2) {
+						if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
+							option_osd_key = OPTION_OSD_KEY_SELECT_RB;
+						else
+							option_osd_key = OPTION_OSD_KEY_SELECT_START;
+					} else if (choice == 3) {
+						option_backup_bsram = !option_backup_bsram;
+					}
 					status("Saving options...");
 					if (save_option()) {
 						message("Cannot save options to SD",1);
@@ -401,13 +431,26 @@ int parse_snes_header(FIL *fp, int pos, int file_size, int typ, uint8_t *hdr, in
 char load_fname[1024];
 char load_buf[1024];
 
-// actually load a rom file
+// actually load a rom file. if bsram backup is needed, also loads the backup.
 // return 0 if successful
 int loadrom(int rom) {
 	FIL f;
 	strncpy(load_fname, pwd, 1024);
 	strncat(load_fname, "/", 1024);
 	strncat(load_fname, file_names[rom], 1024);
+
+	// check extension .sfc or .smc
+	char *p = strcasestr(file_names[rom], ".sfc");
+	if (p == NULL)
+		p = strcasestr(file_names[rom], ".smc");
+	if (p == NULL) {
+		status("Only .smc or .sfc supported");
+		goto loadrom_end;
+	}
+	// snes_backup_name = <base>.srm
+	int base_len = p-file_names[rom];
+	strncpy(snes_backup_name, file_names[rom], base_len);
+	strcpy(snes_backup_name+base_len, ".srm");
 
 	// initiaze sd again to be sure
 	if (sd_init() != 0) return 99;
@@ -439,16 +482,9 @@ int loadrom(int rom) {
 	}
 
 	// load actual ROM
-	snes_ctrl(1);
-/*
-	// 3-word header
-	// word 0: {ram_size, rom_sie, rom_type_header, map_ctrl}
-	snes_data(map_ctrl | (rom_type_header << 8) | (rom_size << 16) | (ram_size << 24));
-	// word 1: {company, rom_mask[23:0]}
-	snes_data(((1024 << (rom_size < 7 ? 12 : rom_size)) - 1) | (company << 24));
-	// word 2: {8'b0, ram_mask[23:0]}
-	snes_data(ram_size ? (1024 << ram_size) - 1 : 0);
-*/
+	snes_ctrl(1);		// enable game loading, this resets SNES
+	snes_running = false;
+
 	// Send 64-byte header to snes
 	for (int i = 0; i < 64; i += 4) {
 		uint32_t *w = (uint32_t *)(load_buf + i);
@@ -480,15 +516,159 @@ int loadrom(int rom) {
 			printf(" ROM=%d RAM=%d", 1 << rom_size, ram_size ? (1 << ram_size) : 0);
 		}
 	} while (br == 1024);
+
+	// load BSRAM backup
+	backup_load(snes_backup_name, ram_size);
+	snes_ramsize = ram_size;
+
 	status("Success");
+	snes_running = true;
+
 	overlay(0);		// turn off OSD
 
 loadrom_snes_end:
-	snes_ctrl(0);
+	snes_ctrl(0);	// turn off game loading, this starts SNES
 loadrom_close_file:
 	f_close(&f);
 loadrom_end:
 	return r;
+}
+
+void backup_load(char *name, int size) {
+	char path[266] = "/saves/";
+	FILINFO fno;
+	uint8_t *bsram = (uint8_t *)0x700000;			// directly read into BSRAM
+	char loaded = false;
+
+	if (f_stat(path, &fno) != FR_OK) {
+		if (f_mkdir(path) != FR_OK) {
+			status("Cannot create /saves");
+			goto backup_load_crc;
+		}
+	}
+	strcat(path, snes_backup_name);
+	FIL f;
+	if (f_open(&f, path, FA_READ) != FR_OK)
+		goto backup_load_crc;				// ignore file open failure
+	uint8_t *p = bsram;	
+	while (size > 0) {
+		int br;
+		if (f_read(&f, p, 1024, &br) != FR_OK || br < 1024) 
+			break;
+		p += br;
+		size -= br;
+	}
+	loaded = true;
+	f_close(&f);
+
+backup_load_crc:
+	if (!loaded)
+		memset(bsram, 0, size << 10);		// clear BSRAM if not loaded
+	snes_bsram_crc16 = gen_crc16(bsram, size << 10);
+
+	return;
+}
+
+// return 0: successfully saved, 1: BSRAM unchanged, 2: file write failure
+int backup_save(char *name, int size) {
+	char path[266] = "/saves/";
+	FIL f;
+	uint8_t *bsram = (uint8_t *)0x700000;		// directly read from BSRAM
+	int r = 0;
+
+	// first check if BSRAM content is changed since last save
+	int newcrc = gen_crc16(bsram, size << 10);
+	if (newcrc == snes_bsram_crc16)
+		return 0;
+
+	strcat(path, snes_backup_name);
+	if (f_open(&f, path, FA_WRITE | FA_CREATE_ALWAYS) != FR_OK) {
+		status("Cannot write save file");
+		return 2;
+	}
+	int bw;
+	for (int off = 0; off < size; off += bw) {
+		if (f_write(&f, bsram, 1024, &bw) != FR_OK) {
+			status("Write failure");
+			r = 2;
+			goto bsram_save_close;
+		}
+	}
+
+bsram_save_close:
+	f_close(&f);
+	return r;
+}
+
+int backup_success_time;
+void backup_process() {
+	if (!snes_running || snes_ramsize == 0)
+		return;
+	int t = time_millis();
+	if (t - snes_backup_time >= 10000) {
+		// need to save
+		int r = backup_save(snes_backup_name, snes_ramsize);
+		if (r == 0)
+			backup_success_time = t;
+		if (backup_success_time != 0) {
+			status("");
+			printf("BSRAM saved %ds ago", (t-backup_success_time)/1000);
+		}
+		snes_backup_time = t;
+	}
+}
+
+#define CRC16 0x8005
+
+uint16_t gen_crc16(const uint8_t *data, uint16_t size) {
+    uint16_t out = 0;
+    int bits_read = 0, bit_flag;
+
+    /* Sanity check: */
+    if(data == NULL)
+        return 0;
+
+    while(size > 0)
+    {
+        bit_flag = out >> 15;
+
+        /* Get next bit: */
+        out <<= 1;
+        out |= (*data >> bits_read) & 1; // item a) work from the least significant bits
+
+        /* Increment bit counter: */
+        bits_read++;
+        if(bits_read > 7)
+        {
+            bits_read = 0;
+            data++;
+            size--;
+        }
+
+        /* Cycle check: */
+        if(bit_flag)
+            out ^= CRC16;
+
+    }
+
+    // item b) "push out" the last 16 bits
+    int i;
+    for (i = 0; i < 16; ++i) {
+        bit_flag = out >> 15;
+        out <<= 1;
+        if(bit_flag)
+            out ^= CRC16;
+    }
+
+    // item c) reverse the bits
+    uint16_t crc = 0;
+    i = 0x8000;
+    int j = 0x0001;
+    for (; i != 0; i >>=1, j <<= 1) {
+        if (i & out) crc |= j;
+    }
+
+    return crc;
 }
 
 int main() {
@@ -551,3 +731,4 @@ int main() {
 		}
 	}
 }
+

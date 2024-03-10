@@ -16,6 +16,7 @@
 #define reg_romload_ctrl   (*(volatile uint32_t*)0x02000030)
 #define reg_romload_data   (*(volatile uint32_t*)0x02000034)
 #define reg_joystick       (*(volatile uint32_t*)0x02000040)
+#define reg_time           (*(volatile uint32_t*)0x02000050)
 
 // Standard library for PicoRV32 RV32I softcore
 
@@ -72,5 +73,23 @@ inline int min(int x, int y) {
     if (x < y) return x;
     else       return y;
 }
+
+inline int tolower(int c) {
+    if (c >= 'A' && c <= 'Z')
+        return c + ('a' - 'A');
+    else
+        return c;
+}
+
+inline uint32_t time_millis() {
+    return reg_time;
+}
+
+// string functions
+// #ifndef strstr
+// char *strstr(char *haystack, char *needle);
+// #endif
+
+char *strcasestr(char *haystack, char *needle);
 
 #endif

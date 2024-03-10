@@ -164,14 +164,19 @@ int uart_printf(const char *fmt,...) {
    return 0;   
 }
 
-int delay_count;
+// int delay_count;
+// void delay(int ms) {
+// 	for (int i = 0; i < ms; i++) {
+//       delay_count = 0;
+// 		for (int j = 0; j < 500; j++) {
+// 			delay_count++;
+// 		}
+//    }
+// }
+
 void delay(int ms) {
-	for (int i = 0; i < ms; i++) {
-      delay_count = 0;
-		for (int j = 0; j < 500; j++) {
-			delay_count++;
-		}
-   }
+   int t0 = time_millis();
+   while (time_millis() - t0 < ms) {}
 }
 
 void joy_get(int *joy1, int *joy2) {
@@ -180,21 +185,22 @@ void joy_get(int *joy1, int *joy2) {
    *joy2 = (joy >> 16) & 0xffff;
 }
 
+void backup_process();
+
 // (R L X A RT LT DN UP START SELECT Y B)
 // overlay_key_code: 0xC for SELECT&START, 0x84 for SELECT/RB
 int joy_choice(int start_line, int len, int *active, int overlay_key_code) {
    int joy1, joy2;
    int last = *active;
    joy_get(&joy1, &joy2);
-   // cursor(20, 27);
-   // print_hex_digits(joy1, 3);
-   // print(" ");
-   // print_hex_digits(joy2, 3);
 
    if ((joy1 == overlay_key_code) || (joy2 == overlay_key_code)) {
       overlay(!overlay_status());    // toggle OSD
       delay(300);
    }
+
+   backup_process();                // saves backup every 10 seconds
+
    if (!overlay_status())           // stop responding when OSD is off
       return 0;
 
@@ -293,6 +299,66 @@ int strcmp(const char* s1, const char* s2)
    return *(const unsigned char*)s1 - *(const unsigned char*)s2;
 }
 
+int strcasecmp(const char* s1, const char* s2) {
+   while(*s1 && (tolower(*s1) == tolower(*s2))) {
+      s1++;
+      s2++;
+   }
+   return *(const unsigned char*)s1 - *(const unsigned char*)s2;
+}
+
+
+char *strstr(const char *haystack, const char *substring) {
+   char *string = (char *)haystack;
+   char *a, *b;
+   b = (char *)substring;
+   if (*b == 0) 
+	   return string;
+   for (; *string != 0; string += 1) {
+	   if (*string != *b)
+	      continue;
+	   a = string;
+	   while (1) {
+         if (*b == 0) 
+            return string;
+         if (*a++ != *b++) 
+            break;
+      }
+      b = (char *)substring;
+   }
+   return NULL;
+}
+
+char *strcasestr(char *string, char *substring) {
+   char *a, *b;
+   b = substring;
+   if (*b == 0) 
+	   return string;
+   for (; *string != 0; string += 1) {
+	   if (tolower(*string) != tolower(*b))
+	      continue;
+	   a = string;
+	   while (1) {
+         if (*b == 0) 
+            return string;
+         if (tolower(*a++) != tolower(*b++)) 
+            break;
+      }
+      b = substring;
+   }
+   return NULL;
+}
+
+char *strcat(char *dest, const char *src) {
+   char *rdest = dest;
+
+   while (*dest)
+      dest++;
+   while (*dest++ = *src++)
+      ;
+   return rdest;
+}
+
 char* strncat(char* destination, const char* source, size_t num)
 {
    int i, j;
@@ -302,6 +368,13 @@ char* strncat(char* destination, const char* source, size_t num)
    }
    destination[i + j] = '\0';
    return destination;
+}
+
+char * strcpy(char *strDest, const char *strSrc) {
+   //  assert(strDest!=NULL && strSrc!=NULL);
+    char *temp = strDest;
+    while(*strDest++ = *strSrc++);
+    return temp;
 }
 
 char *strncpy(char* _dst, const char* _src, size_t _n) {

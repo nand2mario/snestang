@@ -14,8 +14,6 @@
 // 
 // Author: nand2mario, 1/2024
 
-// XXX: need a way to synchronize access to SDRAM
-
 `ifndef PICORV32_REGS
 `ifdef PICORV32_V
 `error "iosys.v must be read before picorv32.v!"
@@ -32,7 +30,8 @@
 // design are read in the correct order.
 `define PICOSOC_V
 
-module iosys (
+module iosys #(parameter FREQ=21_477_000)
+(
     input clk,                      // SNES mclk
     input hclk,                     // hdmi clock
 //    input clkref,                   // 1/2 of mclk, for sdram access synchronization
@@ -52,6 +51,7 @@ module iosys (
     output reg rom_do_valid,        // strobe for rom_do
     
     // 32-bit wide memory interface for risc-v softcore
+    // 0x_xxxx~6x_xxxx is RV RAM, 7x_xxxx is BSRAM
     output rv_valid,                // 1: active memory access
     input rv_ready,                 // pulse when access is done
     output [22:0] rv_addr,          // 8MB memory space
@@ -80,7 +80,6 @@ module iosys (
     output sd_dat1,                 // 1
     output sd_dat2,                 // 1
     output sd_dat3                  // 0 for SPI mode
-
 );
 
 /* verilator lint_off PINMISSING */
@@ -179,8 +178,10 @@ wire        romload_reg_data_sel /* synthesis syn_keep=1 */ = mem_valid && (mem_
 
 wire        joystick_reg_sel = mem_valid && (mem_addr == 32'h 0200_0040);
 
+wire        time_reg_sel = mem_valid && (mem_addr == 32'h0200_0050);        // milli-seconds since start-up (overflows in 49 days)
+
 assign mem_ready = ram_ready || textdisp_reg_char_sel || simpleuart_reg_div_sel || 
-            romload_reg_ctrl_sel || romload_reg_data_sel || joystick_reg_sel ||
+            romload_reg_ctrl_sel || romload_reg_data_sel || joystick_reg_sel || time_reg_sel ||
             (simpleuart_reg_dat_sel && !simpleuart_reg_dat_wait) ||
             ((simplespimaster_reg_byte_sel || simplespimaster_reg_word_sel) && !simplespimaster_reg_wait);
 
@@ -188,6 +189,7 @@ assign mem_rdata = ram_ready ? ram_rdata :
         joystick_reg_sel ? {4'b0, joy2, 4'b0, joy1} :
         simpleuart_reg_div_sel ? simpleuart_reg_div_do :
         simpleuart_reg_dat_sel ? simpleuart_reg_dat_do : 
+        time_reg_sel ? time_reg :
         (simplespimaster_reg_byte_sel | simplespimaster_reg_word_sel) ? simplespimaster_reg_do : 
         32'h 0000_0000;
 
@@ -299,6 +301,22 @@ assign rv_wstrb = flash_loading ? flash_wstrb : mem_wstrb;
 assign ram_rdata = rv_rdata;
 assign rv_valid = flash_loading ? flash_wr : (mem_valid & ram_sel);
 assign ram_ready = rv_ready;
+
+// Time counter register
+reg [31:0] time_reg;
+reg [$clog2(FREQ/1000)-1:0] time_cnt;
+always @(posedge clk) begin
+    if (~resetn) begin
+        time_reg <= 0;
+        time_cnt <= 0;
+    end else begin
+        time_cnt <= time_cnt + 1;
+        if (time_cnt == FREQ/1000-1) begin
+            time_cnt <= 0;
+            time_reg <= time_reg + 1;
+        end
+    end
+end
 
 // assign led = ~{2'b0, (^ total_refresh[7:0]), s0, flash_cnt[12]};     // flash while loading
 

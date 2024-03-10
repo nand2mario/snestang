@@ -2,8 +2,8 @@
 // nand2mario 2024.2
 // 
 // This supports two parallel access streams (ROM/WRAM/BSRAM/RISC-V softcore and ARAM), 
-// independent from each other. SNES ROM/BSRAM/WRAM uses bank 0 (8MB, largest game is 6MB, 
-// BSRAM+WRAM 1MB). RV uses bank 1. ARAM uses bank 2.
+// independent from each other. SNES ROM/WRAM uses bank 0 (8MB, largest game is 6MB, 
+// WRAM 1MB). RV and BSRAM uses bank 1. ARAM uses bank 2.
 //
 // This controller works at 64.5Mhz, lower than the 3 channel controller, making it
 // more stable on the Mega 138K Pro.
@@ -197,14 +197,14 @@ always @(*) begin
 	// if (refresh) next_port[0] = PORT_NONE; else 
     if (cpu_req ^ cpu_req_ack) begin
 		next_port[0] = PORT_CPU;
-		next_addr[0] = { 2'b00, cpu_addr, 1'b0 };       // CPU uses bank 0
+		next_addr[0] = { 2'b00, cpu_addr, 1'b0 };       // CPU uses bank 0, WRAM at the end
 		next_din[0]  = cpu_din;
 		next_ds[0]   = cpu_ds;
 		next_we[0]   = cpu_we;
 		next_oe[0]   = ~cpu_we;
 	end else if (bsram_req ^ bsram_req_ack) begin
 		next_port[0] = PORT_BSRAM;
-		next_addr[0] = { 5'b00_111, bsram_addr };       // BSRAM at start of 7MB, WRAM at the end
+		next_addr[0] = { 5'b01_111, bsram_addr };       // BSRAM at start of 7MB of bank 1 (also accessible from RV)
 		next_din[0] = { bsram_din, bsram_din };
 		next_ds[0] = {bsram_addr[0], ~bsram_addr[0]};
 		next_we[0] = bsram_we;
