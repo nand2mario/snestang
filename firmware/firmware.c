@@ -342,7 +342,7 @@ void menu_options() {
 			print("SELECT&RB");
 		cursor(2, 15);
 		print("Backup BSRAM:");
-		cursor(16, 16);
+		cursor(16, 15);
 		if (option_backup_bsram)
 			print("Yes");
 		else
@@ -518,8 +518,8 @@ int loadrom(int rom) {
 	} while (br == 1024);
 
 	// load BSRAM backup
-	backup_load(snes_backup_name, ram_size);
-	snes_ramsize = ram_size;
+	snes_ramsize = ram_size == 0 ? 0 : ((1 << ram_size) << 10);
+	backup_load(snes_backup_name, snes_ramsize);
 
 	status("Success");
 	snes_running = true;
@@ -535,6 +535,7 @@ loadrom_end:
 }
 
 void backup_load(char *name, int size) {
+	if (size == 0) return;
 	char path[266] = "/saves/";
 	FILINFO fno;
 	uint8_t *bsram = (uint8_t *)0x700000;			// directly read into BSRAM
@@ -563,37 +564,42 @@ void backup_load(char *name, int size) {
 
 backup_load_crc:
 	if (!loaded)
-		memset(bsram, 0, size << 10);		// clear BSRAM if not loaded
-	snes_bsram_crc16 = gen_crc16(bsram, size << 10);
+		memset(bsram, 0, size);		// clear BSRAM if not loaded
+	snes_bsram_crc16 = gen_crc16(bsram, size);
 
 	return;
 }
 
 // return 0: successfully saved, 1: BSRAM unchanged, 2: file write failure
 int backup_save(char *name, int size) {
+	if (size == 0) return 1;
 	char path[266] = "/saves/";
 	FIL f;
 	uint8_t *bsram = (uint8_t *)0x700000;		// directly read from BSRAM
 	int r = 0;
 
 	// first check if BSRAM content is changed since last save
-	int newcrc = gen_crc16(bsram, size << 10);
+	int newcrc = gen_crc16(bsram, size);
+	uart_printf("New CRC: %x, size=%d\n", newcrc, size);
 	if (newcrc == snes_bsram_crc16)
-		return 0;
+		return 1;
 
 	strcat(path, snes_backup_name);
 	if (f_open(&f, path, FA_WRITE | FA_CREATE_ALWAYS) != FR_OK) {
 		status("Cannot write save file");
+		uart_printf("Cannot write save file");
 		return 2;
 	}
 	int bw;
 	for (int off = 0; off < size; off += bw) {
 		if (f_write(&f, bsram, 1024, &bw) != FR_OK) {
 			status("Write failure");
+			uart_printf("Write failure");
 			r = 2;
 			goto bsram_save_close;
 		}
 	}
+	snes_bsram_crc16 = newcrc;
 
 bsram_save_close:
 	f_close(&f);
@@ -612,7 +618,8 @@ void backup_process() {
 			backup_success_time = t;
 		if (backup_success_time != 0) {
 			status("");
-			printf("BSRAM saved %ds ago", (t-backup_success_time)/1000);
+			printf("BSRAM saved %ds ago ", (t-backup_success_time)/1000);
+			print_hex_digits(snes_bsram_crc16, 4);
 		}
 		snes_backup_time = t;
 	}
