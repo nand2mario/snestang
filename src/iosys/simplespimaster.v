@@ -37,7 +37,8 @@ reg [1:0] cnt;  // how many bytes are already sent
 reg reg_byte_we_r, reg_word_we_r;
 reg active, new_request;
 
-SPI_Master #(.CLKS_PER_HALF_BIT(4)) spi_io_master (
+SPI_Master #(.CLKS_PER_HALF_BIT(2)) spi_io_master (
+// SPI_Master #(.CLKS_PER_HALF_BIT(4)) spi_io_master (
   .i_Clk(clk), .i_Rst_L(resetn),
   .i_TX_Byte(tx_byte), .i_TX_DV(spi_start), .o_TX_Ready(spi_ready),
   .o_RX_DV(spi_rxdv), .o_RX_Byte(rx_byte),

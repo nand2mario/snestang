@@ -274,13 +274,13 @@ int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) 
         spi_receive();
         spi_receive();
 
-        DEBUG("sd_readsector: CRC over\n");
+        // DEBUG("sd_readsector: CRC over\n");
 
         // Additional 8 SPI clocks
         spi_sendrecv(0xFF);
-        DEBUG("sd_readsector: additional 8 spi clocks over\n");
+        // DEBUG("sd_readsector: additional 8 spi clocks over\n");
     }
-    DEBUG("sd_readsector: return\n");
+    // DEBUG("sd_readsector: return\n");
     return 1;
 }
 

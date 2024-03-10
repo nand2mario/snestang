@@ -52,7 +52,7 @@ int load_option()  {
 		key = trimwhitespace(line);
 		value = trimwhitespace(s+1);
 		// status("");
-		// printf("key=%s, value=%s", key, value);
+		uart_printf("key=%s, value=%s\n", key, value);
 		// message("see below",1);
 
 		// now handle all key-value pairs
@@ -546,25 +546,31 @@ void backup_load(char *name, int size) {
 	if (f_stat(path, &fno) != FR_OK) {
 		if (f_mkdir(path) != FR_OK) {
 			status("Cannot create /saves");
+			uart_printf("Cannot create /saves\n");
 			goto backup_load_crc;
 		}
 	}
 	strcat(path, snes_backup_name);
+	uart_printf("Loading bsram from: %s\n", snes_backup_name);
 	FIL f;
 	if (f_open(&f, path, FA_READ) != FR_OK) {
 		snes_backup_valid = true;					// new save file, mark as valid
+		uart_printf("Cannot open bsram file, assuming new\n");
 		goto backup_load_crc;
 	}
 	uint8_t *p = bsram;	
-	while (size > 0) {
+	int load = 0;
+	while (load < size) {
 		int br;
 		if (f_read(&f, p, 1024, &br) != FR_OK || br < 1024) 
 			break;
 		p += br;
-		size -= br;
+		load += br;
 	}
 	snes_backup_valid = true;
 	f_close(&f);
+	int crc = gen_crc16(bsram, size);
+	uart_printf("Bsram backup loaded %d bytes CRC=%x.\n", load, crc);
 
 backup_load_crc:
 	snes_bsram_crc16 = gen_crc16(bsram, size);
@@ -574,7 +580,7 @@ backup_load_crc:
 
 // return 0: successfully saved, 1: BSRAM unchanged, 2: file write failure
 int backup_save(char *name, int size) {
-	if (!option_backup_bsram || snes_backup_valid || size == 0) return 1;
+	if (!option_backup_bsram || !snes_backup_valid || size == 0) return 1;
 	char path[266] = "/saves/";
 	FIL f;
 	uint8_t *bsram = (uint8_t *)0x700000;		// directly read from BSRAM
@@ -593,14 +599,15 @@ int backup_save(char *name, int size) {
 		return 2;
 	}
 	int bw;
-	for (int off = 0; off < size; off += bw) {
-		if (f_write(&f, bsram, 1024, &bw) != FR_OK) {
-			status("Write failure");
-			uart_printf("Write failure");
-			r = 2;
-			goto bsram_save_close;
-		}
+	// for (int off = 0; off < size; off += bw) {
+	// 	if (f_write(&f, bsram, 1024, &bw) != FR_OK) {
+	if (f_write(&f, bsram, size, &bw) != FR_OK || bw != size) {
+		status("Write failure");
+		uart_printf("Write failure, bw=%d\n", bw);
+		r = 2;
+		goto bsram_save_close;
 	}
+	// }
 	snes_bsram_crc16 = newcrc;
 
 bsram_save_close:
