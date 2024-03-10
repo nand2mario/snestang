@@ -1,4 +1,3 @@
-
 // Simple firmware for SNESTang
 // nand2mario, 2024.1
 //
@@ -25,6 +24,7 @@ bool option_backup_bsram = false;
 
 bool snes_running;
 int snes_ramsize;
+bool snes_backup_valid;		// whether it is okay to save
 char snes_backup_name[256];
 uint16_t snes_bsram_crc16;
 uint32_t snes_backup_time;
@@ -519,6 +519,8 @@ int loadrom(int rom) {
 
 	// load BSRAM backup
 	snes_ramsize = ram_size == 0 ? 0 : ((1 << ram_size) << 10);
+	if (snes_ramsize > 0)
+		memset((uint8_t *)0x700000, 0, snes_ramsize);		// clear BSRAM
 	backup_load(snes_backup_name, snes_ramsize);
 
 	status("Success");
@@ -535,11 +537,11 @@ loadrom_end:
 }
 
 void backup_load(char *name, int size) {
-	if (size == 0) return;
+	snes_backup_valid = false;
+	if (!option_backup_bsram || size == 0) return;
 	char path[266] = "/saves/";
 	FILINFO fno;
 	uint8_t *bsram = (uint8_t *)0x700000;			// directly read into BSRAM
-	char loaded = false;
 
 	if (f_stat(path, &fno) != FR_OK) {
 		if (f_mkdir(path) != FR_OK) {
@@ -549,8 +551,10 @@ void backup_load(char *name, int size) {
 	}
 	strcat(path, snes_backup_name);
 	FIL f;
-	if (f_open(&f, path, FA_READ) != FR_OK)
-		goto backup_load_crc;				// ignore file open failure
+	if (f_open(&f, path, FA_READ) != FR_OK) {
+		snes_backup_valid = true;					// new save file, mark as valid
+		goto backup_load_crc;
+	}
 	uint8_t *p = bsram;	
 	while (size > 0) {
 		int br;
@@ -559,12 +563,10 @@ void backup_load(char *name, int size) {
 		p += br;
 		size -= br;
 	}
-	loaded = true;
+	snes_backup_valid = true;
 	f_close(&f);
 
 backup_load_crc:
-	if (!loaded)
-		memset(bsram, 0, size);		// clear BSRAM if not loaded
 	snes_bsram_crc16 = gen_crc16(bsram, size);
 
 	return;
@@ -572,7 +574,7 @@ backup_load_crc:
 
 // return 0: successfully saved, 1: BSRAM unchanged, 2: file write failure
 int backup_save(char *name, int size) {
-	if (size == 0) return 1;
+	if (!option_backup_bsram || snes_backup_valid || size == 0) return 1;
 	char path[266] = "/saves/";
 	FIL f;
 	uint8_t *bsram = (uint8_t *)0x700000;		// directly read from BSRAM
@@ -608,7 +610,7 @@ bsram_save_close:
 
 int backup_success_time;
 void backup_process() {
-	if (!snes_running || snes_ramsize == 0)
+	if (!snes_running || !option_backup_bsram || snes_ramsize == 0)
 		return;
 	int t = time_millis();
 	if (t - snes_backup_time >= 10000) {
