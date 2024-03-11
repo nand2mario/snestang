@@ -138,6 +138,12 @@ uint8_t sd_send_command(uint8_t cmd, uint32_t arg) {
         spi_receive();
         spi_receive();
         spi_receive();
+    } else if (cmd == CMD8_SEND_IF_COND && response == CMD_OK) {
+        // CMD8 has a R7 response with 32-bit return value
+        spi_receive();
+        spi_receive();
+        spi_receive();
+        spi_receive();
     }
 
     // Additional 8 clock cycles over SPI
@@ -152,6 +158,10 @@ int sd_init() {
     int retries = 0;
     uint8_t response = 0xFF;
     uint8_t sd_version;
+
+    // 74 or more clock pulses to SCLK
+    for (int i = 0; i < 10; i++)
+        spi_send(0xff);
 
     retries = 0;
     do {
@@ -188,12 +198,13 @@ int sd_init() {
         // delay(100);
         // Inform attached card that SDHC support is enabled
         response = sd_send_command(ACMD41_SD_SEND_OP_COND, ACMD41_HOST_SUPPORTS_SDHC);
-        if(retries++ > 8) {
+        if(retries++ > 128) {
 	        // CS_H(1);
-            DEBUG("SD init failure: ACMD41\n");
+            DEBUG("SD init failure: ACMD41, %d\n", response);
 	        return -2;
         }
     } while(response != 0x00);
+    DEBUG("ACMD41 succeeded after %d tries.\n", retries);
 
     // Query card to see if it supports SDHC mode   
     if (sd_version == 2) {
