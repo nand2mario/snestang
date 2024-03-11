@@ -159,56 +159,69 @@ module snes2hdmi (
     end
     
 
-    // HDMI TX audio processing
-    // We use an async FIFO to buffer audio samples and rate-limit generation to 32Khz
-    localparam AUDIO_IN_RATE=32000, AUDIO_OUT_RATE=48000;
-    reg clk_audio;
-    wire [31:0] audio_sample;
-    wire audio_empty;
+    // HDMI TX audio - send 32K sampling rate audio
     reg [15:0] audio_sample_word [1:0];
-    reg audio_rinc;
-    localparam AUDIO_IN_DELAY = CLKFRQ * 1000 / AUDIO_IN_RATE;
-    reg [$clog2(AUDIO_IN_DELAY)-1:0] audio_divider;
+    assign audio_sample_word[0] = audio_l;
+    assign audio_sample_word[1] = audio_r;
+    localparam AUDIO_OUT_RATE = 32000;
+
+    reg clk_audio;
+    localparam AUDIO_DELAY = CLKFRQ * 1000 / 64000;
+    reg [$clog2(AUDIO_DELAY)-1:0] audio_divider;
     always @(posedge clk_pixel) begin
         if (resetn) begin
-            audio_rinc <= 0;
-            if (audio_divider != AUDIO_IN_DELAY - 1) 
+            if (audio_divider != AUDIO_DELAY - 1) 
                 audio_divider++;
             else begin 
-                audio_divider <= 0; 
-                // if (~audio_empty) begin     // take audio samples from FIFO @ 32Khz
-                //     {audio_sample_word[0], audio_sample_word[1]} <= audio_sample;
-                //     audio_rinc <= 1'b1;
-                // end
-                audio_sample_word[0] <= audio_l;
-                audio_sample_word[1] <= audio_r;
+                audio_divider <= 0;
+                clk_audio = ~clk_audio;     // generate audio clock @ 32Khz
             end
         end
     end
-    localparam AUDIO_OUT_DELAY = CLKFRQ * 1000 / AUDIO_OUT_RATE / 2;
-    reg [$clog2(AUDIO_OUT_DELAY)-1:0] audio_out_divider;
+
+/*
+    // very simple up-sampling filter with linear interpolation
+    reg signed [15:0] left[3];
+    reg signed [15:0] right[3];
+
+    localparam AUDIO_IN_RATE=32000, AUDIO_OUT_RATE=48000;
+    reg clk_audio;
+    localparam AUDIO_DELAY = CLKFRQ * 1000 / 96000;
+    reg [$clog2(AUDIO_DELAY)-1:0] audio_divider;
+    reg [2:0] audio_cnt;        // 0-5
     always @(posedge clk_pixel) begin
         if (resetn) begin
-            if (audio_out_divider != AUDIO_OUT_DELAY - 1)
-                audio_out_divider++;
-            else begin
-                audio_out_divider <= 0;
+            if (audio_divider != AUDIO_DELAY - 1) 
+                audio_divider++;
+            else begin 
+                reg signed [15:0] l, r;
+                audio_cnt <= audio_cnt == 3'd5 ? 0 : audio_cnt + 1;
+
+                if (audio_cnt == 3'd0 || audio_cnt == 3'd3) begin
+                    l = signed'(audio_l); r = signed'(audio_r);
+                    audio_divider <= 0; 
+                    // take audio samples from FIFO @ 32Khz
+                    left[0] <= l;
+                    right[0] <= r;
+                    // interpolation filter
+                    left[1] <= ((18'(l) << 1) + 18'(left[0])) / 3;
+                    left[2] <= (18'(l) + (18'(left[0]) << 1)) / 3;
+                    right[1] <= ((18'(r) << 1) + 18'(right[0])) / 3;
+                    right[2] <= (18'(r) + (18'(right[0]) << 1)) / 3;
+                end
+                
                 clk_audio = ~clk_audio;     // generate audio clock @ 48Khz
+                if (audio_cnt == 3'd0)
+                    {audio_sample_word[0], audio_sample_word[1]} <= {left[0], right[0]};
+                if (audio_cnt == 3'd2)
+                    {audio_sample_word[0], audio_sample_word[1]} <= {left[1], right[1]};
+                if (audio_cnt == 3'd4)
+                    {audio_sample_word[0], audio_sample_word[1]} <= {left[2], right[2]};
             end
         end
     end
     assign audio_en = 1;
-    // // Actual audio sample FIFO
-    // wire audio_full;
-    // // dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(4), .ALMOST_GAP(3)) audio_fifo (
-    // dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(2), .ALMOST_GAP(1)) audio_fifo (
-    //     .clk(clk), .wrst_n(1'b1), 
-    //     .winc(audio_ready), .wdata({audio_l, audio_r}), .wfull(audio_full),
-    //     .rclk(clk_pixel), .rrst_n(1'b1),
-    //     .rinc(audio_rinc), .rdata(audio_sample), .rempty(audio_empty),
-    //     .almost_full(), .almost_empty()
-    // );    
-    // assign audio_en = ~audio_full;          // disable audio generation if FIFO is full
+*/
 
     //
     // Video

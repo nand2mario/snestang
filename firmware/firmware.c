@@ -693,6 +693,9 @@ int main() {
 	// initialize UART
 	reg_uart_clkdiv = 187; // 21505400 / 115200;
 
+	sd_init();
+	delay(100);
+	
 	int mounted = 0;
 	while(!mounted) {
 		for (int attempts = 0; attempts < 255; attempts++) {

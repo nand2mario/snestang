@@ -203,6 +203,8 @@ int sd_init() {
             DEBUG("SD init failure: ACMD41, %d\n", response);
 	        return -2;
         }
+        // if (retries & 0x15 == 0)       // retry as long as 400ms
+        //     delay(50);
     } while(response != 0x00);
     DEBUG("ACMD41 succeeded after %d tries.\n", retries);
 
