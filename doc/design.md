@@ -76,8 +76,7 @@ dsp      \_________/substep0‾\_________/substep1‾\____ ...
 SNES CPU uses variable clock speeds. Basically a CPU cycle takes 6, 8 or 12 master clock cycles depending on the operation. Cycles with no memory or I/O operation takes 6 master clock cycles. Cycles accessing memory takes 8. Cycles accessing I/O takes 12.
 
 Therefore, actual timing for a CPU cycle would look like this:
-  * Phase 0 (marked by `SYSCLKF_CE` in code, "falling sys clk"): P65 computation is executed. 
-  * Phase 1: memory read requests are issued.
+  * Phase 0 (marked by `SYSCLKF_CE` in code, "falling sys clk"): P65 computation is executed, and memory read requests issued.
   * Middle phase (marked by `SYSCLKR_CE`, "rising sys clk"): memory write requests are issues.
   * For DMA, there could be at most one read and one write. So the result of the read is used by the write.
 
