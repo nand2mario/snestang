@@ -6,7 +6,16 @@
 
 <img src="doc/images/snestang0.1.jpg" width=300>
 
-SNESTang is an open source project to recreate the Super Nintendo Entertainment System (SNES) with the tiny Sipeed Tang Primer 25K FPGA board. Similar to its sibling [NESTang](https://github.com/nand2mario/nestang), it support 720p HDMI output, cycle accurate gameplay, ROM loading from MicroSD with an easy-to-use menu system, and playstation 2 controller support.
+SNESTang is an open source project to recreate the Super Nintendo Entertainment System (SNES) with the tiny Sipeed Tang Primer 25K FPGA board. 
+
+* 720p HDMI output.
+* Cycle accurate gameplay.
+* Supports LoROM, HiROM and ExHiROM.
+* ROM loading from MicroSD with an easy-to-use menu system.
+* Extension chips: DSP-1/2/3/4, S-RTC, OBC-1.
+* Automatic BSRAM backup and restore.
+
+Also check out the sibling project, [NESTang](https://github.com/nand2mario/nestang).
 
 ## Setup Instructions
 
@@ -22,11 +31,22 @@ Quick instructions for experienced users:
 
 The project is still in early stages and some games do not work. Here are a few games that work well for me: Super Mario World, Gradius III, Contra III and MegaMan X. Find more information on the [game compatibility page](https://github.com/nand2mario/snestang/wiki/Game-Compatibility).
 
+## Usage
+
+Basic operations
+* .SFC and .SMC roms should be automatically recognized.
+* SELECT-RB (right button) to open OSD.
+
+Backup SRAM support
+* Many SNES gamepaks include battery-backed SRAM chips to store game saves, for example Super Mario World. Since 0.5, SNESTang supports fully-automatic backup and restore of BSRAM content, with no interruption to the game play.
+* The function is by default turned off. To use it, first enable it in options. Then launch a game with BSRAM support. Every 10 seconds, SNESTang will check if there's new BSRAM content, and if yes saves it into `/saves/<rom_name>.srm`. BSRAM is also automatically restored at game launch if the corresponding .srm file exists, and BSRAM function is on.
+* [List of games](https://www.dkoldies.com/blog/complete-list-of-snes-games-with-save-batteries/) with save batteries.
+
 ## Development
 
 I am developing with Gowin IDE 1.9.9 Pro version. It requires a free license. Just open the project file snestang_primer25k.gprj.
 
-Read the [design notes](doc/design.md) to understand the code or to add features.
+Read the updated [design notes](doc/design.md) to understand the code or to add features.
 
 You can also simulate the code with [our verilator harness](verilator). `src/test_loader.v` specifies which rom is used by the simulation. Then `make sim` will start a SDL-based graphical simulation.
 
