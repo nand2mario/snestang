@@ -576,7 +576,7 @@ always @(posedge CLK) begin : brr_decode
             BRR_BUF_WE <= 1;
             BRR_BUF_ADDR[BD_VOICE] <= BRR_BUF_ADDR_NEXT;
 
-            $fdisplay(32'h80000002, "BRR decoded[%d]=%x", BRR_BUF_ADDR_NEXT, SOUT);
+            // $fdisplay(32'h80000002, "BRR decoded[%d]=%x", BRR_BUF_ADDR_NEXT, SOUT);
 
             BD_STATE <= BD_IDLE;
         end
@@ -665,7 +665,7 @@ always @(posedge CLK) begin : main_process
             end
         end else if (CE) begin 
             if (SMP_EN_INT && SMP_A == 16'h00F3 && ~SMP_WE_N) begin
-                $fdisplay(32'h80000002, "SMP reg[%08x] <= %08x", RI, SMP_DO);
+                // $fdisplay(32'h80000002, "SMP reg[%08x] <= %08x", RI, SMP_DO);
                 if (RI[6:0] == 7'b1001100) begin            // $4C: KON
                     WKON <= SMP_DO & ~MUTE_MASK;
                     $fdisplay(32'h80000002, "KON = %x", SMP_DO);

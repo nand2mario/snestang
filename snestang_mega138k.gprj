@@ -78,6 +78,7 @@
         <File path="src/uart_tx_V2.v" type="file.verilog" enable="1"/>
         <File path="src/mega138k/snestang.cst" type="file.cst" enable="1"/>
         <File path="src/mega138k/snestang.sdc" type="file.sdc" enable="1"/>
+        <File path="src/mega138k/controller.gao" type="file.gao" enable="0"/>
         <File path="src/mega138k/sd.gao" type="file.gao" enable="0"/>
         <File path="src/mega138k/sdram.gao" type="file.gao" enable="0"/>
         <File path="src/mega138k/smp.gao" type="file.gao" enable="0"/>
