@@ -1,8 +1,11 @@
 
 `define NANO
 `define SDRAM_3CH
-`define CHIP_DSPn
+// `define CHIP_DSPn
 // `define CHIP_GSU
+
+`define DISABLE_SNES
+`define DISABLE_SMP
 
 package configPackage;  
 

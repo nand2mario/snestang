@@ -12,14 +12,14 @@
 //   Normal schedule      Delayed write   clkref
 //   CPU   ARAM  VRAM    CPU   ARAM  VRAM
 //  ---------------------------------------------
-// 0 RAS                 RAS                1
-// 1       RAS   <LZ>                <LZ>   1       
-// 2 R/W         DATA    READ        DATA   0   
-// 3       READ                RAS          0
-// 4 <LZ>        RAS     <LZ>        RAS    0
-// 5 DATA                DATA               0  
-// 6       DATA                WRITE        1
-// 7             R/W                 R/W    1
+// 0 RAS                 RAS                0
+// 1       RAS   <LZ>                <LZ>   0       
+// 2 R/W         DATA    READ        DATA   1   
+// 3       READ                RAS          1
+// 4 <LZ>        RAS     <LZ>        RAS    1
+// 5 DATA                DATA               1  
+// 6       DATA                WRITE        0
+// 7             R/W                 R/W    0
 // 
 // As can be seen, there are two schedules depending on operations by the first two channels 
 // (ROM/WRAM/BSRAM/RiscV, and ARAM):
@@ -64,9 +64,9 @@ module sdram_snes
 )
 (
     // SDRAM side interface
-    inout      [15:0] SDRAM_DQ,
-    output     [12:0] SDRAM_A,
-    output reg [1:0]  SDRAM_DQM,
+    inout      [31:0] SDRAM_DQ,
+    output     [10:0] SDRAM_A,
+    output reg [3:0]  SDRAM_DQM,
     output reg [1:0]  SDRAM_BA,
     output            SDRAM_nCS,
     output            SDRAM_nWE,
@@ -127,6 +127,7 @@ module sdram_snes
 	input             vram2_we,
 
     // RISC-V softcore
+    // For nano 20k, RV channel shares bank 2 with ARAM
     input      [22:1] rv_addr,      // 8MB RV memory space
     input      [15:0] rv_din,       // 16-bit accesses
     input      [1:0]  rv_ds,
@@ -184,9 +185,9 @@ localparam PORT_NONE  = 2'd0;
 
 localparam PORT_CPU   = 2'd1;
 localparam PORT_BSRAM = 2'd2;
-localparam PORT_RV    = 2'd3;
 
 localparam PORT_ARAM  = 2'd1;
+localparam PORT_RV    = 2'd2;
 
 localparam PORT_VRAM  = 2'd1;
 localparam PORT_VRAM1 = 2'd2;
@@ -194,7 +195,7 @@ localparam PORT_VRAM2 = 2'd3;
 
 reg  [1:0] port[3];
 reg  [1:0] next_port[3];
-reg [24:0] next_addr[3];        // 2-bit bank #, then 8MB byte address in bank
+reg [22:0] next_addr[3];        // 2-bit bank #, then 2MB byte address in bank
 reg [15:0] next_din[3];
 reg  [1:0] next_ds[3];
 reg  [2:0] next_we;
@@ -225,28 +226,20 @@ always @(*) begin
 	next_oe[0] = 0;
 	next_ds[0] = 0;
 	next_din[0] = 0;
-//	if (refresh) next_port[0] = PORT_NONE; else         // Refresh may delay CPU requests by 2 mclk cycles
     if (cpu_req ^ cpu_req_ack) begin
 		next_port[0] = PORT_CPU;
-		next_addr[0] = { 2'b00, cpu_addr, 1'b0 };       // CPU uses bank 0, WRAM at the end
+		next_addr[0] = { 1'b0, cpu_addr[21:1], 1'b0 };  // CPU uses bank 0 and 1, WRAM at last 128KB of bank 1
 		next_din[0]  = cpu_din;
 		next_ds[0]   = cpu_ds;
 		next_we[0]   = cpu_we;
 		next_oe[0]   = ~cpu_we;
 	end else if (bsram_req ^ bsram_req_ack) begin
 		next_port[0] = PORT_BSRAM;
-		next_addr[0] = { 5'b01_111, bsram_addr };       // BSRAM at start of 7MB bank 1
+		next_addr[0] = { 6'b01_1110, bsram_addr[16:0]};  // BSRAM at 2nd last 128KB of bank 1
 		next_din[0] = { bsram_din, bsram_din };
 		next_ds[0] = {bsram_addr[0], ~bsram_addr[0]};
 		next_we[0] = bsram_we;
 		next_oe[0] = ~bsram_we;
-	end else if (rv_req ^ rv_req_ack) begin             // RV uses bank 1 and has lowest priority
-		next_port[0] = PORT_RV;
-		next_addr[0] = { 2'b01, rv_addr, 1'b0 };
-		next_we[0] = rv_we;
-		next_oe[0] = ~rv_we;
-		next_din[0] = rv_din;
-		next_ds[0] = rv_ds;
 	end 
 end
 
@@ -258,15 +251,21 @@ always @* begin
 	next_oe[1] = 0;
 	next_ds[1] = 0;
 	next_din[1] = 0;
-	// if (refresh) next_port[1] <= PORT_NONE;	else        
     // T_RC=6, refresh starts cycle 3 and ends exactly at cycle 1, so causes no delay to ARAM
     if (aram_req ^ aram_req_ack) begin
 		next_port[1] = PORT_ARAM;
-		next_addr[1] = { 9'b10_1111000, aram_addr };   // ARAM uses bank 2
+		next_addr[1] = { 7'b10_00000, aram_addr};       // ARAM at start of bank 2
 		next_we[1]   = aram_we;
 		next_oe[1]   = ~aram_we;
 		next_din[1]  = aram_din;
 		next_ds[1]   = aram_16 ? 2'b11 : {aram_addr[0], ~aram_addr[0]};
+	end else if (rv_req ^ rv_req_ack) begin             // RV uses upper 1MB of bank 2
+		next_port[1] = PORT_RV;
+		next_addr[1] = { 2'b10_1, rv_addr[19:1], 1'b0 };
+		next_we[1] = rv_we;
+		next_oe[1] = ~rv_we;
+		next_din[1] = rv_din;
+		next_ds[1] = rv_ds;
 	end
 end
 
@@ -359,28 +358,27 @@ always @(posedge clk) begin
             end
         end 
         if (normal) begin
-            if (clkref & ~clkref_r)             // go to cycle 7 after clkref posedge
-                // cycle <= 12'b0000_1000_0000;
-                cycle <= 12'b0000_0000_1000;     // go to cycle 3 instead
+            if (clkref & ~clkref_r)             // go to cycle 3 after clkref posedge
+                cycle <= 12'b0000_0000_1000;     
             else
                 cycle[7:0] <= {cycle[6:0], cycle[7]};
             refresh_cnt <= refresh_cnt + 1'd1;
             
             // RAS
-            // bank 0,1 - ROM, WRAM, BSRAM and RV
+            // bank 0,1 - ROM, WRAM, BSRAM
             if (cycle[0]) begin
     			port[0] <= next_port[0];
 	    		{ we_latch[0], oe_latch[0] } <= { next_we[0], next_oe[0] };
     			addr_latch[0] <= next_addr[0];
-	    		a <= next_addr[0][22:10];
-                SDRAM_BA <= next_addr[0][24:23];
+	    		a <= next_addr[0][20:10];
+                SDRAM_BA <= next_addr[0][22:21];
                 din_latch[0] <= next_din[0];
                 ds[0] <= next_ds[0];
                 if (next_port[0] != PORT_NONE) cmd <= CMD_BankActivate;
                 write_delay <= next_oe[0] & next_we[1];     // delay aram write when cpu is read
             end
 
-            // bank 2 - ARAM
+            // bank 2 - ARAM, RV
             if (cycle[1] & ~write_delay | cycle[3] & write_delay) begin
                 port[1] <= next_port[1];
                 { we_latch[1], oe_latch[1] } <= { next_we[1], next_oe[1] };
@@ -421,7 +419,7 @@ always @(posedge clk) begin
                 refresh <= 1'b0;
 
             // CAS
-            // ROM, WRAM, BSRAM and RV
+            // ROM, WRAM, BSRAM
             if (cycle[2] && (oe_latch[0] || we_latch[0])) begin
                 cmd <= we_latch[0]?CMD_Write:CMD_Read;
                 if (we_latch[0]) begin
@@ -442,7 +440,7 @@ always @(posedge clk) begin
                 endcase
             end
 
-            // ARAM
+            // ARAM, RV
             if (cycle[3] & ~write_delay | cycle[6] & write_delay) begin
                 if (oe_latch[1] || we_latch[1]) begin
                     cmd <= we_latch[1]?CMD_Write:CMD_Read;
@@ -484,13 +482,17 @@ always @(posedge clk) begin
                 case (port[0])
                 PORT_CPU:   if (cpu_port) cpu_port1 <= dq_in; else cpu_port0 <= dq_in;
                 PORT_BSRAM: bsram_dout_reg <= ds[0][0] ? dq_in[7:0] : dq_in[15:8];
-                PORT_RV:    rv_dout <= dq_in;
                 default: ;
                 endcase
             end
 
             // ARAM
-            if (cycle[6] && oe_latch[1]) aram_dout <= dq_in;
+            if (cycle[6] && oe_latch[1]) 
+                case (port[1])
+                PORT_ARAM: aram_dout <= dq_in;
+                PORT_RV:    rv_dout <= dq_in;
+                default: ;
+                endcase
 
             // VRAM
             if (cycle[2] && oe_latch[2]) begin
@@ -498,6 +500,7 @@ always @(posedge clk) begin
 				PORT_VRAM: { vram2_dout, vram1_dout } <= dq_in;
 				PORT_VRAM1: vram1_dout <= dq_in[7:0];
 				PORT_VRAM2: vram2_dout <= dq_in[15:8];
+                default: ;
                 endcase
             end
             if (cycle[2] && we_latch[2]) begin
@@ -505,6 +508,7 @@ always @(posedge clk) begin
 				PORT_VRAM: { vram2_dout, vram1_dout } <= din_latch[2];
 				PORT_VRAM1: vram1_dout <= din_latch[2][7:0];
 				PORT_VRAM2: vram2_dout <= din_latch[2][7:0];
+                default: ;
                 endcase
             end
         end
