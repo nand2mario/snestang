@@ -52,15 +52,13 @@ module sdram_snes
     // Clock frequency
     parameter         FREQ = 86_000_000,  
 
-    // Time delays for 66.7Mhz max clock (min clock cycle 15ns)
-    // The SDRAM supports max 166.7Mhz (RP/RCD/RC need changes)
-    // Alliance AS4C32M16SB-7TIN 512Mb
-    parameter [3:0]   CAS  = 4'd2,     // 2/3 cycles, set in mode register
-    parameter [3:0]   T_WR = 4'd2,     // 2 cycles, write recovery
-    parameter [3:0]   T_MRD= 4'd2,     // 2 cycles, mode register set
-    parameter [3:0]   T_RP = 4'd1,     // 15ns, precharge to active
-    parameter [3:0]   T_RCD= 4'd1,     // 15ns, active to r/w
-    parameter [3:0]   T_RC = 4'd4      // 63ns, ref/active to ref/active
+    // Typical SDRAM delays
+    parameter [4:0]   CAS  = 2,     // 2/3 cycles, set in mode register
+    parameter [4:0]   T_WR = 2,     // 2 cycles, write recovery
+    parameter [4:0]   T_MRD= 2,     // 2 cycles, mode register set
+    parameter [4:0]   T_RP = 2,     // 15ns, precharge to active
+    parameter [4:0]   T_RCD= 2,     // 15ns, active to r/w
+    parameter [4:0]   T_RC = 6      // 63ns, ref/active to ref/active
 )
 (
     // SDRAM side interface
@@ -145,7 +143,7 @@ module sdram_snes
 // Tri-state DQ input/output
 reg dq_oen;        // 0 means output
 reg [31:0] dq_out;
-assign SDRAM_DQ = dq_oen ? {16{1'bz}} : dq_out;
+assign SDRAM_DQ = dq_oen ? {32{1'bz}} : dq_out;
 wire [31:0] dq_in = SDRAM_DQ;     // DQ input
 reg [3:0] cmd;
 reg [10:0] a;
@@ -170,8 +168,8 @@ localparam [10:0] MODE_REG = {4'b0, CAS[2:0], BURST_MODE, BURST_LEN};
 localparam RFRSH_CYCLES = 9'd501;
 
 // state
-reg [11:0] cycle;       // one hot encoded
-reg normal, setup;
+reg [16:0] cycle;       // one hot encoded
+reg normal=0, setup=0;
 reg cfg_now;            // pulse for configuration
 
 // requests
@@ -313,13 +311,13 @@ always @(posedge clk) begin
     if (~resetn) begin
         busy <= 1'b1;
         dq_oen <= 1;
-        SDRAM_DQM <= 2'b0;
+        SDRAM_DQM <= 4'b1111;
         normal <= 0;
         setup <= 0;
     end else begin
         // defaults
         dq_oen <= 1'b1;
-        SDRAM_DQM <= 2'b11;
+        SDRAM_DQM <= 4'b1111;
         cmd <= CMD_NOP; 
 
         // wait 200 us on power-on
@@ -330,27 +328,29 @@ always @(posedge clk) begin
 
         // setup process
         if (setup) begin
-            cycle <= {cycle[10:0], 1'b0};       // cycle 0-11 for setup
+            cycle <= {cycle[15:0], 1'b0};       // cycle 0-16 for setup
             // configuration sequence
             if (cycle[0]) begin
                 // precharge all
                 cmd <= CMD_PreCharge;
                 a[10] <= 1'b1;
+                SDRAM_BA <= 0;
             end
-            if (cycle[T_RP]) begin
+            if (cycle[T_RP]) begin              // 2
                 // 1st AutoRefresh
                 cmd <= CMD_AutoRefresh;
             end
-            if (cycle[T_RP+T_RC]) begin
+            if (cycle[T_RP+T_RC]) begin         // 8
                 // 2nd AutoRefresh
                 cmd <= CMD_AutoRefresh;
             end
-            if (cycle[T_RP+T_RC+T_RC]) begin
+            if (cycle[T_RP+T_RC+T_RC]) begin    // 14
                 // set register
                 cmd <= CMD_SetModeReg;
                 a[10:0] <= MODE_REG;
+                SDRAM_BA <= 0;
             end
-            if (cycle[T_RP+T_RC+T_RC+T_MRD]) begin
+            if (cycle[T_RP+T_RC+T_RC+T_MRD]) begin  // 16
                 setup <= 0;
                 normal <= 1;
                 cycle <= 1;
@@ -359,7 +359,7 @@ always @(posedge clk) begin
         end 
         if (normal) begin
             if (clkref & ~clkref_r)             // go to cycle 3 after clkref posedge
-                cycle <= 12'b0000_0000_1000;     
+                cycle[7:0] <= 8'b0000_1000;     
             else
                 cycle[7:0] <= {cycle[6:0], cycle[7]};
             refresh_cnt <= refresh_cnt + 1'd1;
@@ -534,26 +534,23 @@ end
 //
 // Generate cfg_now pulse after initialization delay (normally 200us)
 //
-reg  [14:0]   rst_cnt;
-reg rst_done, rst_done_p1, cfg_busy;
+localparam CFG_DELAY = FREQ / 1000 * 200 / 1000;
+reg  [$clog2(CFG_DELAY)-1:0]   rst_cnt;
+reg rst_done, rst_done_r;
   
 always @(posedge clk) begin
     if (~resetn) begin
-        rst_cnt  <= 15'd0;
-        rst_done <= 1'b0;
-        cfg_busy <= 1'b1;
+        rst_cnt  <= 0;
+        rst_done <= 0;
     end else begin
-        rst_done_p1 <= rst_done;
-        cfg_now     <= rst_done & ~rst_done_p1;// Rising Edge Detect
+        rst_done_r <= rst_done;
+        cfg_now    <= rst_done & ~rst_done_r;
 
-        if (rst_cnt != FREQ / 1000 * 200 / 1000) begin      // count to 200 us
-            rst_cnt  <= rst_cnt[14:0] + 15'd1;
+        if (rst_cnt != CFG_DELAY-1) begin      // count to 200 us
+            rst_cnt  <= rst_cnt + 1;
             rst_done <= 1'b0;
-            cfg_busy <= 1'b1;
-        end else begin
+        end else 
             rst_done <= 1'b1;
-            cfg_busy <= 1'b0;
-        end        
     end
 end
 
