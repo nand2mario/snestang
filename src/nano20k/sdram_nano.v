@@ -144,11 +144,11 @@ module sdram_snes
 
 // Tri-state DQ input/output
 reg dq_oen;        // 0 means output
-reg [15:0] dq_out;
+reg [31:0] dq_out;
 assign SDRAM_DQ = dq_oen ? {16{1'bz}} : dq_out;
-wire [15:0] dq_in = SDRAM_DQ;     // DQ input
+wire [31:0] dq_in = SDRAM_DQ;     // DQ input
 reg [3:0] cmd;
-reg [12:0] a;
+reg [10:0] a;
 assign {SDRAM_nCS, SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE} = cmd;
 assign SDRAM_A = a;
 
@@ -281,21 +281,21 @@ always @(*) begin
 	begin
 		// 16 bit VRAM access
 		next_port[2] = PORT_VRAM;
-		next_addr[2] = { 9'b11_1111100, vram1_addr, 1'b0 };
+		next_addr[2] = { 7'b11_11111, vram1_addr, 1'b0};
 		next_we[2] = vram1_we;
 		next_oe[2] = ~vram1_we;
 		next_din[2] = { vram2_din, vram1_din };
 		next_ds[2] = 2'b11;
 	end else if (vram1_req ^ vram1_ack) begin
 		next_port[2] = PORT_VRAM1;
-		next_addr[2] = { 9'b11_1111100, vram1_addr, 1'b0 };
+		next_addr[2] = { 7'b11_11111, vram1_addr, 1'b0};
 		next_we[2] = vram1_we;
 		next_oe[2] = ~vram1_we;
 		next_din[2] = { vram1_din, vram1_din };
 		next_ds[2] = 2'b01;
 	end else if (vram2_req ^ vram2_ack) begin
 		next_port[2] = PORT_VRAM2;
-		next_addr[2] = { 9'b11_1111100, vram2_addr, 1'b0 };
+		next_addr[2] = { 7'b11_11111, vram2_addr, 1'b1};
 		next_we[2] = vram2_we;
 		next_oe[2] = ~vram2_we;
 		next_din[2] = { vram2_din, vram2_din };
@@ -383,14 +383,19 @@ always @(posedge clk) begin
                 port[1] <= next_port[1];
                 { we_latch[1], oe_latch[1] } <= { next_we[1], next_oe[1] };
                 addr_latch[1] <= next_addr[1];
-                a <= next_addr[1][22:10];
+                a <= next_addr[1][20:10];
                 SDRAM_BA <= 2'b10;
                 din_latch[1] <= next_din[1];
                 ds[1] <= next_ds[1];
-                if (next_port[1] != PORT_NONE) begin 
+                case (next_port[1])
+                PORT_ARAM: begin 
                     cmd <= CMD_BankActivate; 
                     aram_req_ack <= aram_req; 
                 end
+                PORT_RV: begin
+                    cmd <= CMD_BankActivate;
+                end
+                endcase 
             end
 
             // bank 3 - VRAM
@@ -398,7 +403,7 @@ always @(posedge clk) begin
                 port[2] <= next_port[2];
                 { we_latch[2], oe_latch[2] } <= { next_we[2], next_oe[2] };
                 addr_latch[2] <= next_addr[2];
-                a <= next_addr[2][22:10];
+                a <= next_addr[2][20:10];
                 SDRAM_BA <= 2'b11;
                 din_latch[2] <= next_din[2];
                 ds[2] <= next_ds[2];
@@ -424,18 +429,17 @@ always @(posedge clk) begin
                 cmd <= we_latch[0]?CMD_Write:CMD_Read;
                 if (we_latch[0]) begin
                     dq_oen <= 0;
-                    dq_out <= din_latch[0];
-                    SDRAM_DQM <= ~ds[0];
+                    dq_out <= {din_latch[0], din_latch[0]};
+                    SDRAM_DQM <= addr_latch[0][1] ? {~ds[0], 2'b11} : {2'b11, ~ds[0]};
                 end else
-                    SDRAM_DQM <= 2'b00;
-                a <= { 4'b0010, addr_latch[0][9:1] };  // auto precharge
-                SDRAM_BA <= addr_latch[0][24:23];                
+                    SDRAM_DQM <= 4'b0;
+                a <= { 2'b10, addr_latch[0][9:2] };  // auto precharge
+                SDRAM_BA <= addr_latch[0][22:21];                
             end
             if (cycle[2]) begin
                 case (port[0])
                 PORT_CPU:   cpu_req_ack <= cpu_req;
                 PORT_BSRAM: bsram_req_ack <= bsram_req;
-                PORT_RV:    rv_req_ack <= rv_req;
                 default: ;
                 endcase
             end
@@ -446,13 +450,15 @@ always @(posedge clk) begin
                     cmd <= we_latch[1]?CMD_Write:CMD_Read;
                     if (we_latch[1]) begin
                         dq_oen <= 0;
-                        dq_out <= din_latch[1];
-                        SDRAM_DQM <= ~ds[1];
+                        dq_out <= {din_latch[1], din_latch[1]};
+                        SDRAM_DQM <= addr_latch[1][1] ? {~ds[1], 2'b11} : {2'b11, ~ds[1]};
                     end else
-                        SDRAM_DQM <= 2'b00;
-                    a <= { 4'b0010, addr_latch[1][9:1] };  // auto precharge
+                        SDRAM_DQM <= 4'b0;
+                    a <= { 2'b10, addr_latch[1][9:2] };  // auto precharge
                     SDRAM_BA <= 2'b10;
                 end
+                if (port[1] == PORT_RV)
+                    rv_req_ack <= rv_req;
             end
 
             // VRAM
@@ -460,11 +466,11 @@ always @(posedge clk) begin
                 cmd <= we_latch[2]?CMD_Write:CMD_Read;
                 if (we_latch[2]) begin
                     dq_oen <= 0;
-                    dq_out <= din_latch[2];
-                    SDRAM_DQM <= ~ds[2];
+                    dq_out <= {din_latch[2], din_latch[2]};
+                    SDRAM_DQM <= addr_latch[2][1] ? {~ds[2], 2'b11} : {2'b11, ~ds[2]};
                 end else
-                    SDRAM_DQM <= 2'b00;
-                a <= { 4'b0010, addr_latch[2][9:1] };  // auto precharge
+                    SDRAM_DQM <= 4'b0;
+                a <= { 2'b10, addr_latch[2][9:2] };  // auto precharge
                 SDRAM_BA <= 2'b11;
             end
             if(cycle[7]) begin
@@ -480,8 +486,18 @@ always @(posedge clk) begin
             // ROM, WRAM, BSRAM and RV
             if (cycle[5] && oe_latch[0]) begin
                 case (port[0])
-                PORT_CPU:   if (cpu_port) cpu_port1 <= dq_in; else cpu_port0 <= dq_in;
-                PORT_BSRAM: bsram_dout_reg <= ds[0][0] ? dq_in[7:0] : dq_in[15:8];
+                PORT_CPU:   
+                    if (cpu_port) 
+                        cpu_port1 <= addr_latch[0][1] ? dq_in[31:16] : dq_in[15:0]; 
+                    else 
+                        cpu_port0 <= addr_latch[0][1] ? dq_in[31:16] : dq_in[15:0];
+                PORT_BSRAM: 
+                    case ({addr_latch[0][1], ds[0][0]})
+                    2'b00: bsram_dout_reg <= dq_in[7:0];
+                    2'b01: bsram_dout_reg <= dq_in[15:8];
+                    2'b10: bsram_dout_reg <= dq_in[23:16];
+                    2'b11: bsram_dout_reg <= dq_in[31:24]; 
+                    endcase
                 default: ;
                 endcase
             end
@@ -489,17 +505,17 @@ always @(posedge clk) begin
             // ARAM
             if (cycle[6] && oe_latch[1]) 
                 case (port[1])
-                PORT_ARAM: aram_dout <= dq_in;
-                PORT_RV:    rv_dout <= dq_in;
+                PORT_ARAM: aram_dout <= addr_latch[1][1] ? dq_in[31:16] : dq_in[15:0];
+                PORT_RV:    rv_dout <= addr_latch[1][1] ? dq_in[31:16] : dq_in[15:0];
                 default: ;
                 endcase
 
             // VRAM
             if (cycle[2] && oe_latch[2]) begin
                 case (port[2])
-				PORT_VRAM: { vram2_dout, vram1_dout } <= dq_in;
-				PORT_VRAM1: vram1_dout <= dq_in[7:0];
-				PORT_VRAM2: vram2_dout <= dq_in[15:8];
+				PORT_VRAM: { vram2_dout, vram1_dout } <= addr_latch[2][1] ? dq_in[31:16] : dq_in[15:0];
+				PORT_VRAM1: vram1_dout <= addr_latch[2][1] ? dq_in[23:16] : dq_in[7:0];
+				PORT_VRAM2: vram2_dout <= addr_latch[2][1] ? dq_in[31:24] : dq_in[15:8];
                 default: ;
                 endcase
             end
