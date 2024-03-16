@@ -699,7 +699,8 @@ reg [19:0] timer;           // 21 times per second
 // status display on LED
 
 reg [9:0] status;
-assign led = s0 == 1'b0 ? ~status[9:5] : ~status[4:0];        // s0==0 when pressed, for mega138k
+//assign led = s0 == 1'b0 ? ~status[9:5] : ~status[4:0];        // s0==0 when pressed, for mega138k
+assign led = joy1_btns[1:0];        // Y and B
 
 always @(posedge mclk) begin
     if (loading && ~loading_r)

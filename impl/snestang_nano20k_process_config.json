@@ -58,7 +58,7 @@
  "Multiple_File_Compilation_Unit" : true,
  "Number_of_Critical_Paths" : "",
  "Number_of_Start/End_Points" : "",
- "OUTPUT_BASE_NAME" : "snestang_primer25k",
+ "OUTPUT_BASE_NAME" : "snestang_nano20k",
  "POWER_ON_RESET_MONITOR" : true,
  "PRINT_BSRAM_VALUE" : true,
  "PROGRAM_DONE_BYPASS" : false,
