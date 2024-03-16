@@ -130,8 +130,8 @@ IO_PORT "O_sdram_dqm[0]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
 IO_LOC "O_sdram_dqm[1]" L7;
 IO_PORT "O_sdram_dqm[1]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
 
-IO_LOC "sdram_clk" E3;
-IO_PORT "sdram_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_clk" E3;
+IO_PORT "O_sdram_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
 IO_LOC "O_sdram_wen_n" J7;
 IO_PORT "O_sdram_wen_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
 IO_LOC "O_sdram_ras_n" L10;

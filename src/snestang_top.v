@@ -8,10 +8,14 @@
 `ifndef VERILATOR
 `ifndef MEGA
 `ifndef PRIMER
+`ifndef NANO
 `error "config.v must be read before snestang_top.v"
 `endif
 `endif
 `endif
+`endif
+
+import configPackage::*;
 
 module snestang_top (
     input sys_clk,
@@ -22,13 +26,13 @@ module snestang_top (
     output UART_TXD,
 
     // HDMI TX
-    output       tmds_clk_n,
     output       tmds_clk_p,
-    output [2:0] tmds_d_n,
+    output       tmds_clk_n,
     output [2:0] tmds_d_p,
+    output [2:0] tmds_d_n,
 
     // LED
-    output [4:0] led,
+    output [1:0] led,
 
     // MicroSD
     output sd_clk,
@@ -57,16 +61,16 @@ module snestang_top (
     output ds_cs2,
 
     // SDRAM
-    output sdram_clk,
+    output O_sdram_clk,
     output O_sdram_cke,
     output O_sdram_cs_n,            // chip select
     output O_sdram_cas_n,           // columns address select
     output O_sdram_ras_n,           // row address select
     output O_sdram_wen_n,           // write enable
-    inout [15:0] IO_sdram_dq,       // 16 bit bidirectional data bus
-    output [12:0] O_sdram_addr,     // 13 bit multiplexed address bus
-    output [1:0] O_sdram_ba,        // 4 banks
-    output [1:0] O_sdram_dqm        // 
+    inout [SDRAM_DATA_WIDTH-1:0] IO_sdram_dq,       // 31 bit bidirectional data bus
+    output [SDRAM_ROW_WIDTH-1:0] O_sdram_addr,     // 11 bit multiplexed address bus
+    output [SDRAM_DATA_WIDTH/8-1:0] O_sdram_dqm,       // 
+    output [1:0] O_sdram_ba         // 4 banks
 );
 
 // Clock signals
@@ -88,11 +92,48 @@ always @(posedge mclk) begin
         resetn <= 1'b1;
 end
 
-`ifndef VERILATOR
+`ifdef NANO
 
-// DRAM and SNES clocks
-// For Mega 138K: clkout0=21.5054, clkout1=64.5161
-// For Primer 25K: clkout0=21.4844, clkout1=85.9375
+// Clocks for Nano 20K
+assign clk27 = sys_clk;
+gowin_pll_hdmi pll_hdmi (
+    .clkin(sys_clk),            // 27 Mhz input
+    .clkout(hclk5)              // 371.25Mhz
+);
+
+CLKDIV #(.DIV_MODE(5)) div5 (
+    .CLKOUT(hclk),              // 74.25Mhz
+    .HCLKIN(hclkin),
+    .RESETN(resetn),
+    .CALIB(1'b0)
+);
+
+gowin_pll_snes pll_snes (
+    .clkin(sys_clk),
+    .clkout(fclk),              // 86.4
+    .clkoutp(fclk_p),           // 225-degrees shifted
+    .clkoutd(mclk)              // 21.6
+);
+
+`elsif VERILATOR
+// Simulated clocks for verilator
+reg [2:0] clk_cnt = 3'b0;       // 0 1 2 3 4 5
+reg mclk_buf;                   // 0 0 0 1 1 1
+assign fclk = clk_cnt[0];       // 0 1 0 1 0 1
+assign mclk = mclk_buf;
+always @(posedge sys_clk) begin
+    clk_cnt <= clk_cnt + 3'b1; 
+    if (clk_cnt == 3'd5) begin
+        clk_cnt <= 0;
+        mclk_buf <= 0;
+    end
+    if (clk_cnt == 3'd2)
+        mclk_buf <= 1;
+end
+
+`else
+// Mega 138K: mclk=21.5054, fclk=64.5161
+// Primer 25K: mclk=21.4844, fclk=85.9375
 gowin_pll_snes pll_snes (
     .clkout0(mclk),
     .clkout1(fclk),
@@ -109,23 +150,6 @@ gowin_pll_hdmi pll_hdmi (
     .clkin(clk27),              // 27 Mhz input
     .clkout0(hclk5), .clkout1(hclk)
 );
-
-`else
-
-// Simulated clocks for verilator
-reg [2:0] clk_cnt = 3'b0;       // 0 1 2 3 4 5
-reg mclk_buf;                   // 0 0 0 1 1 1
-assign fclk = clk_cnt[0];       // 0 1 0 1 0 1
-assign mclk = mclk_buf;
-always @(posedge sys_clk) begin
-    clk_cnt <= clk_cnt + 3'b1; 
-    if (clk_cnt == 3'd5) begin
-        clk_cnt <= 0;
-        mclk_buf <= 0;
-    end
-    if (clk_cnt == 3'd2)
-        mclk_buf <= 1;
-end
 
 `endif
 
@@ -312,7 +336,7 @@ reg         aram_rd_r, aram_wr_r;
 reg         aram_req;
 
 wire        DOT_CLK_CE;
-assign      sdram_clk = fclk_p;
+assign      O_sdram_clk = fclk_p;
 
 // Generate SDRAM signals
 always @(posedge mclk) begin
@@ -573,7 +597,6 @@ ds2snes joy2 (
 assign joy1_di[1] = 0;  // P3
 assign joy2_di[1] = 0;  // P4
 
-wire overlay;
 wire [14:0] overlay_color;
 wire [10:0] overlay_x;
 wire [9:0] overlay_y;
