@@ -154,7 +154,7 @@ wire [31:0] mem_addr /* synthesis syn_keep=1 */, mem_wdata /* synthesis syn_keep
 wire [3:0] mem_wstrb /* synthesis syn_keep=1 */;
 wire [31:0] mem_rdata /* synthesis syn_keep=1 */;
 
-reg ram_ready;
+reg ram_ready /* synthesis syn_keep=1 */;
 reg [31:0] ram_rdata;
 
 wire        ram_sel = mem_valid && mem_addr[31:23] == 0;

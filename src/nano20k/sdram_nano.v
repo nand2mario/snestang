@@ -218,7 +218,7 @@ always @(posedge clk) begin
 end
 
 // ROM: bank 0,1
-// WRAM, BSRAM, RV: bank 1
+// WRAM, BSRAM: bank 1
 always @(*) begin
 	next_port[0] = PORT_NONE;
 	next_addr[0] = 0;
@@ -243,7 +243,7 @@ always @(*) begin
 	end 
 end
 
-// ARAM: bank 2
+// ARAM,RV: bank 2
 always @* begin
 	next_port[1] = PORT_NONE;
 	next_addr[1] = 0;
@@ -433,7 +433,7 @@ always @(posedge clk) begin
                     SDRAM_DQM <= addr_latch[0][1] ? {~ds[0], 2'b11} : {2'b11, ~ds[0]};
                 end else
                     SDRAM_DQM <= 4'b0;
-                a <= { 2'b10, addr_latch[0][9:2] };  // auto precharge
+                a <= { 3'b100, addr_latch[0][9:2] };  // auto precharge
                 SDRAM_BA <= addr_latch[0][22:21];                
             end
             if (cycle[2]) begin
@@ -454,7 +454,7 @@ always @(posedge clk) begin
                         SDRAM_DQM <= addr_latch[1][1] ? {~ds[1], 2'b11} : {2'b11, ~ds[1]};
                     end else
                         SDRAM_DQM <= 4'b0;
-                    a <= { 2'b10, addr_latch[1][9:2] };  // auto precharge
+                    a <= { 3'b100, addr_latch[1][9:2] };  // auto precharge
                     SDRAM_BA <= 2'b10;
                 end
                 if (port[1] == PORT_RV)
@@ -470,7 +470,7 @@ always @(posedge clk) begin
                     SDRAM_DQM <= addr_latch[2][1] ? {~ds[2], 2'b11} : {2'b11, ~ds[2]};
                 end else
                     SDRAM_DQM <= 4'b0;
-                a <= { 2'b10, addr_latch[2][9:2] };  // auto precharge
+                a <= { 3'b100, addr_latch[2][9:2] };  // auto precharge
                 SDRAM_BA <= 2'b11;
             end
             if(cycle[7]) begin
