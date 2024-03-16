@@ -103,7 +103,7 @@ gowin_pll_hdmi pll_hdmi (
 
 CLKDIV #(.DIV_MODE(5)) div5 (
     .CLKOUT(hclk),              // 74.25Mhz
-    .HCLKIN(hclkin),
+    .HCLKIN(hclk5),
     .RESETN(resetn),
     .CALIB(1'b0)
 );
