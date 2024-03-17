@@ -13,9 +13,9 @@
 //   CPU   ARAM  VRAM    CPU   ARAM  VRAM
 //  ---------------------------------------------
 // 0 RAS                 RAS                0
-// 1       RAS   <LZ>                <LZ>   0       
+// 1       RAS   <LZ>          RAS   <LZ>   0       
 // 2 R/W         DATA    READ        DATA   1   
-// 3       READ                RAS          1
+// 3       READ                             1
 // 4 <LZ>        RAS     <LZ>        RAS    1
 // 5 DATA                DATA               1  
 // 6       DATA                WRITE        0
@@ -379,7 +379,7 @@ always @(posedge clk) begin
             end
 
             // bank 2 - ARAM, RV
-            if (cycle[1] & ~write_delay | cycle[3] & write_delay) begin
+            if (cycle[1]) begin
                 port[1] <= next_port[1];
                 { we_latch[1], oe_latch[1] } <= { next_we[1], next_oe[1] };
                 addr_latch[1] <= next_addr[1];
@@ -395,6 +395,7 @@ always @(posedge clk) begin
                 PORT_RV: begin
                     cmd <= CMD_BankActivate;
                 end
+                default: ;
                 endcase 
             end
 
