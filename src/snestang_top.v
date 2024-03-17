@@ -86,8 +86,8 @@ wire pause;
 reg [15:0] resetcnt = 16'hffff;
 always @(posedge mclk) begin
     resetcnt <= resetcnt == 0 ? 0 : resetcnt - 1;
-    // if (resetcnt == 0)
-  if (resetcnt == 0 && s0)   // primer25k, nano20k
+     if (resetcnt == 0)
+//  if (resetcnt == 0 && s0)   // primer25k, nano20k
 //     if (resetcnt == 0 && ~s0)   // mega138k
         resetn <= 1'b1;
 end

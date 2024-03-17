@@ -4,8 +4,8 @@
 // `define CHIP_DSPn
 // `define CHIP_GSU
 
-`define DISABLE_SNES
-`define DISABLE_SMP
+// `define DISABLE_SNES
+// `define DISABLE_SMP
 
 package configPackage;  
 
