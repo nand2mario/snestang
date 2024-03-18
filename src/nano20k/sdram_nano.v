@@ -263,7 +263,7 @@ always @* begin
         if (rv_addr[22:20] == 3'd7)                     // RV access BSRAM
             next_addr[1] = {6'b01_1110, rv_addr[16:1], 1'b0};
         else                                            // normal RV address
-		    next_addr[1] = {2'b10_1, rv_addr[19:1], 1'b0};    
+		    next_addr[1] = {3'b10_1, rv_addr[19:1], 1'b0};    
 		next_we[1] = rv_we;
 		next_oe[1] = ~rv_we;
 		next_din[1] = rv_din;
@@ -306,7 +306,17 @@ always @(*) begin
 end
 
 reg [7:0] bsram_dout_reg;
-assign bsram_dout = (cycle[4] && oe_latch[0] && port[0] == PORT_BSRAM) ? (ds[0][0] ? dq_in[7:0] : dq_in[15:8]) : bsram_dout_reg;
+always @* begin                 // output bsram_dout on the same cycle
+    if (cycle[5] && oe_latch[0] && port[0] == PORT_BSRAM)
+        case (addr_latch[0][1:0])
+        2'b00: bsram_dout = dq_in[7:0];
+        2'b01: bsram_dout = dq_in[15:8];
+        2'b10: bsram_dout = dq_in[23:16];
+        2'b11: bsram_dout = dq_in[31:24]; 
+        endcase
+    else
+        bsram_dout = bsram_dout_reg;
+end
 
 //
 // SDRAM state machine
@@ -497,7 +507,7 @@ always @(posedge clk) begin
                     else 
                         cpu_port0 <= addr_latch[0][1] ? dq_in[31:16] : dq_in[15:0];
                 PORT_BSRAM: 
-                    case ({addr_latch[0][1], ds[0][0]})
+                    case ({addr_latch[0][1:0]})
                     2'b00: bsram_dout_reg <= dq_in[7:0];
                     2'b01: bsram_dout_reg <= dq_in[15:8];
                     2'b10: bsram_dout_reg <= dq_in[23:16];
