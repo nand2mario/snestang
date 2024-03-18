@@ -257,9 +257,13 @@ always @* begin
 		next_oe[1]   = ~aram_we;
 		next_din[1]  = aram_din;
 		next_ds[1]   = aram_16 ? 2'b11 : {aram_addr[0], ~aram_addr[0]};
-	end else if (rv_req ^ rv_req_ack) begin             // RV uses upper 1MB of bank 2
+	end else if (next_port[0] == PORT_NONE &&           // only allow RV access when bank 0,1 are also idle
+            (rv_req ^ rv_req_ack)) begin                // RV uses upper 1MB of bank 2
 		next_port[1] = PORT_RV;
-		next_addr[1] = { 2'b10_1, rv_addr[19:1], 1'b0 };
+        if (rv_addr[22:20] == 3'd7)                     // RV access BSRAM
+            next_addr[1] = {6'b01_1110, rv_addr[16:1], 1'b0};
+        else                                            // normal RV address
+		    next_addr[1] = {2'b10_1, rv_addr[19:1], 1'b0};    
 		next_we[1] = rv_we;
 		next_oe[1] = ~rv_we;
 		next_din[1] = rv_din;
@@ -375,7 +379,6 @@ always @(posedge clk) begin
                 din_latch[0] <= next_din[0];
                 ds[0] <= next_ds[0];
                 if (next_port[0] != PORT_NONE) cmd <= CMD_BankActivate;
-                write_delay <= next_oe[0] & next_we[1];     // delay aram write when cpu is read
             end
 
             // bank 2 - ARAM, RV
@@ -384,7 +387,7 @@ always @(posedge clk) begin
                 { we_latch[1], oe_latch[1] } <= { next_we[1], next_oe[1] };
                 addr_latch[1] <= next_addr[1];
                 a <= next_addr[1][20:10];
-                SDRAM_BA <= 2'b10;
+                SDRAM_BA <= next_addr[1][22:21];
                 din_latch[1] <= next_din[1];
                 ds[1] <= next_ds[1];
                 case (next_port[1])
@@ -397,6 +400,7 @@ always @(posedge clk) begin
                 end
                 default: ;
                 endcase 
+                write_delay <= oe_latch[0] & next_we[1];     // delay aram write when cpu is read
             end
 
             // bank 3 - VRAM
@@ -456,11 +460,11 @@ always @(posedge clk) begin
                     end else
                         SDRAM_DQM <= 4'b0;
                     a <= { 3'b100, addr_latch[1][9:2] };  // auto precharge
-                    SDRAM_BA <= 2'b10;
+                    SDRAM_BA <= addr_latch[1][22:21];
                 end
-                if (port[1] == PORT_RV)
-                    rv_req_ack <= rv_req;
             end
+            if (cycle[3] && port[1] == PORT_RV)         // ack RV request on cycle 3
+                rv_req_ack <= rv_req;
 
             // VRAM
             if(cycle[7] && (oe_latch[2] || we_latch[2])) begin
@@ -503,7 +507,7 @@ always @(posedge clk) begin
                 endcase
             end
 
-            // ARAM
+            // ARAM & RV
             if (cycle[6] && oe_latch[1]) 
                 case (port[1])
                 PORT_ARAM: aram_dout <= addr_latch[1][1] ? dq_in[31:16] : dq_in[15:0];

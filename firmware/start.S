@@ -4,7 +4,8 @@
 .global _start
 .type _start, @function
 
-.equ    STACK_TOP, 0x200000       # 2MB total memory
+#.equ    STACK_TOP, 0x200000       # 2MB total memory
+.equ    STACK_TOP, 0x100000       # 1MB total memory
 
 _start:
     li  sp,STACK_TOP    # load stack pointer
