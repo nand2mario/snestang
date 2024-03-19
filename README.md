@@ -1,4 +1,4 @@
-# SNESTang - SNES for Sipeed Tang Primer 25K FPGA Board
+# SNESTang - SNES for Sipeed Tang FPGA Boards
 
 <p align="right">
   <a title="Releases" href="https://github.com/nand2mario/snestang/releases"><img src="https://img.shields.io/github/commits-since/nand2mario/snestang/latest.svg?longCache=true&style=flat-square&logo=git&logoColor=fff"></a>
@@ -6,7 +6,7 @@
 
 <img src="doc/images/snestang0.1.jpg" width=300>
 
-SNESTang is an open source project to recreate the Super Nintendo Entertainment System (SNES) with the tiny Sipeed Tang Primer 25K FPGA board. 
+SNESTang is an open source project to recreate the Super Nintendo Entertainment System (SNES) with the affordable Sipeed Tang FPGA boards. Currently Tang Primer 25K, Tang Nano 20K and Tang Mega 138K Pro are supported. 
 
 * 720p HDMI output.
 * Cycle accurate gameplay.
@@ -17,19 +17,21 @@ SNESTang is an open source project to recreate the Super Nintendo Entertainment 
 
 Also check out the sibling project, [NESTang](https://github.com/nand2mario/nestang).
 
+If you haven't bought your board to try SNESTang yet, Tang Primer 25K is probably the one to get.
+
 ## Setup Instructions
 
 Detailed [step-by-step instructions](doc/installation.md).
 
 Quick instructions for experienced users:
-* Get a Tang Primer 25K with 4 modules: Tang sdram, DVI, Dualshock2, SD and a pair of dualshock controllers. Currently these should cost ~$60 in total. Plug in the modules as shown above. Also make sure the sdram module is in the right direction (The side labeled "this side faces outwards" should face away from the board).
+* Tang Primer 25K needs 4 modules: Tang sdram, DVI, Dualshock2, SD and a pair of dualshock controllers. Currently these should cost ~$60 in total. Plug in the modules as shown above. Also make sure the sdram module is in the right direction (The side labeled "this side faces outwards" should face away from the board). Tang Nano 20K just needs controller adapters.
 * Download a [SNESTang release](https://github.com/nand2mario/snestang/releases), and program `snestang.fs` to the board with Gowin programmer.
 * Since 0.3, a firmware program also needs to be programmed to the board. Program `firmware.bin` to address `0x500000` of the on-board flash. See [this screenshot](doc/images/programmer_firmware.png) for how to do it.
-* Put your .sfc or .smc roms on a MicroSD card. Note that 0.2 and earlier version only support FAT32. 0.3 and later supports FAT16, FAT32 and exFAT.
+* Put your .sfc or .smc roms on a MicroSD card.
 * Connect one or two DualShock2 controllers to the DS2 pmod.
 * Insert the MicroSD card, connect an HDMI monitor or TV, and enjoy your games.
 
-The project is still in early stages and some games do not work. Here are a few games that work well for me: Super Mario World, Gradius III, Contra III and MegaMan X. Find more information on the [game compatibility page](https://github.com/nand2mario/snestang/wiki/Game-Compatibility).
+More information on [game compatibility](https://github.com/nand2mario/snestang/wiki/Game-Compatibility).
 
 ## Usage
 
