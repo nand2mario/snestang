@@ -1,62 +1,68 @@
 # SNESTang Installation Instructions
 
-This is a step-by-step guide to install SNESTang 0.3 and later versions.
+This is a step-by-step guide to install SNESTang 0.6 and later versions for the following FPGA boards.
 
-What you need,
-* Windows computer
-* Sipeed Tang Primer 25K dock.
-* Sipeed Tang SDRAM module.
-* Sipeed Tang DVI pmod, TF-Card pmod, DS2x2 pmod.
-* Dualshock 2 controller
-* MicroSD card
+* **Sipeed Tang Primer 25K dock**. This setup also requires Sipeed Tang SDRAM module, Sipeed Tang DVI pmod, TF-Card pmod and DS2x2 pmod.
+* **Sipeed Tang Nano 20K**, along with game controllers and adapter boards sold by Sipeed.
+* **Sipeed Tang Mega 138K Pro dock**, along with Tang SDRAM module and DS2x2 pmod.
 
-<img src="images/components.jpg" width=400>
+You also need a Windows computer, Dualshock 2 controllers and a MicroSD card.
 
-## 1. Assemble the Tang Primer 25K
+## 1. Assembly
 
-The first step is to plug in the modules as follows.
+For Tang Primer 25K, plug in the modules as follows.
 
-<img src="images/primer25k_setup.jpg" width=400>
+![](images/primer25k_setup.jpg){ width=400px }
+
+For Tang Nano 20K, connect the controllers adapters as follows,
+
+![](images/nano20k_setup.jpg){ width=400px }
+
+For Tang Mega 138K Pro,
+
+![](images/mega138k_pro_setup.jpg){ width=400px }
 
 ## 2. Download SNESTang and Install Gowin IDE
 
-Now download a SNESTang release from [github](https://github.com/nand2mario/snestang/releases). For example, [SNESTang 0.3](https://github.com/nand2mario/snestang/releases/download/v0.3/snestang-0.3.zip). Extract the zip file and you will see the FPGA bitstream `snestang.fs` and SNESTang menu firmware `firmware.bin`.
+Now download a SNESTang release from [github](https://github.com/nand2mario/snestang/releases). For example, [SNESTang 0.6](https://github.com/nand2mario/snestang/releases/download/v0.6/snestang-0.6.zip). Extract the zip file and you will see the FPGA bitstreams `snestang_*.fs` and SNESTang menu firmware `firmware.bin`.
 
 In order to transfer these files to the board, you need the Gowin IDE from the FPGA manufacturer. It is available for free after registration on their website: https://www.gowinsemi.com/. You can also use the [direct link](http://cdn.gowinsemi.com.cn/Gowin_V1.9.9Beta-4_Education_win.zip) if you do not bother to register. 
 
 Once the Gowin IDE installer finishes downloading, extract, run and install everything, including the "programmer" and device drivers.
 
-<img src="images/install_programmer.png" width=400> <img src="images/install_drivers.png" width=400>
+![](images/install_programmer.png){ width=400px } 
 
-## 3. Install the bitstream (snestang.fs)
+![](images/install_drivers.png){ width=400px }
 
-Now plug the Tang Primer 25k board to your computer using the USB cable that comes with the board. Then launch the "Gowin Programmer" application.
+## 3. Install the bitstream (snestang_*.fs)
 
-<img src="images/programmer_init.png" width=400>
+Now plug the FPGA board to your computer using the USB cable that comes with it. Then launch the "Gowin Programmer" application.
 
-Just press SAVE. Then choose "GW5A" in Series.
+![](images/programmer_init.png){width=400px}
 
-<img src="images/programmer_series.png" width=400>
+Just press SAVE. Then choose the right Series and Device for your board. Tang Primer 25K is GW5A and GW5A-25A. Tang Nano 20K is GW2AR and GW2AR-18. Tang Mega 138K Pro is GW5AST and GWS5AST-138B.
 
-Now double click "Bypass" in Operation. In the window that pops up, choose "External Flash Mode 5AT" for Access Mode, "exFlash Erase, Program 5AT" for Operation, and your `snestang.fs` file for File Name. Then press "Save" to dispose of the window.
+![](images/programmer_series.png){width=400px}
 
-<img src="images/programmer_flash.png" width=300>
+Now double click "Bypass" in Operation. In the window that pops up, choose "External Flash Mode" for Access Mode. For Operation, choose "exFlash Erase, Program 5AT" (for Tang Primer 25K and Tang Mega 138K Pro) or "exFlash Erase, Program thru GAO-bridge" (for Tang Nano 20K). Then for File Name, choose the `snestang_*.fs` file for your board. Then press "Save" to dispose of the window.
+
+![](images/programmer_flash.png){width=300px}
 
 Now press the button with a play icon on the toolbar to actually start the transfer.
 
-<img src="images/programmer_doit.png" width=400>
+![](images/programmer_doit.png){width=400px}
 
 It will take about 30 seconds. Now the FPGA bitstream is ready.
 
 ## 4. Install the firmware (firmware.bin)
 
-The final step is to transfer the firmware to the board. The firmware is also stored in the on-board SPI flash chip, albeit at a different address than the bitstream. So we also use the Gowin programmer for that. Double click "exFlash Erase, Program 5AT" in the Operation field. In the popup window, press the "..." beside the filename to choose the SNESTang "firmware.bin". In the pop-up, you probably need to change the file type filter to `*.*` to be able to choose the `.bin` file. Then set Start Address to `0x500000`, which is the address for the firmware. Then press "Save" to close the window.
+The final step is to transfer the firmware to the board. The firmware is also stored in the on-board SPI flash chip, albeit at a different address than the bitstream. So we also use the Gowin programmer for that. Double click "exFlash Erase, Program 5AT" (for Tang Primer 25K and Mega 138K Pro), or "exFlash Erase, Program thru GAO-bridge" (for Tang Nano 20K) in the Operation field. In the popup window, press the "..." beside the filename to choose the SNESTang "firmware.bin". In the pop-up, you probably need to change the file type filter to `*.*` to be able to choose the `.bin` file. Then set Start Address to `0x500000`, which is the address for the firmware. Then press "Save" to close the window.
 
-<img src="images/programmer_firmware.png" width=300>
+![](images/programmer_firmware.png" width=300>
 
 Now press the button with a play icon on the toolbar again to start the transfer.
 
-<img src="images/programmer_doit.png" width=400>
+![](images/programmer_doit.png){width=400px}
 
 **That is all!** SNESTang installation is now finished.
 
@@ -64,7 +70,7 @@ Now press the button with a play icon on the toolbar again to start the transfer
 
 Plug in the controller, HDMI cable and a SD card loaded with ROM files. FAT16, FAT32 or exFAT file systems are supported. Connect the USB cable. You should see this main screen on your monitor/tv, from where you can load your games.
 
-<img src="images/mainscreen.jpg" width=400>
+![](images/mainscreen.jpg){width=400px}
 
 When a game is running, press SELECT-RB (right button) to call out the menu again and load other games.
 
