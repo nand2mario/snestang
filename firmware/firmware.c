@@ -9,6 +9,8 @@
 #include "fatfs/ff.h"
 #include "firmware.h"
 
+uint32_t CORE_ID;
+
 #define OPTION_FILE "/snestang.ini"
 #define OPTION_INVALID 2
 
@@ -302,7 +304,12 @@ int menu_loadrom(int *choice) {
 					} else {
 						// actually load a ROM
 						*choice = active;
-						if (loadrom(active) != 0) {
+						int res;
+						if (CORE_ID == 1)
+							res = loadnes(active);
+						else
+							res = loadsnes(active);
+						if (res != 0) {
 							message("Cannot load rom",1);
 							break;
 						}
@@ -433,7 +440,7 @@ char load_buf[1024];
 
 // actually load a rom file. if bsram backup is needed, also loads the backup.
 // return 0 if successful
-int loadrom(int rom) {
+int loadsnes(int rom) {
 	FIL f;
 	strncpy(load_fname, pwd, 1024);
 	strncat(load_fname, "/", 1024);
@@ -445,7 +452,7 @@ int loadrom(int rom) {
 		p = strcasestr(file_names[rom], ".smc");
 	if (p == NULL) {
 		status("Only .smc or .sfc supported");
-		goto loadrom_end;
+		goto loadsnes_end;
 	}
 	// snes_backup_name = <base>.srm
 	int base_len = p-file_names[rom];
@@ -458,7 +465,7 @@ int loadrom(int rom) {
 	int r = f_open(&f, load_fname, FA_READ);
 	if (r) {
 		status("Cannot open file");
-		goto loadrom_end;
+		goto loadsnes_end;
 	}
 	int br, total = 0;
 	int size = file_sizes[rom];
@@ -476,7 +483,7 @@ int loadrom(int rom) {
 			if (parse_snes_header(&f, header_pos, size-off, 2, load_buf, &map_ctrl, &rom_type_header, &rom_size, &ram_size, &company)) {
 				status("Not a SNES ROM file");
 				delay(200);
-				goto loadrom_close_file;
+				goto loadsnes_close_file;
 			}
 		}
 	}
@@ -494,7 +501,7 @@ int loadrom(int rom) {
 	// Send rom content to snes
 	if ((r = f_lseek(&f, off)) != FR_OK) {
 		status("Seek failure");
-		goto loadrom_snes_end;
+		goto loadsnes_snes_end;
 	}
 	do {
 		if ((r = f_read(&f, load_buf, 1024, &br)) != FR_OK)
@@ -528,11 +535,73 @@ int loadrom(int rom) {
 
 	overlay(0);		// turn off OSD
 
-loadrom_snes_end:
+loadsnes_snes_end:
 	snes_ctrl(0);	// turn off game loading, this starts SNES
-loadrom_close_file:
+loadsnes_close_file:
 	f_close(&f);
-loadrom_end:
+loadsnes_end:
+	return r;
+}
+
+// load a NES rom file.
+// return 0 if successful
+int loadnes(int rom) {
+	FIL f;
+	strncpy(load_fname, pwd, 1024);
+	strncat(load_fname, "/", 1024);
+	strncat(load_fname, file_names[rom], 1024);
+
+	// check extension .sfc or .smc
+	char *p = strcasestr(file_names[rom], ".nes");
+	if (p == NULL) {
+		status("Only .nes supported");
+		goto loadnes_end;
+	}
+
+	// initiaze sd again to be sure
+	if (sd_init() != 0) return 99;
+
+	int r = f_open(&f, load_fname, FA_READ);
+	if (r) {
+		status("Cannot open file");
+		goto loadnes_end;
+	}
+	int off = 0, br, total = 0;
+	int size = file_sizes[rom];
+
+	// load actual ROM
+	snes_ctrl(1);		// enable game loading, this resets SNES
+	snes_running = false;
+
+	// Send rom content to snes
+	if ((r = f_lseek(&f, off)) != FR_OK) {
+		status("Seek failure");
+		goto loadnes_snes_end;
+	}
+	do {
+		if ((r = f_read(&f, load_buf, 1024, &br)) != FR_OK)
+			break;
+		for (int i = 0; i < br; i += 4) {
+			uint32_t *w = (uint32_t *)(load_buf + i);
+			snes_data(*w);				// send actual ROM data
+		}
+		total += br;
+		if ((total & 0xffff) == 0) {	// display progress every 64KB
+			status("");
+			printf("%d/%dK", total >> 10, size >> 10);
+		}
+	} while (br == 1024);
+
+	status("Success");
+	snes_running = true;
+
+	overlay(0);		// turn off OSD
+
+loadnes_snes_end:
+	snes_ctrl(0);	// turn off game loading, this starts the core
+loadnes_close_file:
+	f_close(&f);
+loadnes_end:
 	return r;
 }
 
@@ -688,6 +757,7 @@ uint16_t gen_crc16(const uint8_t *data, uint16_t size) {
 }
 
 int main() {
+	CORE_ID = reg_core_id;
 	overlay(1);
 
 	// initialize UART
@@ -695,6 +765,7 @@ int main() {
 
 	sd_init();
 	delay(100);
+	DEBUG("CORE_ID=%d\n", CORE_ID);
 	
 	int mounted = 0;
 	while(!mounted) {
@@ -722,7 +793,11 @@ int main() {
 		clear();
 		cursor(2, 10);
 		//     01234567890123456789012345678901
-		print("~~~ Welcome to SNESTang ~~~");
+		if (CORE_ID == 1)
+			print("=== Welcome to NESTang ===");
+		else
+			print("~~~ Welcome to SNESTang ~~~");
+
 		cursor(2, 12);
 		print("1) Load ROM from SD card\n");
 		cursor(2, 13);

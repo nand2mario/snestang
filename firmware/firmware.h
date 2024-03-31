@@ -15,7 +15,8 @@ int backup_save(char *name, int size);
 // Saves every 10 seconds
 void backup_process();
 
-int loadrom(int rom);
+int loadnes(int rom);
+int loadsnes(int rom);
 
 void message(char *msg, int center);
 

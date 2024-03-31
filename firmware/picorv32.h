@@ -17,6 +17,7 @@
 #define reg_romload_data   (*(volatile uint32_t*)0x02000034)
 #define reg_joystick       (*(volatile uint32_t*)0x02000040)
 #define reg_time           (*(volatile uint32_t*)0x02000050)
+#define reg_core_id        (*(volatile uint32_t*)0x02000060)
 
 // Standard library for PicoRV32 RV32I softcore
 
