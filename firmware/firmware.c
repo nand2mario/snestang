@@ -15,13 +15,13 @@ uint32_t CORE_ID;
 #define OPTION_INVALID 2
 
 #define OPTION_OSD_KEY_SELECT_START 1
-#define OPTION_OSD_KEY_SELECT_RB 2
+#define OPTION_OSD_KEY_SELECT_UP 2
 
 // SNES BSRAM is mapped at address 7MB 
 volatile uint8_t *SNES_BSRAM = (volatile uint8_t *)0x07000000;
 
-int option_osd_key = OPTION_OSD_KEY_SELECT_RB;
-#define OSD_KEY_CODE (option_osd_key == 1 ? 0xC : 0x804)
+int option_osd_key = OPTION_OSD_KEY_SELECT_UP;
+#define OSD_KEY_CODE (option_osd_key == OPTION_OSD_KEY_SELECT_START ? 0xC : 0x14)
 bool option_backup_bsram = false;
 
 bool snes_running;
@@ -346,7 +346,7 @@ void menu_options() {
 		if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
 			print("SELECT&START");
 		else
-			print("SELECT&RB");
+			print("SELECT&UP");
 		cursor(2, 15);
 		print("Backup BSRAM:");
 		cursor(16, 15);
@@ -366,7 +366,7 @@ void menu_options() {
 				} else {
 					if (choice == 2) {
 						if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
-							option_osd_key = OPTION_OSD_KEY_SELECT_RB;
+							option_osd_key = OPTION_OSD_KEY_SELECT_UP;
 						else
 							option_osd_key = OPTION_OSD_KEY_SELECT_START;
 					} else if (choice == 3) {
