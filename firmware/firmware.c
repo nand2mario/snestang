@@ -15,13 +15,13 @@ uint32_t CORE_ID;
 #define OPTION_INVALID 2
 
 #define OPTION_OSD_KEY_SELECT_START 1
-#define OPTION_OSD_KEY_SELECT_UP 2
+#define OPTION_OSD_KEY_SELECT_RIGHT 2
 
 // SNES BSRAM is mapped at address 7MB 
 volatile uint8_t *SNES_BSRAM = (volatile uint8_t *)0x07000000;
 
-int option_osd_key = OPTION_OSD_KEY_SELECT_UP;
-#define OSD_KEY_CODE (option_osd_key == OPTION_OSD_KEY_SELECT_START ? 0xC : 0x14)
+int option_osd_key = OPTION_OSD_KEY_SELECT_RIGHT;
+#define OSD_KEY_CODE (option_osd_key == OPTION_OSD_KEY_SELECT_START ? 0xC : 0x84)
 bool option_backup_bsram = false;
 
 bool snes_running;
@@ -346,7 +346,7 @@ void menu_options() {
 		if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
 			print("SELECT&START");
 		else
-			print("SELECT&UP");
+			print("SELECT&RIGHT");
 		cursor(2, 15);
 		print("Backup BSRAM:");
 		cursor(16, 15);
@@ -366,7 +366,7 @@ void menu_options() {
 				} else {
 					if (choice == 2) {
 						if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
-							option_osd_key = OPTION_OSD_KEY_SELECT_UP;
+							option_osd_key = OPTION_OSD_KEY_SELECT_RIGHT;
 						else
 							option_osd_key = OPTION_OSD_KEY_SELECT_START;
 					} else if (choice == 3) {
@@ -551,6 +551,8 @@ int loadnes(int rom) {
 	strncat(load_fname, "/", 1024);
 	strncat(load_fname, file_names[rom], 1024);
 
+	DEBUG("loadnes start\n");
+
 	// check extension .sfc or .smc
 	char *p = strcasestr(file_names[rom], ".nes");
 	if (p == NULL) {
@@ -586,12 +588,13 @@ int loadnes(int rom) {
 			snes_data(*w);				// send actual ROM data
 		}
 		total += br;
-		if ((total & 0xffff) == 0) {	// display progress every 64KB
+		if ((total & 0xfff) == 0) {	// display progress every 4KB
 			status("");
 			printf("%d/%dK", total >> 10, size >> 10);
 		}
 	} while (br == 1024);
 
+	DEBUG("loadnes: %d bytes\n", total);
 	status("Success");
 	snes_running = true;
 

@@ -188,11 +188,13 @@ void joy_get(int *joy1, int *joy2) {
 void backup_process();
 
 // (R L X A RT LT DN UP START SELECT Y B)
-// overlay_key_code: 0x24 for SELECT&DOWN, 0xC for SELECT&START, 0x84 for SELECT/RB
+// overlay_key_code: 0x84 for SELECT&RIGHT, 0xC for SELECT&START, 0x804 for SELECT/RB
 int joy_choice(int start_line, int len, int *active, int overlay_key_code) {
    int joy1, joy2;
    int last = *active;
+
    joy_get(&joy1, &joy2);
+   // DEBUG("joy_choice: joy1=%x, joy2=%x\n", joy1, joy2);
 
    if ((joy1 == overlay_key_code) || (joy2 == overlay_key_code)) {
       overlay(!overlay_status());    // toggle OSD
@@ -201,8 +203,10 @@ int joy_choice(int start_line, int len, int *active, int overlay_key_code) {
 
    backup_process();                // saves backup every 10 seconds
 
-   if (!overlay_status())           // stop responding when OSD is off
+   if (!overlay_status()) {         // stop responding when OSD is off
+      // DEBUG("joy_choice: overlay off\n");
       return 0;
+   }
 
    if ((joy1 & 0x10) || (joy2 & 0x10)) {
       if (*active > 0) (*active)--;
@@ -224,6 +228,8 @@ int joy_choice(int start_line, int len, int *active, int overlay_key_code) {
       print(" ");
       delay(100);     // button debounce
    }
+
+   // DEBUG("joy_choice: return\n");
 
    return 0;      
 }
