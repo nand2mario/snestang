@@ -617,7 +617,7 @@ snes2hdmi s2h(
 );
 
 // IOSys for menu, rom loading...
-iosys iosys (
+iosys #(.CORE_ID(2)) iosys (        // CORE ID 2: SNESTang
     .clk(mclk), .hclk(hclk), /*.clkref(DOTCLK),*/ .resetn(resetn),
 
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
