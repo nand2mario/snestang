@@ -4,7 +4,7 @@
   <a title="Releases" href="https://github.com/nand2mario/snestang/releases"><img src="https://img.shields.io/github/commits-since/nand2mario/snestang/latest.svg?longCache=true&style=flat-square&logo=git&logoColor=fff"></a>
 </p>
 
-<img src="doc/images/snestang0.1.jpg" width=300>
+<img src="doc/images/snestang.jpg" width=300>
 
 SNESTang is an open source project to recreate the Super Nintendo Entertainment System (SNES) with the affordable Sipeed Tang FPGA boards. Currently Tang Primer 25K, Tang Nano 20K and Tang Mega 138K Pro are supported. 
 
