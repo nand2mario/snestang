@@ -1,10 +1,10 @@
-# SNESTang Installation Instructions
+# SNESTang/NESTang Installation Instructions
 
-This is a step-by-step guide to install SNESTang 0.6 and later versions for the following FPGA boards.
+This is a step-by-step guide to install SNESTang 0.6, NESTang 0.9 and later versions for the following FPGA boards.
 
 * **Sipeed Tang Primer 25K dock**. This setup also requires Sipeed Tang SDRAM module, Sipeed Tang DVI pmod, TF-Card pmod and DS2x2 pmod.
 * **Sipeed Tang Nano 20K**, along with game controllers and adapter boards sold by Sipeed.
-* **Sipeed Tang Mega 138K Pro dock**, along with Tang SDRAM module and DS2x2 pmod.
+* **Sipeed Tang Mega 138K Pro dock** (only for SNESTang), along with Tang SDRAM module and DS2x2 pmod.
 
 You also need a Windows computer, Dualshock 2 controllers and a MicroSD card.
 
@@ -24,7 +24,7 @@ For Tang Mega 138K Pro,
 
 ## 2. Download SNESTang and Install Gowin IDE
 
-Now download a SNESTang release from [github](https://github.com/nand2mario/snestang/releases). For example, [SNESTang 0.6](https://github.com/nand2mario/snestang/releases/download/v0.6/snestang-0.6.zip). Extract the zip file and you will see the FPGA bitstreams `snestang_*.fs` and SNESTang menu firmware `firmware.bin`.
+Now download a [SNESTang](https://github.com/nand2mario/snestang/releases) or [NESTang](https://github.com/nand2mario/nestang/releases) release from github. For example, [SNESTang 0.6](https://github.com/nand2mario/snestang/releases/download/v0.6/snestang-0.6.zip). Extract the zip file and you will see the FPGA bitstreams `snestang_*.fs`, `nestang_*.fs` and SNESTang menu firmware `firmware.bin`.
 
 In order to transfer these files to the board, you need the Gowin IDE from the FPGA manufacturer. It is available for free after registration on their website: https://www.gowinsemi.com/. You can also use the [direct link](http://cdn.gowinsemi.com.cn/Gowin_V1.9.9Beta-4_Education_win.zip) if you do not bother to register. 
 
@@ -42,7 +42,7 @@ Just press SAVE. Then choose the right Series and Device for your board. Tang Pr
 
 <img src="images/programmer_series.png" width=400>
 
-Now double click "Bypass" in Operation. In the window that pops up, choose "External Flash Mode" for Access Mode. For Operation, choose "exFlash Erase, Program 5AT" (for Tang Primer 25K and Tang Mega 138K Pro) or "exFlash Erase, Program thru GAO-bridge" (for Tang Nano 20K). Then for File Name, choose the `snestang_*.fs` file for your board. Then press "Save" to dispose of the window.
+Now double click "Bypass" in Operation. In the window that pops up, choose "External Flash Mode" for Access Mode. For Operation, choose "exFlash Erase, Program 5AT" (for Tang Primer 25K and Tang Mega 138K Pro) or "exFlash Erase, Program thru GAO-bridge" (for Tang Nano 20K). Then for File Name, choose the `snestang_*.fs`/`nestang_*.fs` file for your board. Then press "Save" to dispose of the window.
 
 <img src="images/programmer_flash.png" width=300>
 
@@ -72,5 +72,5 @@ Plug in the controller, HDMI cable and a SD card loaded with ROM files. FAT16, F
 
 When a game is running, press SELECT-RB (right button) to call out the menu again and load other games.
 
-Happy SNESing!
+Happy retro gaming!
 
