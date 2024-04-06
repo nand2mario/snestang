@@ -24,7 +24,7 @@ If you haven't bought your board to try SNESTang yet, Tang Primer 25K is probabl
 Detailed [step-by-step instructions](doc/installation.md).
 
 Quick instructions for experienced users:
-* Tang Primer 25K needs 4 modules: Tang sdram, DVI, Dualshock2, SD and a pair of dualshock controllers. Currently these should cost ~$60 in total. Plug in the modules as shown above. Also make sure the sdram module is in the right direction (The side labeled "this side faces outwards" should face away from the board). Tang Nano 20K just needs controller adapters.
+* Tang Primer 25K needs 4 modules: Tang sdram, DVI, Dualshock2, SD and a pair of dualshock controllers. Currently these should cost ~$60 in total. Tang Nano 20K just needs controller adapters. Check [instructions](doc/installation.md) for how to connect the modules / adapters.
 * Download a [SNESTang release](https://github.com/nand2mario/snestang/releases), and program `snestang.fs` to the board with Gowin programmer.
 * Since 0.3, a firmware program also needs to be programmed to the board. Program `firmware.bin` to address `0x500000` of the on-board flash. See [this screenshot](doc/images/programmer_firmware.png) for how to do it.
 * Put your .sfc or .smc roms on a MicroSD card.
