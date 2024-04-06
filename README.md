@@ -6,7 +6,7 @@
 
 <img src="doc/images/snestang.jpg" width=300>
 
-SNESTang is an open source project to recreate the Super Nintendo Entertainment System (SNES) with the affordable Sipeed Tang FPGA boards. Currently Tang Primer 25K, Tang Nano 20K and Tang Mega 138K Pro are supported. 
+SNESTang is an open source project to recreate the Super Nintendo Entertainment System (SNES) with the affordable Sipeed Tang FPGA boards. Currently [Tang Primer 25K](https://wiki.sipeed.com/hardware/en/tang/tang-primer-25k/primer-25k.html), [Tang Nano 20K](https://wiki.sipeed.com/hardware/en/tang/tang-nano-20k/nano-20k.html) and [Tang Mega 138K Pro](https://wiki.sipeed.com/hardware/en/tang/tang-mega-138k/mega-138k-pro.html) are supported. 
 
 * 720p HDMI output.
 * Cycle accurate gameplay.
