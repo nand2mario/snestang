@@ -40,7 +40,7 @@ More information on [game compatibility](https://github.com/nand2mario/snestang/
 
 Basic operations
 * .SFC and .SMC roms should be automatically recognized.
-* SELECT-RB (right button) to open OSD.
+* SELECT-RIGHT to open OSD.
 
 Backup SRAM support
 * Many SNES gamepaks include battery-backed SRAM chips to store game saves, for example Super Mario World. Since 0.5, SNESTang supports fully-automatic backup and restore of BSRAM content, with no interruption to the game play.
