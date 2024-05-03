@@ -1,12 +1,16 @@
-// A simple SNES controller interface module
+// A self-scanning SNES/NES controller interface
 module snescontroller #(
     parameter FREQ = 21_500_000         // frequency of clk
 )(
     input clk,
     input resetn,
+    
+    // I/O interface to actual controller
     output reg joy_strb,
     output joy_clk,
-    input joy_data,
+    input joy_data,     // 0: button pressed, needs to be pulled up
+
+    // Button status, 1=pressed: (R L X A RT LT DN UP START SELECT Y B)
     output reg [15:0] buttons
 );
 
@@ -96,7 +100,7 @@ always @(posedge clk) begin
                 joy_clk_reg <= 0;
                 cnt <= 0;
                 state <= CLK_LOW;
-                buttons <= {buttons[14:0], joy_data};
+                buttons <= {~joy_data, buttons[15:1]};       // shift right
             end
         end
 

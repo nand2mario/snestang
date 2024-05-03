@@ -183,6 +183,7 @@ void joy_get(int *joy1, int *joy2) {
    uint32_t joy = reg_joystick;
    *joy1 = joy & 0xffff;
    *joy2 = (joy >> 16) & 0xffff;
+   uart_printf("joy_get: joy1=%x, joy2=%x\n", *joy1, *joy2);
 }
 
 void backup_process();
