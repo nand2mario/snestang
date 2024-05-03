@@ -161,23 +161,19 @@ IO_LOC "led[0]" D7;    // Done
 IO_PORT "led[0]" IO_TYPE=LVCMOS33 PULL_MODE=UP; 
 
 //------------------------------------------------------------------------------------
-// Joystick 1 on pmod
-IO_LOC "ds_clk" L5;
-IO_PORT "ds_clk" PULL_MODE=NONE IO_TYPE=LVCMOS33;
-IO_LOC "ds_miso" K11;
-IO_PORT "ds_miso" PULL_MODE=UP IO_TYPE=LVCMOS33;
-IO_LOC "ds_mosi" E11;
-IO_PORT "ds_mosi" PULL_MODE=NONE IO_TYPE=LVCMOS33;
-IO_LOC "ds_cs"  A11;
-IO_PORT "ds_cs" PULL_MODE=NONE IO_TYPE=LVCMOS33;
+// SNES controller 1
+IO_LOC "joy1_strb" A11;
+IO_PORT "joy1_strb" PULL_MODE=NONE IO_TYPE=LVCMOS33;
+IO_LOC "joy1_clk" K11;
+IO_PORT "joy1_clk" PULL_MODE=NONE IO_TYPE=LVCMOS33;
+IO_LOC "joy1_data" L5;
+IO_PORT "joy1_data" PULL_MODE=UP IO_TYPE=LVCMOS33;
 
-// Joystick 2 on pmod
-IO_LOC "ds_clk2" K5;
-IO_PORT "ds_clk2" PULL_MODE=NONE IO_TYPE=LVCMOS33;
-IO_LOC "ds_miso2" L11;
-IO_PORT "ds_miso2" PULL_MODE=UP IO_TYPE=LVCMOS33;
-IO_LOC "ds_mosi2" E10;
-IO_PORT "ds_mosi2" PULL_MODE=NONE IO_TYPE=LVCMOS33;
-IO_LOC "ds_cs2"  A10;
-IO_PORT "ds_cs2" PULL_MODE=NONE IO_TYPE=LVCMOS33;
+// SNES controller 2
+IO_LOC "joy2_strb" A10;
+IO_PORT "joy2_strb" PULL_MODE=NONE IO_TYPE=LVCMOS33;
+IO_LOC "joy2_clk" L11;
+IO_PORT "joy2_clk" PULL_MODE=NONE IO_TYPE=LVCMOS33;
+IO_LOC "joy2_data" K5;
+IO_PORT "joy2_data" PULL_MODE=UP IO_TYPE=LVCMOS33;
 

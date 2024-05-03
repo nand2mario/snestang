@@ -1,5 +1,5 @@
 // A self-scanning SNES/NES controller interface
-module snescontroller #(
+module controller_snes #(
     parameter FREQ = 21_500_000         // frequency of clk
 )(
     input clk,
@@ -11,7 +11,7 @@ module snescontroller #(
     input joy_data,     // 0: button pressed, needs to be pulled up
 
     // Button status, 1=pressed: (R L X A RT LT DN UP START SELECT Y B)
-    output reg [15:0] buttons
+    output reg [11:0] buttons
 );
 
 /*
@@ -70,12 +70,12 @@ assign joy_clk = joy_clk_reg;
 reg [2:0] state;
 reg [$clog2(FREQ/1000*16)-1:0] cnt;           // max 16 ms
 reg [3:0] bits;
+reg [15:0] buttons_buf;
 
 localparam [1:0] LATCH = 0;
 localparam [1:0] CLK_HIGH = 1;
 localparam [1:0] CLK_LOW = 2;
 localparam [1:0] WAIT = 3;
-
 
 always @(posedge clk) begin
     if (~resetn) begin
@@ -100,7 +100,7 @@ always @(posedge clk) begin
                 joy_clk_reg <= 0;
                 cnt <= 0;
                 state <= CLK_LOW;
-                buttons <= {~joy_data, buttons[15:1]};       // shift right
+                buttons_buf <= {~joy_data, buttons_buf[15:1]};       // shift right
             end
         end
 
@@ -109,9 +109,10 @@ always @(posedge clk) begin
                 joy_clk_reg <= 1;
                 cnt <= 0;
                 bits <= bits + 1;
-                if (bits == 4'd15)      // scan complete
+                if (bits == 4'd15) begin     // scan complete
                     state <= 3;
-                else
+                    buttons <= buttons_buf[11:0];
+                end else
                     state <= 1;
             end
         end        

@@ -1,10 +1,12 @@
 
-`define PRIMER
-`define SDRAM_3CH
+`define MEGA
 `define CHIP_DSPn
 // `define CHIP_GSU
-// `define CONTROLLER_SNES
-`define CONTROLLER_DS2
+`define CONTROLLER_SNES
+
+// For debug purposes
+// `define DISABLE_SNES
+// `define DISABLE_SMP
 
 package configPackage;  
 

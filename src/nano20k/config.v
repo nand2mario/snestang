@@ -4,6 +4,9 @@
 `define CHIP_DSPn
 // `define CHIP_GSU
 
+`define CONTROLLER_DS2
+`define CONTROLLER_SNES
+
 // `define DISABLE_SNES
 // `define DISABLE_SMP
 

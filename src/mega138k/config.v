@@ -2,6 +2,7 @@
 `define MEGA
 `define CHIP_DSPn
 // `define CHIP_GSU
+`define CONTROLLER_DS2
 
 // For debug purposes
 // `define DISABLE_SNES

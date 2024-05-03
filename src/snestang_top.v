@@ -50,6 +50,7 @@ module snestang_top (
     output flash_spi_wp_n,          // write protect
     output flash_spi_hold_n,        // hold operations
 
+`ifdef CONTROLLER_SNES
     // snes controllers
     output joy1_strb,
     output joy1_clk,
@@ -57,6 +58,19 @@ module snestang_top (
     output joy2_strb,
     output joy2_clk,
     input joy2_data,
+`endif
+
+`ifdef CONTROLLER_DS2
+    // dualshock controllers
+    output ds_clk,
+    input ds_miso,
+    output ds_mosi,
+    output ds_cs,
+    output ds_clk2,
+    input ds_miso2,
+    output ds_mosi2,
+    output ds_cs2,
+`endif
 
     // SDRAM
     output O_sdram_clk,
@@ -204,11 +218,12 @@ wire [15:0] audio_l /*verilator public*/, audio_r /*verilator public*/;
 wire audio_ready /*verilator public*/;
 wire audio_en /*XXX synthesis syn_keep=1 */;
 
-//     .JOY1_DI(), .JOY2_DI(), .JOY_STRB(), .JOY1_CLK(), .JOY2_CLK(), 
-wire [1:0] joy1_di, joy2_di;
-wire joy_strb;
-wire joy1_clock, joy2_clock;
-wire [11:0] joy1_btns, joy2_btns;
+wire snes_joy_strb;
+wire snes_joy1_clk, snes_joy2_clk;
+wire [1:0] snes_joy1_di, snes_joy2_di;
+
+// OR together when both SNES and DS2 controllers are connected (right now only nano20k supports both simultaneously)
+wor [11:0] joy1_btns, joy2_btns;
 
 wire [5:0] ph;
 reg snes_start = 1'b0;
@@ -289,8 +304,8 @@ main #(.USE_DSPn(USE_DSPn), .USE_GSU(USE_GSU)) main (
     .DOTCLK(dotclk), .RGB_OUT(rgb_out), .HBLANKn(hblankn),
     .VBLANKn(vblankn), .X_OUT(x_out), .Y_OUT(y_out),
 
-    .JOY1_DI(overlay?2'b11:joy1_di), .JOY2_DI(overlay?2'b11:joy2_di), .JOY_STRB(joy_strb), 
-    .JOY1_CLK(joy1_clock), .JOY2_CLK(joy2_clock), 
+    .JOY1_DI(overlay?2'b11:snes_joy1_di), .JOY2_DI(overlay?2'b11:snes_joy2_di), .JOY_STRB(snes_joy_strb), 
+    .JOY1_CLK(snes_joy1_clk), .JOY2_CLK(snes_joy2_clk), 
 
     .AUDIO_L(audio_l), .AUDIO_R(audio_r), .AUDIO_READY(audio_ready), .AUDIO_EN(audio_en),
 
@@ -578,36 +593,40 @@ end
 
 `ifndef VERILATOR
 
-// 2 controllers, convert from DS2 to SNES
-//ds2snes joy1 (
-//    .clk(mclk),
-//    .snes_joy_strb(joy_strb), .snes_joy_clk(joy1_clk), .snes_joy_di(joy1_di[0]),
-//    .snes_buttons(joy1_btns),
-//    .ds_clk(ds_clk), .ds_miso(ds_miso), .ds_mosi(ds_mosi), .ds_cs(ds_cs) 
-//);
-
-//ds2snes joy2 (
-//   .clk(mclk),
-//   .snes_joy_strb(joy_strb), .snes_joy_clk(joy2_clk), .snes_joy_di(joy2_di[0]),
-//   .snes_buttons(joy2_btns),
-//   .ds_clk(ds_clk2), .ds_miso(ds_miso2), .ds_mosi(ds_mosi2), .ds_cs(ds_cs2) 
-//);
-snescontroller overlay_joy1 (       // active only when overlay is on
-    .clk(mclk), .resetn(overlay), .buttons(joy1_btns),
-    .joy_strb(overlay_joy1_strb), .joy_clk(overlay_joy1_clk), .joy_data(joy1_data)
+// Controller input
+`ifdef CONTROLLER_SNES
+controller_snes joy1_snes (
+    .clk(mclk), .resetn(resetn), .buttons(joy1_btns),
+    .joy_strb(joy1_strb), .joy_clk(joy1_clk), .joy_data(joy1_data)
 );
-
-snescontroller overlay_joy2 (       // active only when overlay is on
-    .clk(mclk), .resetn(overlay), .buttons(joy2_btns),
-    .joy_strb(overlay_joy2_strb), .joy_clk(overlay_joy2_clk), .joy_data(joy2_data)
+controller_snes joy2_snes (
+    .clk(mclk), .resetn(resetn), .buttons(joy2_btns),
+    .joy_strb(joy2_strb), .joy_clk(joy2_clk), .joy_data(joy2_data)
 );
+`endif
 
-assign joy1_strb = overlay ? overlay_joy1_strb : joy_strb;
-assign joy2_strb = overlay ? overlay_joy2_strb : joy_strb;
-assign joy1_clk = overlay ? overlay_joy1_clk : joy1_clock;
-assign joy2_clk = overlay ? overlay_joy2_clk : joy2_clock;
-assign joy1_di = overlay ? 0 : {0,joy1_data};
-assign joy2_di = overlay ? 0 : {0,joy2_data};
+`ifdef CONTROLLER_DS2
+controller_ds2 joy1_ds2 (
+    .clk(mclk), .snes_buttons(joy1_btns),
+    .ds_clk(ds_clk), .ds_miso(ds_miso), .ds_mosi(ds_mosi), .ds_cs(ds_cs) 
+);
+controller_ds2 joy2_ds2 (
+   .clk(mclk), .snes_buttons(joy2_btns),
+   .ds_clk(ds_clk2), .ds_miso(ds_miso2), .ds_mosi(ds_mosi2), .ds_cs(ds_cs2) 
+);
+`endif
+
+// output button presses to SNES
+controller_adapter joy1_adapter (
+    .clk(mclk), .snes_joy_strb(snes_joy_strb), 
+    .snes_buttons(joy1_btns), .snes_joy_clk(snes_joy1_clk), .snes_joy_di(snes_joy1_di[0])
+);
+controller_adapter joy2_adapter (
+    .clk(mclk), .snes_joy_strb(snes_joy_strb), 
+    .snes_buttons(joy2_btns), .snes_joy_clk(snes_joy2_clk), .snes_joy_di(snes_joy2_di[0])
+);
+assign snes_joy1_di[1] = 0;  // P3
+assign snes_joy2_di[1] = 0;  // P4
 
 wire [14:0] overlay_color;
 wire [10:0] overlay_x;

@@ -3,8 +3,7 @@
 `define SDRAM_3CH
 `define CHIP_DSPn
 // `define CHIP_GSU
-// `define CONTROLLER_SNES
-`define CONTROLLER_DS2
+`define CONTROLLER_SNES
 
 package configPackage;  
 
