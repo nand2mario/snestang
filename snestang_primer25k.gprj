@@ -15,6 +15,7 @@
         <File path="src/65C816/common.sv" type="file.verilog" enable="1"/>
         <File path="src/65C816/mcode.sv" type="file.verilog" enable="1"/>
         <File path="src/CEGen.v" type="file.verilog" enable="1"/>
+        <File path="src/audio2uart.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/DSP_LHRomMap.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/DSPn.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/OBC1.v" type="file.verilog" enable="1"/>
@@ -76,6 +77,7 @@
         <File path="src/spc700/muldiv.v" type="file.verilog" enable="1"/>
         <File path="src/spc700/spc700.v" type="file.verilog" enable="1"/>
         <File path="src/swram.v" type="file.verilog" enable="1"/>
+        <File path="src/uart_tx.v" type="file.verilog" enable="1"/>
         <File path="src/uart_tx_V2.v" type="file.verilog" enable="1"/>
         <File path="src/primer25k/snestang.cst" type="file.cst" enable="1"/>
         <File path="src/snestang.sdc" type="file.sdc" enable="1"/>

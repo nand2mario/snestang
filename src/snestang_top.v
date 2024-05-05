@@ -5,6 +5,9 @@
 
 //`define STEP_TRACE
 
+// send audio through UART at 2Mbps
+`define AUDIO_UART
+
 `ifndef VERILATOR
 `ifndef MEGA
 `ifndef PRIMER
@@ -665,11 +668,22 @@ iosys #(.CORE_ID(2)) iosys (        // CORE ID 2: SNESTang
     .flash_spi_mosi(flash_spi_mosi), .flash_spi_clk(flash_spi_clk),
     .flash_spi_wp_n(flash_spi_wp_n), .flash_spi_hold_n(flash_spi_hold_n),
 
+`ifdef AUDIO_UART
+    .uart_tx(), .uart_rx(),
+`else
     .uart_tx(UART_TXD), .uart_rx(UART_RXD),
+`endif
 
     .sd_clk(sd_clk), .sd_cmd(sd_cmd), .sd_dat0(sd_dat0), .sd_dat1(sd_dat1),
     .sd_dat2(sd_dat2), .sd_dat3(sd_dat3)
 );
+
+`ifdef AUDIO_UART
+audio2uart a2u (
+    .clk(mclk), .tx(UART_TXD),
+    .audio_left(audio_l), .audio_right(audio_r), .audio_ready(audio_ready)
+);
+`endif
 
 `else
 
