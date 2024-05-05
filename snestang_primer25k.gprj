@@ -20,9 +20,12 @@
         <File path="src/chip/DSP/OBC1.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/SRTC.v" type="file.verilog" enable="1"/>
         <File path="src/chip/dsp/dsp_data_ram.v" type="file.verilog" enable="1"/>
+        <File path="src/controller_adapter.sv" type="file.verilog" enable="1"/>
+        <File path="src/controller_ds2.sv" type="file.verilog" enable="1"/>
+        <File path="src/controller_snes.v" type="file.verilog" enable="1"/>
         <File path="src/cpu.v" type="file.verilog" enable="1"/>
-        <File path="src/ds2snes.sv" type="file.verilog" enable="1"/>
         <File path="src/dsp.v" type="file.verilog" enable="1"/>
+        <File path="src/dsp_v1.v" type="file.verilog" enable="0"/>
         <File path="src/dual_clk_fifo.v" type="file.verilog" enable="1"/>
         <File path="src/dualshock_controller.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_dpb_cgram.v" type="file.verilog" enable="1"/>
@@ -60,9 +63,9 @@
         <File path="src/primer25k/sdram_cl2_3ch.v" type="file.verilog" enable="1"/>
         <File path="src/smc_parser.v" type="file.verilog" enable="1"/>
         <File path="src/smp.v" type="file.verilog" enable="1"/>
+        <File path="src/smp_v1.v" type="file.verilog" enable="0"/>
         <File path="src/snes.v" type="file.verilog" enable="1"/>
         <File path="src/snes2hdmi.v" type="file.verilog" enable="1"/>
-        <File path="src/snescontroller.v" type="file.verilog" enable="1"/>
         <File path="src/snestang_top.v" type="file.verilog" enable="1"/>
         <File path="src/spc700/_spc700_package.v" type="file.verilog" enable="1"/>
         <File path="src/spc700/addrgen.v" type="file.verilog" enable="1"/>

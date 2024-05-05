@@ -186,7 +186,8 @@ wire CEGEN_RST_N = RST_N & ENABLE;
 
 CEGen cegen (
   .CLK(CLK), .RST_N(CEGEN_RST_N),
-  .IN_CLK(2150540),
+  .IN_CLK(2148540),
+//   .IN_CLK(2150540),
   .OUT_CLK(ACLK_FREQ),
   .CE(CE)
 );
