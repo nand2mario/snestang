@@ -6,8 +6,6 @@
 //`define STEP_TRACE
 
 // send audio through UART at 2Mbps
-`define AUDIO_UART
-
 `ifndef VERILATOR
 `ifndef MEGA
 `ifndef PRIMER
@@ -62,6 +60,11 @@ module snestang_top (
     output joy2_clk,
     input joy2_data,
 `endif
+
+    output spi_ss,
+    output spi_clk,
+    output spi_mosi,
+    input spi_miso,
 
 `ifdef CONTROLLER_DS2
     // dualshock controllers
@@ -678,12 +681,17 @@ iosys #(.CORE_ID(2)) iosys (        // CORE ID 2: SNESTang
     .sd_dat2(sd_dat2), .sd_dat3(sd_dat3)
 );
 
-`ifdef AUDIO_UART
-audio2uart a2u (
-    .clk(mclk), .tx(UART_TXD),
-    .audio_left(audio_l), .audio_right(audio_r), .audio_ready(audio_ready)
+localparam FREQ = 21600000;
+
+audio2spi #(.CLK_FREQ(FREQ), .BAUD_RATE(1_500_000)) a2u (
+    .clk(mclk), .spi_clk(spi_clk), .spi_mosi(spi_mosi), .spi_miso(spi_miso), .spi_ss(spi_ss), .errors(audio_errors),
+    .audio_left(audio_l), .audio_right(audio_r), .audio_ready(audio_ready && loaded)
 );
-`endif
+
+// audio2uart #(.CLK_FREQ(FREQ), .BAUD_RATE(115200*8)) a2u (
+//     .clk(mclk), .tx(UART_TXD), .errors(audio_errors),
+//     .audio_left(left), .audio_right(right), .audio_ready(/* audio_ready*/ send_audio)
+// );
 
 `else
 
@@ -746,6 +754,7 @@ reg [19:0] timer;           // 21 times per second
 reg [9:0] status;
 //assign led = s0 == 1'b0 ? ~status[9:5] : ~status[4:0];        // s0==0 when pressed, for mega138k
 assign led = joy1_btns[1:0];        // Y and B
+//assign led = audio_errors[3:2];
 
 always @(posedge mclk) begin
     if (loading && ~loading_r)

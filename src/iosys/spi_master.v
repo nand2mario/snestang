@@ -51,7 +51,7 @@ module SPI_Master
    output reg o_SPI_Clk,
    input      i_SPI_MISO,
    output reg o_SPI_MOSI
-   );
+  );
 
   // SPI Interface (All Runs at SPI Clock Domain)
   wire w_CPOL;     // Clock polarity

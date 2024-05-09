@@ -20,8 +20,8 @@ module snes2hdmi (
     output [9:0] overlay_y,
     input [14:0] overlay_color,
 
-    input [15:0] audio_l,
-    input [15:0] audio_r,
+    input signed [15:0] audio_l,
+    input signed [15:0] audio_r,
     input audio_ready,
     output audio_en,
 
@@ -161,85 +161,61 @@ module snes2hdmi (
 
     // HDMI TX audio - send 32K sampling rate audio
     reg [15:0] audio_sample_word [1:0];
-    // localparam AUDIO_OUT_RATE = 32000;
-    localparam AUDIO_OUT_RATE = 48000;
-    reg audio_rinc;
-    reg clk_audio;
-    wire [31:0] audio_sample;
-    wire audio_full, audio_empty;
-    localparam AUDIO_DELAY = CLKFRQ * 1000 / AUDIO_OUT_RATE / 2;
+    localparam AUDIO_OUT_RATE = 32000;
+    reg clk_audio, audio_ready_r;
+    localparam AUDIO_DELAY = CLKFRQ * 1000 / AUDIO_OUT_RATE;
     reg [$clog2(AUDIO_DELAY)-1:0] audio_divider;
 
     always @(posedge clk_pixel) begin
-        if (resetn) begin
-            audio_rinc <= 0;
-            if (audio_divider != AUDIO_DELAY - 1) 
-                audio_divider++;
-            else begin 
-                audio_divider <= 0;
-                clk_audio = ~clk_audio;     // generate audio clock @ 32Khz
-                if (~clk_audio) begin           // take sample from FIFO on clk_audio posedge
-                    if (~audio_empty) begin
-                        {audio_sample_word[0], audio_sample_word[1]} <= audio_sample;
-                        audio_rinc <= 1'b1;                        
-                    end
-                end
-            end
+        audio_divider <= audio_divider + 1;
+        clk_audio <= 0;
+        if (audio_divider == AUDIO_DELAY - 1) begin
+            audio_divider <= 0;
+            clk_audio <= 1;
+        end
+
+//        clk_audio <= audio_ready;
+        audio_ready_r <= audio_ready;
+        if (audio_ready && !audio_ready_r) begin
+            audio_sample_word <= '{audio_r, audio_l};
         end
     end
-    // Actual audio sample FIFO
-    // dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(4), .ALMOST_GAP(3)) audio_fifo (
-    dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(8), .ALMOST_GAP(2)) audio_fifo (
-        .clk(clk), .wrst_n(1'b1), 
-        .winc(audio_ready && ~audio_full), .wdata({audio_l, audio_r}), .wfull(audio_full),
-        .rclk(clk_pixel), .rrst_n(1'b1),
-        .rinc(audio_rinc), .rdata(audio_sample), .rempty(audio_empty),
-        .almost_full(), .almost_empty()
-    );        
+ 
 
-/*
-    // very simple up-sampling filter with linear interpolation
-    reg signed [15:0] left[3];
-    reg signed [15:0] right[3];
+//    localparam AUDIO_OUT_RATE = 48000;
+    // reg audio_rinc;
+    // reg clk_audio;
+    // wire [31:0] audio_sample;
+    // wire audio_full, audio_empty;
+    // localparam AUDIO_DELAY = CLKFRQ * 1000 / AUDIO_OUT_RATE;
+    // reg [$clog2(AUDIO_DELAY)-1:0] audio_divider;
 
-    localparam AUDIO_IN_RATE=32000, AUDIO_OUT_RATE=48000;
-    reg clk_audio;
-    localparam AUDIO_DELAY = CLKFRQ * 1000 / 96000;
-    reg [$clog2(AUDIO_DELAY)-1:0] audio_divider;
-    reg [2:0] audio_cnt;        // 0-5
-    always @(posedge clk_pixel) begin
-        if (resetn) begin
-            if (audio_divider != AUDIO_DELAY - 1) 
-                audio_divider++;
-            else begin 
-                reg signed [15:0] l, r;
-                audio_cnt <= audio_cnt == 3'd5 ? 0 : audio_cnt + 1;
+    // always @(posedge clk_pixel) begin
+    //     audio_divider <= audio_divider + 1;
+    //     clk_audio <= 0;
+    //     if (audio_divider == AUDIO_DELAY - 1) begin
+    //         audio_divider <= 0;
+    //         clk_audio <= 1;
+    //     end
+    // end
 
-                if (audio_cnt == 3'd0 || audio_cnt == 3'd3) begin
-                    l = signed'(audio_l); r = signed'(audio_r);
-                    audio_divider <= 0; 
-                    // take audio samples from FIFO @ 32Khz
-                    left[0] <= l;
-                    right[0] <= r;
-                    // interpolation filter
-                    left[1] <= ((18'(l) << 1) + 18'(left[0])) / 3;
-                    left[2] <= (18'(l) + (18'(left[0]) << 1)) / 3;
-                    right[1] <= ((18'(r) << 1) + 18'(right[0])) / 3;
-                    right[2] <= (18'(r) + (18'(right[0]) << 1)) / 3;
-                end
-                
-                clk_audio = ~clk_audio;     // generate audio clock @ 48Khz
-                if (audio_cnt == 3'd0)
-                    {audio_sample_word[0], audio_sample_word[1]} <= {left[0], right[0]};
-                if (audio_cnt == 3'd2)
-                    {audio_sample_word[0], audio_sample_word[1]} <= {left[1], right[1]};
-                if (audio_cnt == 3'd4)
-                    {audio_sample_word[0], audio_sample_word[1]} <= {left[2], right[2]};
-            end
-        end
-    end
-    assign audio_en = 1;
-*/
+    // always @(posedge clk_audio) begin
+    //     audio_rinc <= 0;
+    //     if (!audio_empty) begin
+    //         {audio_sample_word[0], audio_sample_word[1]} <= audio_sample;
+    //         audio_rinc <= 1'b1;                        
+    //     end
+    // end
+
+    // // Actual audio sample FIFO
+    // // dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(4), .ALMOST_GAP(3)) audio_fifo (
+    // dual_clk_fifo #(.DATESIZE(32), .ADDRSIZE(8), .ALMOST_GAP(2)) audio_fifo (
+    //     .clk(clk), .wrst_n(1'b1), 
+    //     .winc(audio_ready && ~audio_full), .wdata({audio_l, audio_r}), .wfull(audio_full),
+    //     .rclk(clk_audio), .rrst_n(1'b1),
+    //     .rinc(audio_rinc), .rdata(audio_sample), .rempty(audio_empty),
+    //     .almost_full(), .almost_empty()
+    // );
 
     //
     // Video
@@ -290,9 +266,11 @@ module snes2hdmi (
             .VIDEO_REFRESH_RATE(VIDEO_REFRESH),
             .IT_CONTENT(1),
             .AUDIO_RATE(AUDIO_OUT_RATE), 
-            .AUDIO_BIT_WIDTH(AUDIO_BIT_WIDTH),
+            .AUDIO_BIT_WIDTH(16),
             .START_X(0),
-            .START_Y(0) )
+            .START_Y(0),
+            .PRODUCT_DESCRIPTION({"SNESTANG", 64'd0}) 
+        )
 
     hdmi( .clk_pixel_x5(clk_5x_pixel), 
           .clk_pixel(clk_pixel), 
