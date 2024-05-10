@@ -13,7 +13,7 @@ module sdram_snes
     input             resetn,
 
     // SDRAM side interface
-    inout      [15:0] SDRAM_DQ,
+    inout      [31:0] SDRAM_DQ,
     output     [12:0] SDRAM_A,
     output     [1:0]  SDRAM_BA,
     output reg        SDRAM_nCS, 
@@ -21,7 +21,7 @@ module sdram_snes
     output            SDRAM_nRAS,
     output            SDRAM_nCAS,
     output            SDRAM_CKE, 
-    output reg  [1:0] SDRAM_DQM,
+    output reg  [3:0] SDRAM_DQM,
 
     // CPU access (ROM and WRAM) uses bank 0 and 1 (total 16MB)
 	input      [15:0] cpu_din,

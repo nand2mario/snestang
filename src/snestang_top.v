@@ -127,6 +127,31 @@ gowin_pll_snes pll_snes (
     .clkoutd(mclk)              // 21.6
 );
 
+`elsif AUDIO
+// HDMI audio simulation. Needs 74.25Mhz hclk, 64.8Mhz fclk, and 21.6Mhz mclk.
+// hclk is 1x speed. fclk is 48/55 speed. mclk is 16/55 speed.
+reg hclk_buf;
+reg fclk_buf;
+reg mclk_buf;
+assign hclk = hclk_buf;
+assign fclk = fclk_buf;
+assign mclk = mclk_buf;
+reg [6:0] fclk_cnt, mclk_cnt;
+
+always @(posedge sys_clk) begin         // generate hclk, fclk and mclk
+    hclk_buf <= ~hclk_buf;
+    fclk_cnt <= fclk_cnt + 48;
+    if (fclk_cnt >= 55) begin
+        fclk_cnt <= fclk_cnt - 55;
+        fclk_buf <= ~fclk_buf;
+    end
+    mclk_cnt <= mclk_cnt + 16;
+    if (mclk_cnt >= 55) begin
+        mclk_cnt <= mclk_cnt - 55;
+        mclk_buf <= ~mclk_buf;
+    end
+end
+
 `elsif VERILATOR
 // Simulated clocks for verilator
 reg [2:0] clk_cnt = 3'b0;       // 0 1 2 3 4 5
@@ -216,14 +241,16 @@ wire       hblankn,vblankn;
 
 wire [15:0] audio_l /*verilator public*/, audio_r /*verilator public*/;
 wire audio_ready /*verilator public*/;
-wire audio_en /*XXX synthesis syn_keep=1 */;
+wire audio_en;
 
 wire snes_joy_strb;
 wire snes_joy1_clk, snes_joy2_clk;
 wire [1:0] snes_joy1_di, snes_joy2_di;
 
 // OR together when both SNES and DS2 controllers are connected (right now only nano20k supports both simultaneously)
+`ifndef VERILATOR
 wor [11:0] joy1_btns, joy2_btns;
+`endif
 
 wire [5:0] ph;
 reg snes_start = 1'b0;
@@ -592,6 +619,32 @@ always @(posedge mclk) begin
 end
 
 `ifndef VERILATOR
+  `define HDMI
+`endif
+`ifdef AUDIO
+  `define HDMI
+`endif 
+
+wire [14:0] overlay_color;
+wire [10:0] overlay_x;
+wire [9:0] overlay_y;
+
+`ifdef HDMI
+snes2hdmi s2h(
+    .clk(mclk), .resetn(resetn), .snes_refresh(refresh),
+    .pause_snes_for_frame_sync(pause_snes_for_frame_sync),
+    .dotclk(dotclk), .hblank(~hblankn),.vblank(~vblankn),.rgb5(rgb_out),
+    .xs(x_out), .ys(y_out), 
+    .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
+    .overlay_color(overlay_color), 
+    .audio_l(audio_l), .audio_r(audio_r), .audio_ready(audio_ready), .audio_en(audio_en),
+    .clk_pixel(hclk),.clk_5x_pixel(hclk5),.locked(1'b1),
+    .tmds_clk_n(tmds_clk_n), .tmds_clk_p(tmds_clk_p),
+    .tmds_d_n(tmds_d_n), .tmds_d_p(tmds_d_p)
+);
+`endif
+
+`ifndef VERILATOR
 
 // Controller input
 `ifdef CONTROLLER_SNES
@@ -628,24 +681,7 @@ controller_adapter joy2_adapter (
 assign snes_joy1_di[1] = 0;  // P3
 assign snes_joy2_di[1] = 0;  // P4
 
-wire [14:0] overlay_color;
-wire [10:0] overlay_x;
-wire [9:0] overlay_y;
-
 wire [7:0] dbg_dat_out_loader;
-
-snes2hdmi s2h(
-    .clk(mclk), .resetn(resetn), .snes_refresh(refresh),
-    .pause_snes_for_frame_sync(pause_snes_for_frame_sync),
-    .dotclk(dotclk), .hblank(~hblankn),.vblank(~vblankn),.rgb5(rgb_out),
-    .xs(x_out), .ys(y_out), 
-    .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
-    .overlay_color(overlay_color), 
-    .audio_l(audio_l), .audio_r(audio_r), .audio_ready(audio_ready), .audio_en(audio_en),
-    .clk_pixel(hclk),.clk_5x_pixel(hclk5),.locked(1'b1),
-    .tmds_clk_n(tmds_clk_n), .tmds_clk_p(tmds_clk_p),
-    .tmds_d_n(tmds_d_n), .tmds_d_p(tmds_d_p)
-);
 
 // IOSys for menu, rom loading...
 iosys #(.CORE_ID(2)) iosys (        // CORE ID 2: SNESTang
@@ -692,34 +728,34 @@ assign audio_en = sample_counter == 15;
 
 
 // test video sync by turning on pause_snes_for_frame_sync periodically
-reg test_halt_snes, test_sync_done;
-reg [3:0] test_halt_cnt = 0;
-assign pause_snes_for_frame_sync = test_halt_snes;
+// reg test_halt_snes, test_sync_done;
+// reg [3:0] test_halt_cnt = 0;
+// assign pause_snes_for_frame_sync = test_halt_snes;
 
-always @(posedge mclk) begin    // halt SNES during snes dram refresh on line 2
-    if (~resetn) begin
-        test_halt_cnt <= 0;
-        test_halt_snes <= 0;
-        test_sync_done <= 0;
-    end else begin
-        if (~test_sync_done) begin
-            if (~test_halt_snes) begin
-                if (y_out[7:0] == 2 && refresh) begin
-                    test_halt_snes <= 1;
-                    test_halt_cnt <= 4'd12;        // halt snes for 13 cycles
-                end
-            end else begin
-                if (test_halt_cnt != 0) begin
-                    test_halt_cnt <= test_halt_cnt - 4'd1;
-                end else begin
-                    test_halt_snes <= 0;
-                    test_sync_done <= 1;
-                end                            
-            end
-        end else if (y_out[7:0] == 8'd200)
-            test_sync_done <= 0;
-    end
-end
+// always @(posedge mclk) begin    // halt SNES during snes dram refresh on line 2
+//     if (~resetn) begin
+//         test_halt_cnt <= 0;
+//         test_halt_snes <= 0;
+//         test_sync_done <= 0;
+//     end else begin
+//         if (~test_sync_done) begin
+//             if (~test_halt_snes) begin
+//                 if (y_out[7:0] == 2 && refresh) begin
+//                     test_halt_snes <= 1;
+//                     test_halt_cnt <= 4'd12;        // halt snes for 13 cycles
+//                 end
+//             end else begin
+//                 if (test_halt_cnt != 0) begin
+//                     test_halt_cnt <= test_halt_cnt - 4'd1;
+//                 end else begin
+//                     test_halt_snes <= 0;
+//                     test_sync_done <= 1;
+//                 end                            
+//             end
+//         end else if (y_out[7:0] == 8'd200)
+//             test_sync_done <= 0;
+//     end
+// end
 
 `endif
 

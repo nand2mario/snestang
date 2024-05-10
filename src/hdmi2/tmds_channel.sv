@@ -163,6 +163,7 @@ begin
         3'd2: tmds <= video_guard_band;
         3'd3: tmds <= terc4_coding;
         3'd4: tmds <= data_guard_band;
+        default: tmds <= (10'(1'bX));
     endcase
 end
 

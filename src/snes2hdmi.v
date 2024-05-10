@@ -1,8 +1,6 @@
 // NES video and sound to HDMI converter
 // nand2mario, 2022.9
 
-`timescale 1ns / 1ps
-
 module snes2hdmi (
 	input clk,      // snes clock
 	input resetn,
@@ -171,7 +169,7 @@ module snes2hdmi (
     always @(posedge clk_pixel) begin
         if (resetn) begin
             if (audio_divider != AUDIO_DELAY - 1) 
-                audio_divider++;
+                audio_divider <= audio_divider + 1;
             else begin 
                 audio_divider <= 0;
                 clk_audio = ~clk_audio;     // generate audio clock @ 32Khz
@@ -252,20 +250,21 @@ module snes2hdmi (
 //                 rgb <= {x, x, x};
 //             else
             if (~overlay)
-                rgb <= {mem_portB_rdata[4:0], 3'b0, mem_portB_rdata[9:5], 3'b0, mem_portB_rdata[14:10], 3'b0};                
+                rgb = {mem_portB_rdata[4:0], 3'b0, mem_portB_rdata[9:5], 3'b0, mem_portB_rdata[14:10], 3'b0};                
             else begin
 //                if (overlay_color == 0) 
 //                    rgb <= {2'b0, mem_portB_rdata[4:0], 3'b0, mem_portB_rdata[9:5], 3'b0, mem_portB_rdata[14:10], 1'b0};
 //                else
-                    rgb <= {overlay_color[4:0], 3'b0, overlay_color[9:5], 3'b0, overlay_color[14:10], 3'b0};
+                    rgb = {overlay_color[4:0], 3'b0, overlay_color[9:5], 3'b0, overlay_color[14:10], 3'b0};
             end
         else
-            rgb <= 24'h303030;      // show a grey background
+            rgb = 24'h303030;      // show a grey background
     end
 
 
     // HDMI output.
     logic[2:0] tmds;
+    logic tmdsClk;
 
     hdmi #( .VIDEO_ID_CODE(VIDEOID), 
             .DVI_OUTPUT(0), 
@@ -287,13 +286,16 @@ module snes2hdmi (
           .cx(cx), 
           .cy(cy),
           .frame_width( frameWidth ),
-          .frame_height( frameHeight ) );
+          .frame_height( frameHeight ),
+          .screen_width(), .screen_height() );
 
+`ifndef VERILATOR
     // Gowin LVDS output buffer
     ELVDS_OBUF tmds_bufds [3:0] (
         .I({clk_pixel, tmds}),
         .O({tmds_clk_p, tmds_d_p}),
         .OB({tmds_clk_n, tmds_d_n})
     );
+`endif
 
 endmodule

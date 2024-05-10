@@ -189,15 +189,15 @@ generate
 endgenerate
 
 always_comb begin
-    hsync <= invert ^ (cx >= screen_width + hsync_pulse_start && cx < screen_width + hsync_pulse_start + hsync_pulse_size);
+    hsync = invert ^ (cx >= screen_width + hsync_pulse_start && cx < screen_width + hsync_pulse_start + hsync_pulse_size);
     // vsync pulses should begin and end at the start of hsync, so special
     // handling is required for the lines on which vsync starts and ends
     if (cy == screen_height + vsync_pulse_start - 1)
-        vsync <= invert ^ (cx >= screen_width + hsync_pulse_start);
+        vsync = invert ^ (cx >= screen_width + hsync_pulse_start);
     else if (cy == screen_height + vsync_pulse_start + vsync_pulse_size - 1)
-        vsync <= invert ^ (cx < screen_width + hsync_pulse_start);
+        vsync = invert ^ (cx < screen_width + hsync_pulse_start);
     else
-        vsync <= invert ^ (cy >= screen_height + vsync_pulse_start && cy < screen_height + vsync_pulse_start + vsync_pulse_size);
+        vsync = invert ^ (cy >= screen_height + vsync_pulse_start && cy < screen_height + vsync_pulse_start + vsync_pulse_size);
 end
 
 localparam real VIDEO_RATE = (VIDEO_ID_CODE == 1 ? 25.2E6
@@ -324,7 +324,7 @@ generate
             begin
                 mode <= 3'd2;
                 video_data <= 24'd0;
-                control_data = 6'd0;
+                control_data <= 6'd0;
                 data_island_data <= 12'd0;
             end
             else

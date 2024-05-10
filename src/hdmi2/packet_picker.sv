@@ -108,6 +108,8 @@ begin
             samples_remaining <= 2'd0;
             sample_buffer_ready <= 1'b1;
             sample_buffer_current <= !sample_buffer_current;
+            if (sample_buffer_ready)
+                $display("sample_buffer_ready already 1 when setting to 1. Audio sample is lost");
         end
         else
             samples_remaining <= samples_remaining + 1'd1;
@@ -127,9 +129,9 @@ begin
     end
     else if (packet_pixel_counter == 5'd31 && packet_type == 8'h02) // Keep track of current IEC 60958 frame
     begin
-        frame_counter = frame_counter + 8'd4;
+        frame_counter <= frame_counter + 8'd4;
         if (frame_counter >= 8'd192)
-            frame_counter = frame_counter - 8'd192;
+            frame_counter <= frame_counter - 8'd192;
     end
 end
 audio_sample_packet #(.SAMPLING_FREQUENCY(SAMPLING_FREQUENCY), .WORD_LENGTH({{WORD_LENGTH[0], WORD_LENGTH[1], WORD_LENGTH[2]}, WORD_LENGTH_LIMIT})) audio_sample_packet (.frame_counter(frame_counter), .valid_bit('{2'b00, 2'b00, 2'b00, 2'b00}), .user_data_bit('{2'b00, 2'b00, 2'b00, 2'b00}), .audio_sample_word(audio_sample_word_packet), .audio_sample_word_present(audio_sample_word_present_packet), .header(headers[2]), .sub(subs[2]));
@@ -176,6 +178,12 @@ begin
             packet_type <= 8'd2;
             audio_sample_word_packet <= audio_sample_word_buffer[!sample_buffer_current];
             audio_sample_word_present_packet <= 4'b1111;
+            $display("Sample: %h %h %h %h %h %h %h %h", 
+                audio_sample_word_buffer[!sample_buffer_current][0][0], audio_sample_word_buffer[!sample_buffer_current][0][1], 
+                audio_sample_word_buffer[!sample_buffer_current][1][0], audio_sample_word_buffer[!sample_buffer_current][1][1], 
+                audio_sample_word_buffer[!sample_buffer_current][2][0], audio_sample_word_buffer[!sample_buffer_current][2][1], 
+                audio_sample_word_buffer[!sample_buffer_current][3][0], audio_sample_word_buffer[!sample_buffer_current][3][1], 
+            );
             sample_buffer_used <= 1'b1;
         end
         else if (!audio_info_frame_sent)

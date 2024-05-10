@@ -16,8 +16,12 @@ always_ff @(posedge clk_pixel)
 begin
     if (reset)
         counter <= 5'd0;
-    else if (data_island_period)
+    else if (data_island_period) begin
         counter <= counter + 5'd1;
+        if (counter == 0) begin
+            $display("Packet start: %h", header);
+        end
+    end
 end
 // BCH packets 0 to 3 are transferred two bits at a time, see Section 5.2.3.4 for further information.
 wire [5:0] counter_t2 = {counter, 1'b0};
