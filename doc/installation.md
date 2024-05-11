@@ -10,15 +10,19 @@ You also need a Windows computer, Dualshock 2 controllers and a MicroSD card.
 
 ## 1. Assembly
 
-For Tang Primer 25K, plug in the modules as follows.
+For Tang Primer 25K, plug in the modules as follows. You choose either the DS2 pmod or the SNES controller pmod. Make sure the controller pmod goes into the middle slot.
 
 <img src="images/primer25k_setup.jpg" width=400>
 
-For Tang Nano 20K, connect the controllers adapters as follows,
+For Tang Nano 20K, both the DS2 controllers and SNES controllers can be connected at the same time. Connect the DS2 adapters as follows,
 
 <img src="images/nano20k_setup.jpg" width=400>
 
-For Tang Mega 138K Pro,
+Then the SNES controllers can be connected as follows,
+
+<img src="images/snes_controller_nano20k.jpg" width=400>
+
+For Tang Mega 138K Pro, the controller pmod goes into the left-most slot,
 
 <img src="images/mega138k_pro_setup.jpg" width=400>
 
