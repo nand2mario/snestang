@@ -1,8 +1,10 @@
 
 // parameter MCLK_NTSC_FREQ = 2147727;
 // parameter MCLK_PAL_FREQ = 2128137;
-parameter ACLK_FREQ = 412674;           // produces 4 more samples per frame to match 60 fps (HDMI) instead of 60.09881 (SNES)
-// parameter ACLK_FREQ = 409600;
+// parameter ACLK_FREQ = 409600;            // original snes frequency, 533.33 samples per frame
+// parameter ACLK_FREQ = 412674;           // 537.33 samples per frame
+parameter ACLK_FREQ = 411904;           // 536.33 samples per frame
+
 
 parameter V0VOLL = 8'h00;
 parameter V1VOLL = 8'h10;
