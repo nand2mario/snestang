@@ -18,6 +18,10 @@ If you want to connect the SNES controllers manually, the following is the neces
 
 <img src="images/snes_controller_primer25k.png" width=400>
 
+NESTang also works with NES controllers as they are electronically compatible with SNES ones. Refer to the following pinout diagram to connect the NES socket.
+
+<img src="images/NesSnesPinout.png">
+
 For Tang Nano 20K, both the DS2 controllers and SNES controllers can be connected at the same time. Connect the DS2 adapters as follows,
 
 <img src="images/nano20k_setup.jpg" width=400>
