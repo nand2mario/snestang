@@ -1,11 +1,13 @@
 #include "picorv32.h"
 
 uint8_t flash_send(uint8_t x) {
+    uart_printf("flash_send: %d\n", x);
 	reg_spiflash_byte = x;			// send
 	return reg_spiflash_byte;		// receive
 }
 
 uint32_t flash_send_word(uint32_t x) {
+    uart_printf("flash_send_word: %x\n", x);
     reg_spiflash_word = x;
     return reg_spiflash_word;
 }
@@ -25,6 +27,7 @@ uint8_t flash_sendrecv(uint8_t x) {
 
 void flash_readblock(uint8_t *ptr, int length) {
     int i = 0;
+    uart_printf("flash_readblock: %d\n", length);
     if ((((uint32_t)ptr) & 3) == 0) {   // aligned on word boundaries
         // transfer in 4-byte words. this is about twice as fast
         for (; i+4<=length; i+=4) {
@@ -38,7 +41,9 @@ void flash_readblock(uint8_t *ptr, int length) {
 }
 
 void spiflash_read(uint32_t addr, uint8_t *buf, int length) {
+    uart_printf("spiflash_read: %d\n", length);
     reg_spiflash_ctrl = 0;    // CS_N = 0
+    uart_printf("cs_n = 0\n");
     flash_send(0x03);         // read command
     flash_send(addr >> 16);   // address
     flash_send(addr >> 8);

@@ -335,7 +335,8 @@ int menu_loadrom(int *choice) {
 
 void menu_select_core() {
 	uint8_t buf[256];
-	spiflash_read(6*1024*1024, buf, 256);
+	uart_printf("begin select_core\n");
+	spiflash_read(5*1024*1024, buf, 256);
 	for (int i = 0; i < 256; i++) {
 		if (i > 0 && i % 16 == 0)
 			uart_printf("\n");
@@ -345,10 +346,12 @@ void menu_select_core() {
 	uart_printf("\n");
 	
 	status("Check UART for log");
+	uart_printf("end select_core\n");
 }
 
 void menu_options() {
 	int choice = 0;
+	uart_print("options\n");
 	while (1) {
 		clear();
 		cursor(8, 10);

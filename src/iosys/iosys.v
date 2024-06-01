@@ -186,7 +186,8 @@ assign mem_ready = ram_ready || textdisp_reg_char_sel || simpleuart_reg_div_sel 
             romload_reg_ctrl_sel || romload_reg_data_sel || joystick_reg_sel || time_reg_sel || id_reg_sel ||
             (simpleuart_reg_dat_sel && !simpleuart_reg_dat_wait) ||
             ((simplespimaster_reg_byte_sel || simplespimaster_reg_word_sel) && !simplespimaster_reg_wait) ||
-            (spiflash_reg_byte_sel || spiflash_reg_word_sel) && !spiflash_reg_wait;
+            (spiflash_reg_byte_sel || spiflash_reg_word_sel) && !spiflash_reg_wait ||
+            spiflash_reg_ctrl_sel;
 
 assign mem_rdata = ram_ready ? ram_rdata :
         joystick_reg_sel ? {4'b0, joy2, 4'b0, joy1} :
