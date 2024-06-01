@@ -18,6 +18,9 @@
 #define reg_joystick       (*(volatile uint32_t*)0x02000040)
 #define reg_time           (*(volatile uint32_t*)0x02000050)
 #define reg_core_id        (*(volatile uint32_t*)0x02000060)
+#define reg_spiflash_byte  (*(volatile uint32_t*)0x02000070)
+#define reg_spiflash_word  (*(volatile uint32_t*)0x02000074)
+#define reg_spiflash_ctrl  (*(volatile uint32_t*)0x02000078)
 
 // Standard library for PicoRV32 RV32I softcore
 
@@ -64,6 +67,14 @@ extern void snes_data(uint32_t data);   // 3 word (12-byte) header, followed by 
                                         // header #0: map_ctrl, rom_size, ram_size
                                         // header #1: rom_mask
                                         // header #2: ram_mask
+
+// SPI flash
+extern void spiflash_read(uint32_t addr, uint8_t *buf, int length); // read from SPI flash
+extern void spiflash_write_enable();
+extern void spiflash_write_disable();                               
+extern void spiflash_sector_erase(uint32_t addr);                   // erase a 4KB sector
+extern void spiflash_page_program(uint32_t addr, uint8_t *buf);     // program 256 bytes
+extern uint8_t spiflash_read_status1();                             // [1]: write enable, [0]: busy
 
 inline int max(int x, int y) {
     if (x > y) return x;

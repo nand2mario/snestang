@@ -331,6 +331,22 @@ int menu_loadrom(int *choice) {
 	}
 }
 
+
+
+void menu_select_core() {
+	uint8_t buf[256];
+	spiflash_read(6*1024*1024, buf, 256);
+	for (int i = 0; i < 256; i++) {
+		if (i > 0 && i % 16 == 0)
+			uart_printf("\n");
+		uart_print_hex_digits(buf[i], 2);
+		uart_print(" ");
+	}
+	uart_printf("\n");
+	
+	status("Check UART for log");
+}
+
 void menu_options() {
 	int choice = 0;
 	while (1) {
@@ -804,8 +820,10 @@ int main() {
 		cursor(2, 12);
 		print("1) Load ROM from SD card\n");
 		cursor(2, 13);
-		print("2) Options\n");
-		cursor(2, 15);
+		print("2) Select core\n");
+		cursor(2, 14);
+		print("3) Options\n");
+		cursor(2, 16);
 		print("Version: ");
 		print(__DATE__);
 
@@ -813,7 +831,7 @@ int main() {
 
 		int choice = 0;
 		for (;;) {
-			int r = joy_choice(12, 2, &choice, OSD_KEY_CODE);
+			int r = joy_choice(12, 3, &choice, OSD_KEY_CODE);
 			if (r == 1) break;
 		}
 
@@ -822,6 +840,8 @@ int main() {
 			delay(300);
 			menu_loadrom(&rom);
 		} else if (choice == 1) {
+			menu_select_core();
+		} else if (choice == 2) {
 			delay(300);
 			menu_options();
 			continue;
