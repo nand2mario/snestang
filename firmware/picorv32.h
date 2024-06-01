@@ -75,6 +75,7 @@ extern void spiflash_write_disable();
 extern void spiflash_sector_erase(uint32_t addr);                   // erase a 4KB sector
 extern void spiflash_page_program(uint32_t addr, uint8_t *buf);     // program 256 bytes
 extern uint8_t spiflash_read_status1();                             // [1]: write enable, [0]: busy
+extern void spiflash_ready();                                       // wait until flash is not busy
 
 inline int max(int x, int y) {
     if (x > y) return x;

@@ -97,3 +97,11 @@ uint8_t spiflash_read_status1() {
     return status;
 }
 
+void spiflash_ready() {
+    int millis = time_millis();
+    while (spiflash_read_status1() & 1) 
+        if (time_millis() - millis > 1000) {
+            uart_printf("spiflash_ready timeout\n");
+            return;
+        }
+}

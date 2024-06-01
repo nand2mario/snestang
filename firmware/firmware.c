@@ -334,6 +334,8 @@ int menu_loadrom(int *choice) {
     }
 }
 
+uint8_t corebuf[256];
+
 void load_core(char *fname) {
     FIL f;
     if (f_open(&f, fname, FA_READ) != FR_OK) {
@@ -341,38 +343,36 @@ void load_core(char *fname) {
         return;
     }
     int addr = 0;
-    TCHAR s[256];
-    uint8_t buf[256];
+    char *s = load_buf;
     int cnt = 0;
     int bol = 1;
     int br;
+    spiflash_write_enable();
     while (!f_eof(&f)) {
-        if (f_gets(s, 256, &f) == NULL) continue;
-        int len = strlen(s);
+        if (f_gets(s, 1024, &f) == NULL) continue;
         if (bol && s[0] == '/' && s[1] == '/') {
             // comment, skip the whole line
             while (s[strlen(s)-1] != '\n' && !f_eof(&f))
                 f_gets(s, 256, &f);
             continue;
         }
+        int len = strlen(s);
         for (int i = 0; i+8 <= len; i+=8) {	// add a byte to buf
             if (s[i] > '1' || s[i] < '0') break;
             uint8_t b = (s[i]=='1' ? 128 : 0) + (s[i+1]=='1' ? 64 : 0) + 
                     (s[i+2]=='1' ? 32 : 0) + (s[i+3]=='1' ? 16 : 0) + 
                     (s[i+4]=='1' ? 8 : 0) + (s[i+5]=='1' ? 4 : 0) + 
                     (s[i+6]=='1' ? 2 : 0) + (s[i+7]=='1' ? 1 : 0);
-            buf[cnt++] = b;
+            corebuf[cnt++] = b;
             if (cnt == 256) {				// write a page
                 uart_printf("Writing 256 bytes at %x\n", addr);
                 if ((addr & 0xfff) == 0) {	// whole 4KB, erase sector first
-                    spiflash_write_enable();
+                    spiflash_ready();
                     spiflash_sector_erase(addr);
-                    spiflash_write_disable();
                     uart_printf("Just erased\n");
                 }
-                spiflash_write_enable();
-                spiflash_page_program(addr, buf);
-                spiflash_write_disable();
+                spiflash_ready();
+                spiflash_page_program(addr, corebuf);
                 addr += cnt;
                 if ((addr & 0xfff) == 0) {
                     status("");
@@ -381,26 +381,24 @@ void load_core(char *fname) {
                 cnt = 0;
             }
         }
-        bol = 0;
+        bol = len > 0 && s[len-1] == '\n';
     }
     // write remaining data in buffer
     if (cnt > 0) {
         if ((addr & 0xfff) == 0) {	// whole 4KB, erase sector first
-            spiflash_write_enable();
+            spiflash_ready();
             spiflash_sector_erase(addr);
-            spiflash_write_disable();
         }
         for (int i = cnt; i < 256; i++)
-            buf[i] = 0xff;
-        spiflash_write_enable();
-        spiflash_page_program(addr, buf);
-        spiflash_write_disable();
+            corebuf[i] = 0xff;
+        spiflash_ready();
+        spiflash_page_program(addr, corebuf);
         addr += cnt;
     }
+    spiflash_write_disable();
     f_close(&f);
 
-    status("");
-    printf("Core loaded (%d bytes). Pls reboot", addr);
+    message("Core loaded. Please reboot", 1);
 }
 
 void menu_select_core() {
@@ -417,19 +415,19 @@ void menu_select_core() {
         if (draw) {
             clear();
             cursor(2, 2);
-            print("<< Return to main menu");
+            print("<< Return to main menu");        // this replaces ".."
             if (total > PAGESIZE) total = PAGESIZE;
-            for (int i = 0; i < total; i++) {
-                cursor(2, i+3);
+            for (int i = 1; i < total; i++) {
+                cursor(2, i+2);
                 print(file_names[i]);
             }
             draw = 0;
         }
-        if (joy_choice(2, total+1, &choice, OSD_KEY_CODE) == 1) {
+        if (joy_choice(2, total, &choice, OSD_KEY_CODE) == 1) {
             if (choice == 0)
                 return;
             else {
-                char *p = strcasestr(file_names[choice-1], ".fs");
+                char *p = strcasestr(file_names[choice], ".fs");
                 if (p == NULL) {
                     message("Only .fs core files supported", 1);
                     draw = 1;
