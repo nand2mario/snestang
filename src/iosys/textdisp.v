@@ -18,7 +18,8 @@ module textdisp(
 
 // BGR
 localparam [14:0] COLOR_BACK    = 15'b00000_00000_00000;
-localparam [14:0] COLOR_TEXT    = 15'b10000_11111_11111;    // yellow
+//localparam [14:0] COLOR_TEXT    = 15'b10000_11111_11111;    // yellow
+localparam [14:0] COLOR_TEXT    = 15'b11000_11000_11000;    // white
 localparam [14:0] COLOR_CURSOR  = 15'b10000_11000_11111;    // orange
 parameter [14:0] COLOR_LOGO    = 15'b00000_10101_00000;    // green
 

@@ -1,13 +1,13 @@
 #include "picorv32.h"
 
 uint8_t flash_send(uint8_t x) {
-    uart_printf("flash_send: %d\n", x);
+    // uart_printf("flash_send: %d\n", x);
 	reg_spiflash_byte = x;			// send
 	return reg_spiflash_byte;		// receive
 }
 
 uint32_t flash_send_word(uint32_t x) {
-    uart_printf("flash_send_word: %x\n", x);
+    // uart_printf("flash_send_word: %x\n", x);
     reg_spiflash_word = x;
     return reg_spiflash_word;
 }
