@@ -335,7 +335,7 @@ int menu_loadrom(int *choice) {
 }
 
 uint8_t corebuf[256];
-uint32_t t_ready, t_flash, t_file;
+uint32_t t_ready, t_flash, t_file, t_parse;
 
 void write_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
     uint32_t start = cycle_counter();
@@ -387,7 +387,7 @@ bool verify_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
 void load_core(char *fname, int verify) {
     FIL f;
     int binfile = strcasestr(fname, ".bin") != NULL;      // 1: bin        
-    t_ready = 0; t_flash = 0, t_file = 0;
+    t_ready = 0; t_flash = 0, t_file = 0; t_parse = 0;
     if (binfile)
         uart_printf("Loading bin file: %s\n", fname);
     else
@@ -432,12 +432,14 @@ void load_core(char *fname, int verify) {
             }
             int len = strlen(s);
             for (int i = 0; i+8 <= len; i+=8) {	// add a byte to buf
+                uint32_t t2 = cycle_counter();
                 if (s[i] > '1' || s[i] < '0') break;
                 uint8_t b = (s[i]=='1' ? 128 : 0) + (s[i+1]=='1' ? 64 : 0) + 
                         (s[i+2]=='1' ? 32 : 0) + (s[i+3]=='1' ? 16 : 0) + 
                         (s[i+4]=='1' ? 8 : 0) + (s[i+5]=='1' ? 4 : 0) + 
                         (s[i+6]=='1' ? 2 : 0) + (s[i+7]=='1' ? 1 : 0);
                 corebuf[cnt++] = b;
+                t_parse += cycle_counter() - t2;
                 if (cnt == 256) {				// write a page
                     write_flash(corebuf, addr, cnt);
                     addr += cnt;
@@ -456,12 +458,12 @@ void load_core(char *fname, int verify) {
     f_close(&f);
 
     const uint32_t MS = 21500;
-    uart_printf("File read cycles: %d, flash total cycles: %d, flash wait cycles: %d\n", t_file, t_flash, t_ready);
-    uart_printf("File read time: %d ms, flash total time: %d ms, flash wait time: %d ms\n", t_file / MS, t_flash / MS, t_ready / MS);
+    uart_printf("File read cycles: %d, parse cycles: %d, flash total cycles: %d, flash wait cycles: %d\n", t_file, t_parse, t_flash, t_ready);
+    uart_printf("File read time: %d ms, parse time: %d ms, flash total time: %d ms, flash wait time: %d ms\n", t_file / MS, t_parse / MS, t_flash / MS, t_ready / MS);
     if (verify)
         message("Core matches", 1);
     else
-        message("Core loaded. Please reboot", 1);
+        message("Core written. Please reboot", 1);
 }
 
 void menu_select_core(int verify) {
