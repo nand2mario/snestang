@@ -358,7 +358,28 @@ void write_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
     t_flash += cycle_counter() - start;
 }
 
-void load_core(char *fname) {
+// return true: verify OK
+bool verify_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
+    uart_printf("Verifying %d bytes at %x\n", cnt, addr);
+    uint8_t buf[256];
+    spiflash_read(addr, buf, 256);
+    for (int j = 0; j < cnt; j++) {
+        if (buf[j] != corebuf[j]) {
+            uart_printf("Verify error at %x: %d != %d. Data read:\n", addr+j, buf[j], corebuf[j]);
+            for (int i = 0; i < 256; i++) {
+                if (i > 0 && i % 16 == 0)
+                    uart_print("\n");
+                uart_print_hex_digits(buf[i], 2);
+                uart_print(" ");
+            }
+            uart_print("\n");
+            return false;
+        }
+    }
+    return true;
+}
+
+void load_core(char *fname, int verify) {
     FIL f;
     int binfile = strcasestr(fname, ".bin") != NULL;      // 1: bin        
     t_ready = 0; t_flash = 0, t_file = 0;
@@ -366,6 +387,10 @@ void load_core(char *fname) {
         uart_printf("Loading bin file: %s\n", fname);
     else
         uart_printf("Loading fs file: %s\n", fname);
+    if (verify && !binfile) {
+        message("Verify only supported for .bin files", 1);
+        return;
+    }
 
     if (f_open(&f, fname, FA_READ) != FR_OK) {
         message("Cannot open core file", 1);
@@ -382,7 +407,11 @@ void load_core(char *fname) {
             uint32_t t = cycle_counter();
             f_read(&f, corebuf, 256, &cnt);
             t_file += cycle_counter() - t;
-            write_flash(corebuf, addr, cnt);
+            if (verify) {
+                if (!verify_flash(corebuf, addr, cnt))
+                    return;
+            } else
+                write_flash(corebuf, addr, cnt);
             addr += cnt;
             cnt = 0;
         } else {        // parse .fs file
@@ -428,7 +457,7 @@ void load_core(char *fname) {
     message("Core loaded. Please reboot", 1);
 }
 
-void menu_select_core() {
+void menu_select_core(int verify) {
     int total, choice, draw=1;
     int r = load_dir("/cores", 0, PAGESIZE, &total);
     if (r != 0) {
@@ -466,7 +495,7 @@ void menu_select_core() {
                 // load core
                 strncpy(load_fname, "/cores/", 1024);
                 strncat(load_fname, file_names[choice], 1024);
-                load_core(load_fname);
+                load_core(load_fname, verify);
                 return;
             }
         }
@@ -963,6 +992,8 @@ int main() {
         print("2) Select core\n");
         cursor(2, 14);
         print("3) Options\n");
+        cursor(2, 15);
+        print("4) Verify core\n");
         cursor(2, 16);
         print("Version: ");
         print(__DATE__);
@@ -971,7 +1002,7 @@ int main() {
 
         int choice = 0;
         for (;;) {
-            int r = joy_choice(12, 3, &choice, OSD_KEY_CODE);
+            int r = joy_choice(12, 4, &choice, OSD_KEY_CODE);
             if (r == 1) break;
         }
 
@@ -980,11 +1011,13 @@ int main() {
             delay(300);
             menu_loadrom(&rom);
         } else if (choice == 1) {
-            menu_select_core();
+            menu_select_core(0);
         } else if (choice == 2) {
             delay(300);
             menu_options();
             continue;
+        } else if (choice == 3) {
+            menu_select_core(1);
         }
     }
 }
