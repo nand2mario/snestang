@@ -175,6 +175,7 @@ wire        romload_reg_data_sel /* synthesis syn_keep=1 */ = mem_valid && (mem_
 wire        joystick_reg_sel = mem_valid && (mem_addr == 32'h 0200_0040);
 
 wire        time_reg_sel = mem_valid && (mem_addr == 32'h0200_0050);        // milli-seconds since start-up (overflows in 49 days)
+wire        cycle_reg_sel = mem_valid && (mem_addr == 32'h0200_0054);       // cycles counter (overflows every 200 seconds)
 
 wire        id_reg_sel = mem_valid && (mem_addr == 32'h0200_0060);
 
@@ -183,7 +184,7 @@ wire        spiflash_reg_word_sel = mem_valid && (mem_addr == 32'h0200_0074);
 wire        spiflash_reg_ctrl_sel = mem_valid && (mem_addr == 32'h0200_0078);
 
 assign mem_ready = ram_ready || textdisp_reg_char_sel || simpleuart_reg_div_sel || 
-            romload_reg_ctrl_sel || romload_reg_data_sel || joystick_reg_sel || time_reg_sel || id_reg_sel ||
+            romload_reg_ctrl_sel || romload_reg_data_sel || joystick_reg_sel || time_reg_sel || cycle_reg_sel || id_reg_sel ||
             (simpleuart_reg_dat_sel && !simpleuart_reg_dat_wait) ||
             ((simplespimaster_reg_byte_sel || simplespimaster_reg_word_sel) && !simplespimaster_reg_wait) ||
             (spiflash_reg_byte_sel || spiflash_reg_word_sel) && !spiflash_reg_wait ||
@@ -194,6 +195,7 @@ assign mem_rdata = ram_ready ? ram_rdata :
         simpleuart_reg_div_sel ? simpleuart_reg_div_do :
         simpleuart_reg_dat_sel ? simpleuart_reg_dat_do : 
         time_reg_sel ? time_reg :
+        cycle_reg_sel ? cycle_reg :
         id_reg_sel ? {16'b0, CORE_ID} :
         (simplespimaster_reg_byte_sel | simplespimaster_reg_word_sel) ? simplespimaster_reg_do : 
         (spiflash_reg_byte_sel | spiflash_reg_word_sel) ? spiflash_reg_do :
@@ -324,13 +326,14 @@ assign rv_valid = flash_loading ? flash_wr : (mem_valid & ram_sel);
 assign ram_ready = rv_ready;
 
 // Time counter register
-reg [31:0] time_reg;
+reg [31:0] time_reg, cycle_reg;
 reg [$clog2(FREQ/1000)-1:0] time_cnt;
 always @(posedge clk) begin
     if (~resetn) begin
         time_reg <= 0;
         time_cnt <= 0;
     end else begin
+        cycle_reg <= cycle_reg + 1;
         time_cnt <= time_cnt + 1;
         if (time_cnt == FREQ/1000-1) begin
             time_cnt <= 0;

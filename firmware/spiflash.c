@@ -67,20 +67,30 @@ void spiflash_write_disable() {
 // erase a 4KB sector
 void spiflash_sector_erase(uint32_t addr) {
     reg_spiflash_ctrl = 0;    // CS_N = 0
-    flash_send(0x20);
-    flash_send(addr >> 16);   // address
-    flash_send(addr >> 8);
-    flash_send(addr & 0xff);
+    uint32_t x = 0x20;
+    x |= ((addr >> 16) & 0xff) << 8;
+    x |= ((addr >> 8) & 0xff) << 16;
+    x |= (addr & 0xff) << 24;
+    flash_send_word(x);
+    // flash_send(0x20);
+    // flash_send(addr >> 16);   // address
+    // flash_send(addr >> 8);
+    // flash_send(addr & 0xff);
     reg_spiflash_ctrl = 1;    // CS_N = 1
 }
 
 // program 256 bytes
 void spiflash_page_program(uint32_t addr, uint8_t *buf) {
     reg_spiflash_ctrl = 0;    // CS_N = 0
-    flash_send(0x02);
-    flash_send(addr >> 16);   // address
-    flash_send(addr >> 8);
-    flash_send(addr & 0xff);
+    uint32_t x = 0x02;
+    x |= ((addr >> 16) & 0xff) << 8;
+    x |= ((addr >> 8) & 0xff) << 16;
+    x |= (addr & 0xff) << 24;
+    flash_send_word(x);
+    // flash_send(0x02);
+    // flash_send(addr >> 16);   // address
+    // flash_send(addr >> 8);
+    // flash_send(addr & 0xff);
     for (int i = 0; i < 256; i+=4) {
         flash_send_word(*(uint32_t *)buf);
         buf += 4;

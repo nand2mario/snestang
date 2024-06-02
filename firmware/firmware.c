@@ -335,9 +335,38 @@ int menu_loadrom(int *choice) {
 }
 
 uint8_t corebuf[256];
+uint32_t t_ready, t_flash, t_file;
+
+void write_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
+    uint32_t start = cycle_counter();
+    uart_printf("Writing %d bytes at %x\n", cnt, addr);
+    if ((addr & 0xfff) == 0) {	// whole 4KB, erase sector first
+        uint32_t t = cycle_counter();
+        spiflash_ready();
+        t_ready += cycle_counter() - t;
+        spiflash_sector_erase(addr);
+        uart_printf("Sector erased\n");
+    }
+    uint32_t t = cycle_counter();
+    spiflash_ready();
+    t_ready += cycle_counter() - t;
+    spiflash_page_program(addr, corebuf);
+    if ((addr & 0xfff) == 0) {
+        status("");
+        printf("%d KB written", addr >> 10);
+    }
+    t_flash += cycle_counter() - start;
+}
 
 void load_core(char *fname) {
     FIL f;
+    int binfile = strcasestr(fname, ".bin") != NULL;      // 1: bin        
+    t_ready = 0; t_flash = 0, t_file = 0;
+    if (binfile)
+        uart_printf("Loading bin file: %s\n", fname);
+    else
+        uart_printf("Loading fs file: %s\n", fname);
+
     if (f_open(&f, fname, FA_READ) != FR_OK) {
         message("Cannot open core file", 1);
         return;
@@ -348,56 +377,54 @@ void load_core(char *fname) {
     int bol = 1;
     int br;
     spiflash_write_enable();
-    while (!f_eof(&f)) {
-        if (f_gets(s, 1024, &f) == NULL) continue;
-        if (bol && s[0] == '/' && s[1] == '/') {
-            // comment, skip the whole line
-            while (s[strlen(s)-1] != '\n' && !f_eof(&f))
-                f_gets(s, 256, &f);
-            continue;
-        }
-        int len = strlen(s);
-        for (int i = 0; i+8 <= len; i+=8) {	// add a byte to buf
-            if (s[i] > '1' || s[i] < '0') break;
-            uint8_t b = (s[i]=='1' ? 128 : 0) + (s[i+1]=='1' ? 64 : 0) + 
-                    (s[i+2]=='1' ? 32 : 0) + (s[i+3]=='1' ? 16 : 0) + 
-                    (s[i+4]=='1' ? 8 : 0) + (s[i+5]=='1' ? 4 : 0) + 
-                    (s[i+6]=='1' ? 2 : 0) + (s[i+7]=='1' ? 1 : 0);
-            corebuf[cnt++] = b;
-            if (cnt == 256) {				// write a page
-                uart_printf("Writing 256 bytes at %x\n", addr);
-                if ((addr & 0xfff) == 0) {	// whole 4KB, erase sector first
-                    spiflash_ready();
-                    spiflash_sector_erase(addr);
-                    uart_printf("Just erased\n");
-                }
-                spiflash_ready();
-                spiflash_page_program(addr, corebuf);
-                addr += cnt;
-                if ((addr & 0xfff) == 0) {
-                    status("");
-                    printf("%d KB written", addr >> 10);
-                }
-                cnt = 0;
+    while (!f_eof(&f) && (binfile || addr < 32*1024)) {
+        if (binfile) {
+            uint32_t t = cycle_counter();
+            f_read(&f, corebuf, 256, &cnt);
+            t_file += cycle_counter() - t;
+            write_flash(corebuf, addr, cnt);
+            addr += cnt;
+            cnt = 0;
+        } else {        // parse .fs file
+            uint32_t t = cycle_counter();
+            if (f_gets(s, 1024, &f) == NULL) continue;
+            t_file += cycle_counter() - t;
+            if (bol && s[0] == '/' && s[1] == '/') {
+                // comment, skip the whole line
+                uint32_t t = cycle_counter();
+                while (s[strlen(s)-1] != '\n' && !f_eof(&f))
+                    f_gets(s, 256, &f);
+                t_file += cycle_counter() - t;
+                continue;
             }
+            int len = strlen(s);
+            for (int i = 0; i+8 <= len; i+=8) {	// add a byte to buf
+                if (s[i] > '1' || s[i] < '0') break;
+                uint8_t b = (s[i]=='1' ? 128 : 0) + (s[i+1]=='1' ? 64 : 0) + 
+                        (s[i+2]=='1' ? 32 : 0) + (s[i+3]=='1' ? 16 : 0) + 
+                        (s[i+4]=='1' ? 8 : 0) + (s[i+5]=='1' ? 4 : 0) + 
+                        (s[i+6]=='1' ? 2 : 0) + (s[i+7]=='1' ? 1 : 0);
+                corebuf[cnt++] = b;
+                if (cnt == 256) {				// write a page
+                    write_flash(corebuf, addr, cnt);
+                    addr += cnt;
+                    cnt = 0;
+                }
+            }
+            bol = len > 0 && s[len-1] == '\n';
         }
-        bol = len > 0 && s[len-1] == '\n';
     }
     // write remaining data in buffer
     if (cnt > 0) {
-        if ((addr & 0xfff) == 0) {	// whole 4KB, erase sector first
-            spiflash_ready();
-            spiflash_sector_erase(addr);
-        }
-        for (int i = cnt; i < 256; i++)
-            corebuf[i] = 0xff;
-        spiflash_ready();
-        spiflash_page_program(addr, corebuf);
+        write_flash(corebuf, addr, cnt);
         addr += cnt;
     }
     spiflash_write_disable();
     f_close(&f);
 
+    const uint32_t MS = 21500;
+    uart_printf("File read cycles: %d, flash total cycles: %d, flash wait cycles: %d\n", t_file, t_flash, t_ready);
+    uart_printf("File read time: %d ms, flash total time: %d ms, flash wait time: %d ms\n", t_file / MS, t_flash / MS, t_ready / MS);
     message("Core loaded. Please reboot", 1);
 }
 
@@ -428,15 +455,17 @@ void menu_select_core() {
                 return;
             else {
                 char *p = strcasestr(file_names[choice], ".fs");
+                if (p == NULL)
+                    p = strcasestr(file_names[choice], ".bin");
                 if (p == NULL) {
-                    message("Only .fs core files supported", 1);
+                    message("Only .fs/.bin core files supported", 1);
                     draw = 1;
                     continue;
                 }
                 
                 // load core
                 strncpy(load_fname, "/cores/", 1024);
-                strncat(load_fname, file_names[choice-1], 1024);
+                strncat(load_fname, file_names[choice], 1024);
                 load_core(load_fname);
                 return;
             }

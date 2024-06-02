@@ -17,6 +17,7 @@
 #define reg_romload_data   (*(volatile uint32_t*)0x02000034)
 #define reg_joystick       (*(volatile uint32_t*)0x02000040)
 #define reg_time           (*(volatile uint32_t*)0x02000050)
+#define reg_cycle          (*(volatile uint32_t*)0x02000054)
 #define reg_core_id        (*(volatile uint32_t*)0x02000060)
 #define reg_spiflash_byte  (*(volatile uint32_t*)0x02000070)
 #define reg_spiflash_word  (*(volatile uint32_t*)0x02000074)
@@ -96,6 +97,10 @@ inline int tolower(int c) {
 
 inline uint32_t time_millis() {
     return reg_time;
+}
+
+inline uint32_t cycle_counter() {
+    return reg_cycle;
 }
 
 // string functions
