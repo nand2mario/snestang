@@ -339,13 +339,13 @@ uint32_t t_ready, t_flash, t_file;
 
 void write_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
     uint32_t start = cycle_counter();
-    uart_printf("Writing %d bytes at %x\n", cnt, addr);
+    // uart_printf("Writing %d bytes at %x\n", cnt, addr);
     if ((addr & 0xfff) == 0) {	// whole 4KB, erase sector first
         uint32_t t = cycle_counter();
         spiflash_ready();
         t_ready += cycle_counter() - t;
         spiflash_sector_erase(addr);
-        uart_printf("Sector erased\n");
+        // uart_printf("Sector erased\n");
     }
     uint32_t t = cycle_counter();
     spiflash_ready();
@@ -356,11 +356,12 @@ void write_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
         printf("%d KB written", addr >> 10);
     }
     t_flash += cycle_counter() - start;
+    spiflash_ready();
 }
 
 // return true: verify OK
 bool verify_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
-    uart_printf("Verifying %d bytes at %x\n", cnt, addr);
+    // uart_printf("Verifying %d bytes at %x\n", cnt, addr);
     uint8_t buf[256];
     spiflash_read(addr, buf, 256);
     for (int j = 0; j < cnt; j++) {
@@ -375,6 +376,10 @@ bool verify_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
             uart_print("\n");
             return false;
         }
+    }
+    if ((addr & 0xfff) == 0) {
+        status("");
+        printf("%d KB verified", addr >> 10);
     }
     return true;
 }
@@ -401,8 +406,7 @@ void load_core(char *fname, int verify) {
     int cnt = 0;
     int bol = 1;
     int br;
-    spiflash_write_enable();
-    while (!f_eof(&f) && (binfile || addr < 32*1024)) {
+    while (!f_eof(&f) && (binfile || addr < 32*1024)) { // write only 32KB for .fs
         if (binfile) {
             uint32_t t = cycle_counter();
             f_read(&f, corebuf, 256, &cnt);
@@ -454,7 +458,10 @@ void load_core(char *fname, int verify) {
     const uint32_t MS = 21500;
     uart_printf("File read cycles: %d, flash total cycles: %d, flash wait cycles: %d\n", t_file, t_flash, t_ready);
     uart_printf("File read time: %d ms, flash total time: %d ms, flash wait time: %d ms\n", t_file / MS, t_flash / MS, t_ready / MS);
-    message("Core loaded. Please reboot", 1);
+    if (verify)
+        message("Core matches", 1);
+    else
+        message("Core loaded. Please reboot", 1);
 }
 
 void menu_select_core(int verify) {
