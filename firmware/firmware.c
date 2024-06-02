@@ -384,6 +384,37 @@ bool verify_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
     return true;
 }
 
+static int load_buf_off;            // next available pos in load_buf
+static int load_buf_len;            // length of data in load_buf   
+
+// load a line into buf (max length *len), *len is updated to actual length of string
+// this uses load_buf[] internally
+void read_line(FIL *fp, char *buf, int *len) {
+    int br;
+    int i = 0;
+    bool done = false;
+    while (!done) {
+        for (; !done && i + 1 < *len && load_buf_off < load_buf_len; i++, load_buf_off++) {
+            buf[i] = load_buf[load_buf_off];
+            if (load_buf[load_buf_off] == '\n')
+                done = true;
+        }
+        if (i == *len)
+            done = true;
+        if (!done) {
+            // load more data
+            load_buf_off = 0;
+            if (f_eof(fp))
+                break;
+            f_read(fp, load_buf, 1024, &load_buf_len);
+        }
+    }
+    buf[i] = 0;
+    *len = i;
+}
+
+static char line_buf[4096];         // .fs file has max 3.5K lines
+
 void load_core(char *fname, int verify) {
     FIL f;
     int binfile = strcasestr(fname, ".bin") != NULL;      // 1: bin        
@@ -420,33 +451,44 @@ void load_core(char *fname, int verify) {
             cnt = 0;
         } else {        // parse .fs file
             uint32_t t = cycle_counter();
-            if (f_gets(s, 1024, &f) == NULL) continue;
+            if (f_eof(&f)) continue;
+            int len = 4096;
+            read_line(&f, line_buf, &len);
+            // message(line_buf, 0);
             t_file += cycle_counter() - t;
-            if (bol && s[0] == '/' && s[1] == '/') {
+            if (s[0] == '/' && s[1] == '/') {
                 // comment, skip the whole line
-                uint32_t t = cycle_counter();
-                while (s[strlen(s)-1] != '\n' && !f_eof(&f))
-                    f_gets(s, 256, &f);
-                t_file += cycle_counter() - t;
                 continue;
             }
-            int len = strlen(s);
             for (int i = 0; i+8 <= len; i+=8) {	// add a byte to buf
                 uint32_t t2 = cycle_counter();
                 if (s[i] > '1' || s[i] < '0') break;
-                uint8_t b = (s[i]=='1' ? 128 : 0) + (s[i+1]=='1' ? 64 : 0) + 
-                        (s[i+2]=='1' ? 32 : 0) + (s[i+3]=='1' ? 16 : 0) + 
-                        (s[i+4]=='1' ? 8 : 0) + (s[i+5]=='1' ? 4 : 0) + 
-                        (s[i+6]=='1' ? 2 : 0) + (s[i+7]=='1' ? 1 : 0);
-                corebuf[cnt++] = b;
+                uint8_t b = ((s[i]-'0') << 7) + ((s[i+1]-'0') << 6) +
+                        ((s[i+2]-'0') << 5) + ((s[i+3]-'0') << 4) +
+                        ((s[i+4]-'0') << 3) + ((s[i+5]-'0') << 2) +
+                        ((s[i+6]-'0') << 1) + (s[i+7]-'0');
+                corebuf[cnt] = b;
+                if (cnt < 16) {
+                    char ss[9];
+                    strncpy(ss, s+i, 9);
+                    uart_printf("[%s]=", ss);
+                    uart_print_hex_digits(b, 2);
+                    uart_print(" ");
+                }
+                cnt++;
                 t_parse += cycle_counter() - t2;
                 if (cnt == 256) {				// write a page
+                    uart_printf("Writing at %x:", addr);
+                    for (int j = 0; j < 16; j++) {
+                        uart_print_hex_digits(corebuf[j], 2);
+                        uart_print(" ");
+                    }
+                    uart_print("\n");
                     write_flash(corebuf, addr, cnt);
                     addr += cnt;
                     cnt = 0;
                 }
             }
-            bol = len > 0 && s[len-1] == '\n';
         }
     }
     // write remaining data in buffer
@@ -463,7 +505,7 @@ void load_core(char *fname, int verify) {
     if (verify)
         message("Core matches", 1);
     else
-        message("Core written. Please reboot", 1);
+        message("Core ready. Pls reboot", 1);
 }
 
 void menu_select_core(int verify) {
@@ -471,7 +513,7 @@ void menu_select_core(int verify) {
     int r = load_dir("/cores", 0, PAGESIZE, &total);
     if (r != 0) {
         clear();
-        message("Pls put .fs core files in /cores", 1);
+        message("Need .bin in /cores", 1);
         return;
     }
     delay(300);
@@ -492,11 +534,12 @@ void menu_select_core(int verify) {
             if (choice == 0)
                 return;
             else {
-                char *p = strcasestr(file_names[choice], ".fs");
-                if (p == NULL)
-                    p = strcasestr(file_names[choice], ".bin");
+                char *p;
+                // p = strcasestr(file_names[choice], ".fs");
+                // if (p == NULL)
+                p = strcasestr(file_names[choice], ".bin");
                 if (p == NULL) {
-                    message("Only .fs/.bin core files supported", 1);
+                    message("Only .bin supported", 1);
                     draw = 1;
                     continue;
                 }
@@ -1001,8 +1044,8 @@ int main() {
         print("2) Select core\n");
         cursor(2, 14);
         print("3) Options\n");
-        cursor(2, 15);
-        print("4) Verify core\n");
+        // cursor(2, 15);
+        // print("4) Verify core\n");
         cursor(2, 16);
         print("Version: ");
         print(__DATE__);
@@ -1011,7 +1054,7 @@ int main() {
 
         int choice = 0;
         for (;;) {
-            int r = joy_choice(12, 4, &choice, OSD_KEY_CODE);
+            int r = joy_choice(12, 3, &choice, OSD_KEY_CODE);
             if (r == 1) break;
         }
 
