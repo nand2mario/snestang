@@ -25,9 +25,6 @@ DSTATUS disk_status (
 	BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
 {
-	DSTATUS stat;
-	int result;
-
 	switch (pdrv) {
 	case DEV_SD :
 		if (sd_initialized)
@@ -48,9 +45,6 @@ DSTATUS disk_initialize (
 	BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
-	DSTATUS stat;
-	int result;
-
 	// print("disk_initialize\n");
 
 	switch (pdrv) {
@@ -80,9 +74,6 @@ DRESULT disk_read (
 	UINT count		/* Number of sectors to read */
 )
 {
-	DRESULT res;
-	int result;
-
 	switch (pdrv) {
 	case DEV_SD :
 		if (!sd_initialized)
@@ -110,9 +101,6 @@ DRESULT disk_write (
 	UINT count			/* Number of sectors to write */
 )
 {
-	DRESULT res;
-	int result;
-
 	switch (pdrv) {
 	case DEV_SD :
 		if (!sd_initialized)
@@ -139,9 +127,6 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
-	DRESULT res;
-	int result;
-
 	switch (pdrv) {
 	case DEV_SD :
 		if (cmd == GET_SECTOR_SIZE)
