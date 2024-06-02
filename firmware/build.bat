@@ -10,6 +10,7 @@ set CFLAGS=-O -mabi=ilp32 -march=rv32i -ffreestanding
 %CROSS%gcc %CFLAGS% -c -o firmware.o firmware.c
 %CROSS%gcc %CFLAGS% -c -o picorv32.o picorv32.c
 %CROSS%gcc %CFLAGS% -c -o spi_sd.o spi_sd.c
+%CROSS%gcc %CFLAGS% -c -o spiflash.o spiflash.c
 
 @REM fatfs
 %CROSS%gcc %CFLAGS% -c -o fatfs\diskio.o fatfs\diskio.c
@@ -17,7 +18,7 @@ set CFLAGS=-O -mabi=ilp32 -march=rv32i -ffreestanding
 %CROSS%gcc %CFLAGS% -c -o fatfs\ffunicode.o fatfs\ffunicode.c
 
 %CROSS%gcc %CFLAGS% -Wl,--build-id=none,-Bstatic,-T,baremetal.ld,--strip-debug ^
-   -nostdlib -o firmware.elf start.o firmware.o picorv32.o spi_sd.o ^
+   -nostdlib -o firmware.elf start.o firmware.o picorv32.o spi_sd.o spiflash.o ^
    fatfs\diskio.o fatfs\ff.o fatfs\ffunicode.o -lgcc
 
 %CROSS%objcopy firmware.elf firmware.bin -O binary
