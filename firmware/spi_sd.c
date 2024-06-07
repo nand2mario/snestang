@@ -251,9 +251,8 @@ void debug_print_buf(uint8_t *buf, int len) {
 
 int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) {
     uint8_t response;
-    uint32_t ctrl;
     int retries = 0;
-    int i;
+
     // DEBUG("sd_readsector: %d %d\n", start_block, sector_count);
     if (sector_count == 0)
         return 0;
@@ -300,7 +299,6 @@ int sd_readsector(uint32_t start_block, uint8_t *buffer, uint32_t sector_count) 
 int sd_writesector(uint32_t start_block, const uint8_t *buffer, uint32_t sector_count) {
     uint8_t response;
     int retries = 0;
-    int i;
 
     DEBUG("sd_writesector: %d %d\n", start_block, sector_count);
     while (sector_count--) {
