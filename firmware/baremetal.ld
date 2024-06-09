@@ -5,7 +5,8 @@
  */
 MEMORY
 {
-    RAM (RWX) : ORIGIN = 0x00000, LENGTH = 0x200000
+    FLASH (RX): ORIGIN = 0x00000, LENGTH = 100K
+    RAM  (RWX): ORIGIN = 100K, LENGTH = 0x1e7000
 }
 SECTIONS
 {
@@ -14,7 +15,7 @@ SECTIONS
         start.o (.text)
         *(.text)
         _end = .;           /* as expected by syscalls.c */
-    }
+    } >FLASH
 
     /* global and static variable with initial values */
     .data :
@@ -26,7 +27,7 @@ SECTIONS
         *(.data*)          /* .data* sections */
         *(.sdata)           /* .sdata sections */
         *(.sdata*)          /* .sdata* sections */
-        . = ALIGN(4);        
+        . = ALIGN(4);
         _edata = .;
     }
 
@@ -48,5 +49,5 @@ SECTIONS
     {
         . = ALIGN(4);
         _heap_start = .;    /* define a global symbol at heap start */
-    }    
+    }
 }

@@ -45,6 +45,8 @@ int _putchar(int c, int uart) {
       uart_putchar(c);
    else
       putchar(c);
+
+   return c;
 }
 
 int print(const char *p)
@@ -59,6 +61,8 @@ int _print(const char *p, int uart) {
       uart_print(p);
    else
       print(p);
+
+   return 0;
 }
 
 void _print_hex_digits(uint32_t val, int nbdigits, int uart) {
@@ -364,7 +368,7 @@ char *strcat(char *dest, const char *src) {
 
    while (*dest)
       dest++;
-   while (*dest++ = *src++)
+   while ((*dest++ = *src++))
       ;
    return rdest;
 }
@@ -383,7 +387,8 @@ char* strncat(char* destination, const char* source, size_t num)
 char * strcpy(char *strDest, const char *strSrc) {
    //  assert(strDest!=NULL && strSrc!=NULL);
     char *temp = strDest;
-    while(*strDest++ = *strSrc++);
+    while ((*strDest++ = *strSrc++))
+		;
     return temp;
 }
 

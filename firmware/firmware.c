@@ -209,7 +209,6 @@ int file_len;		// number of files on this page
 int load_dir(char *dir, int start, int len, int *count) {
     DEBUG("load_dir: %s, start=%d, len=%d\n", dir, start, len);
     int cnt = 0;
-    int r = 0;
     DIR d;
     file_len = 0;
     // initiaze sd again to be sure
@@ -388,13 +387,12 @@ bool verify_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
     return true;
 }
 
-static int load_buf_off;            // next available pos in load_buf
-static int load_buf_len;            // length of data in load_buf   
+static unsigned int load_buf_off;  // next available pos in load_buf
+static unsigned int load_buf_len;  // length of data in load_buf
 
 // load a line into buf (max length *len), *len is updated to actual length of string
 // this uses load_buf[] internally
 void read_line(FIL *fp, char *buf, int *len) {
-    int br;
     int i = 0;
     bool done = false;
     while (!done) {
@@ -438,9 +436,7 @@ void load_core(char *fname, int verify) {
     }
     int addr = 0;
     char *s = load_buf;
-    int cnt = 0;
-    int bol = 1;
-    int br;
+    unsigned int cnt = 0;
     while (!f_eof(&f) && (binfile || addr < 32*1024)) { // write only 32KB for .fs
         if (binfile) {
             // uart_print("Checking cycles\n");
@@ -636,8 +632,10 @@ int in_game;
 
 // return 0 if snes header is successfully parsed at off
 // typ 0: LoROM, 1: HiROM, 2: ExHiROM
-int parse_snes_header(FIL *fp, int pos, int file_size, int typ, uint8_t *hdr, int *map_ctrl, int *rom_type_header, int *rom_size, int *ram_size, int *company) {
-    int br;
+int parse_snes_header(FIL *fp, int pos, int file_size, int typ, char *hdr,
+                      int *map_ctrl, int *rom_type_header, int *rom_size,
+                      int *ram_size, int *company) {
+    unsigned int br;
     if (f_lseek(fp, pos))
         return 1;
     f_read(fp, hdr, 64, &br);
@@ -687,6 +685,7 @@ int parse_snes_header(FIL *fp, int pos, int file_size, int typ, uint8_t *hdr, in
 // return 0 if successful
 int loadsnes(int rom) {
     FIL f;
+    int r = 1;
     strncpy(load_fname, pwd, 1024);
     strncat(load_fname, "/", 1024);
     strncat(load_fname, file_names[rom], 1024);
@@ -707,12 +706,12 @@ int loadsnes(int rom) {
     // initiaze sd again to be sure
     if (sd_init() != 0) return 99;
 
-    int r = f_open(&f, load_fname, FA_READ);
+    r = f_open(&f, load_fname, FA_READ);
     if (r) {
         status("Cannot open file");
         goto loadsnes_end;
     }
-    int br, total = 0;
+    unsigned int br, total = 0;
     int size = file_sizes[rom];
     int map_ctrl, rom_type_header, rom_size, ram_size, company;
     // parse SNES header from ROM file
@@ -792,6 +791,7 @@ loadsnes_end:
 // return 0 if successful
 int loadnes(int rom) {
     FIL f;
+    int r = 1;
     strncpy(load_fname, pwd, 1024);
     strncat(load_fname, "/", 1024);
     strncat(load_fname, file_names[rom], 1024);
@@ -808,13 +808,13 @@ int loadnes(int rom) {
     // initiaze sd again to be sure
     if (sd_init() != 0) return 99;
 
-    int r = f_open(&f, load_fname, FA_READ);
+    r = f_open(&f, load_fname, FA_READ);
     if (r) {
         status("Cannot open file");
         goto loadnes_end;
     }
-    int off = 0, br, total = 0;
-    int size = file_sizes[rom];
+    unsigned int off = 0, br, total = 0;
+    unsigned int size = file_sizes[rom];
 
     // load actual ROM
     snes_ctrl(1);		// enable game loading, this resets SNES
@@ -846,8 +846,7 @@ int loadnes(int rom) {
     overlay(0);		// turn off OSD
 
 loadnes_snes_end:
-    snes_ctrl(0);	// turn off game loading, this starts the core
-loadnes_close_file:
+    snes_ctrl(0);   // turn off game loading, this starts the core
     f_close(&f);
 loadnes_end:
     return r;
@@ -876,9 +875,9 @@ void backup_load(char *name, int size) {
         goto backup_load_crc;
     }
     uint8_t *p = bsram;	
-    int load = 0;
+    unsigned int load = 0;
     while (load < size) {
-        int br;
+        unsigned int br;
         if (f_read(&f, p, 1024, &br) != FR_OK || br < 1024) 
             break;
         p += br;
@@ -915,7 +914,7 @@ int backup_save(char *name, int size) {
         uart_printf("Cannot write save file");
         return 2;
     }
-    int bw;
+    unsigned int bw;
     // for (int off = 0; off < size; off += bw) {
     // 	if (f_write(&f, bsram, 1024, &bw) != FR_OK) {
     if (f_write(&f, bsram, size, &bw) != FR_OK || bw != size) {
@@ -1081,4 +1080,3 @@ int main() {
         }
     }
 }
-
