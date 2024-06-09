@@ -10,6 +10,8 @@
 #include "firmware.h"
 
 uint32_t CORE_ID;
+#define CORE_NES 1
+#define CORE_SNES 2
 
 #define OPTION_FILE "/snestang.ini"
 #define OPTION_INVALID 2
@@ -363,7 +365,9 @@ void write_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
 bool verify_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
     // uart_printf("Verifying %d bytes at %x\n", cnt, addr);
     uint8_t buf[256];
+    // uart_print("Reading flash\n");
     spiflash_read(addr, buf, 256);
+    // uart_print("Done with flash read\n");
     for (int j = 0; j < cnt; j++) {
         if (buf[j] != corebuf[j]) {
             uart_printf("Verify error at %x: %d != %d. Data read:\n", addr+j, buf[j], corebuf[j]);
@@ -439,7 +443,9 @@ void load_core(char *fname, int verify) {
     int br;
     while (!f_eof(&f) && (binfile || addr < 32*1024)) { // write only 32KB for .fs
         if (binfile) {
+            // uart_print("Checking cycles\n");
             uint32_t t = cycle_counter();
+            // uart_print("Reading file\n");
             f_read(&f, corebuf, 256, &cnt);
             t_file += cycle_counter() - t;
             if (verify) {
@@ -509,7 +515,7 @@ void load_core(char *fname, int verify) {
 }
 
 void menu_select_core(int verify) {
-    int total, choice, draw=1;
+    int total, choice = 0, draw=1;
     int r = load_dir("/cores", 0, PAGESIZE, &total);
     if (r != 0) {
         clear();
@@ -530,6 +536,7 @@ void menu_select_core(int verify) {
             }
             draw = 0;
         }
+        // DEBUG("Calling joy_chocie\n");
         if (joy_choice(2, total, &choice, OSD_KEY_CODE) == 1) {
             if (choice == 0)
                 return;
@@ -551,6 +558,7 @@ void menu_select_core(int verify) {
                 return;
             }
         }
+        // DEBUG("Done with joy_chocie\n");
     }
 }
 
@@ -926,7 +934,7 @@ bsram_save_close:
 
 int backup_success_time;
 void backup_process() {
-    if (!snes_running || !option_backup_bsram || snes_ramsize == 0)
+    if (CORE_ID != CORE_SNES || !snes_running || !option_backup_bsram || snes_ramsize == 0)
         return;
     int t = time_millis();
     if (t - snes_backup_time >= 10000) {

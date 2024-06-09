@@ -191,9 +191,12 @@ void backup_process();
 // (R L X A RT LT DN UP START SELECT Y B)
 // overlay_key_code: 0x84 for SELECT&RIGHT, 0xC for SELECT&START, 0x804 for SELECT/RB
 int joy_choice(int start_line, int len, int *active, int overlay_key_code) {
+   if (*active < 0 || *active >= len)
+      *active = 0;
    int joy1, joy2;
    int last = *active;
 
+   // DEBUG("joy_choice: start\n");
    joy_get(&joy1, &joy2);
    // DEBUG("joy_choice: joy1=%x, joy2=%x\n", joy1, joy2);
 
