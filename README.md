@@ -48,6 +48,9 @@ Backup SRAM support
 * The function is by default turned off. To use it, first enable it in options. Then launch a game with BSRAM support. Every 10 seconds, SNESTang will check if there's new BSRAM content, and if yes saves it into `/saves/<rom_name>.srm`. BSRAM is also automatically restored at game launch if the corresponding .srm file exists, and BSRAM function is on.
 * [List of games](https://www.dkoldies.com/blog/complete-list-of-snes-games-with-save-batteries/) with save batteries.
 
+Core Switching
+* If you create a /cores directory in your SD card and put the relevant .bin files of SNESTang and [NESTang](https://github.com/nand2mario/nestang) there, you will be able to switch between the two cores without connecting the board to your PC. Just choose "Select core" in the main menu and follow the instructions.
+
 ## Development
 
 I am developing with Gowin IDE 1.9.9 Pro version (not the EDU version). It requires a free license. Just open the project file snestang_primer25k.gprj.
