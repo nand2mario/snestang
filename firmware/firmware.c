@@ -794,6 +794,12 @@ void menu_cheats_options() {
 	}
 }
 
+void save_bsram(void){
+    int r = backup_save(snes_backup_name, snes_ramsize);
+    if(!r) status("BSRAM saved!");
+    else   status("ERROR: BSRAM not saved!");
+}
+
 void menu_options() {
 	int choice = 0;
 	while (1) {
@@ -828,11 +834,13 @@ void menu_options() {
 			print("No");
 		cursor(2, 17);
 		print("Cheats");
+        cursor(2, 18);
+		print("Save BSRAM");
 
 		delay(300);
 
 		for (;;) {
-			if (joy_choice(12, 6, &choice, OSD_KEY_CODE) == 1) {
+			if (joy_choice(12, 7, &choice, OSD_KEY_CODE) == 1) {
 				if (choice == 0) {
 					return;
 				} else if (choice == 1) {
@@ -854,8 +862,12 @@ void menu_options() {
 						delay(300);
 						menu_cheats_options();
 						//continue;
+					} else if (choice == 6) {
+						delay(300);
+						save_bsram();
+						//continue;
 					}
-					if(choice != 5)
+					if(choice < 5)
 						status("Saving options...");
 					if (save_option()) {
 						message("Cannot save options to SD",1);
