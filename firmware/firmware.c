@@ -11,6 +11,8 @@
 #include "firmware.h"
 
 uint32_t CORE_ID;
+#define CORE_NES 1
+#define CORE_SNES 2
 
 #define OPTION_FILE "/snestang.ini"
 #define OPTION_INVALID 2
@@ -414,8 +416,8 @@ bool verify_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
     return true;
 }
 
-static int load_buf_off;            // next available pos in load_buf
-static int load_buf_len;            // length of data in load_buf   
+static unsigned int load_buf_off;            // next available pos in load_buf
+static unsigned int load_buf_len;            // length of data in load_buf   
 
 // load a line into buf (max length *len), *len is updated to actual length of string
 // this uses load_buf[] internally
@@ -464,7 +466,7 @@ void load_core(char *fname, int verify) {
     }
     int addr = 0;
     char *s = load_buf;
-    int cnt = 0;
+    unsigned int cnt = 0;
     int bol = 1;
     int br;
     while (!f_eof(&f) && (binfile || addr < 32*1024)) { // write only 32KB for .fs
@@ -539,7 +541,7 @@ void load_core(char *fname, int verify) {
 }
 
 void menu_select_core(int verify) {
-    int total, choice, draw=1;
+    int total, choice=0, draw=1;
     int r = load_dir("/cores", 0, PAGESIZE, &total);
     if (r != 0) {
         clear();
@@ -870,7 +872,9 @@ int in_game;
 
 // return 0 if snes header is successfully parsed at off
 // typ 0: LoROM, 1: HiROM, 2: ExHiROM
-int parse_snes_header(FIL *fp, int pos, int file_size, int typ, uint8_t *hdr, int *map_ctrl, int *rom_type_header, int *rom_size, int *ram_size, int *company) {
+int parse_snes_header(FIL *fp, int pos, int file_size, int typ, char *hdr,
+                      int *map_ctrl, int *rom_type_header, int *rom_size,
+                      int *ram_size, int *company) {
     int br;
     if (f_lseek(fp, pos))
         return 1;
@@ -921,6 +925,7 @@ int parse_snes_header(FIL *fp, int pos, int file_size, int typ, uint8_t *hdr, in
 // return 0 if successful
 int loadsnes(int rom) {
     FIL f;
+    int r=1;
     strncpy(load_fname, pwd, 1024);
     strncat(load_fname, "/", 1024);
     strncat(load_fname, file_names[rom], 1024);
@@ -941,12 +946,12 @@ int loadsnes(int rom) {
     // initiaze sd again to be sure
     if (sd_init() != 0) return 99;
 
-    int r = f_open(&f, load_fname, FA_READ);
+    r = f_open(&f, load_fname, FA_READ);
     if (r) {
         status("Cannot open file");
         goto loadsnes_end;
     }
-    int br, total = 0;
+    unsigned int br, total = 0;
     int size = file_sizes[rom];
     int map_ctrl, rom_type_header, rom_size, ram_size, company;
     // parse SNES header from ROM file
@@ -1026,6 +1031,7 @@ loadsnes_end:
 // return 0 if successful
 int loadnes(int rom) {
     FIL f;
+    int r=1;
     strncpy(load_fname, pwd, 1024);
     strncat(load_fname, "/", 1024);
     strncat(load_fname, file_names[rom], 1024);
@@ -1042,13 +1048,13 @@ int loadnes(int rom) {
     // initiaze sd again to be sure
     if (sd_init() != 0) return 99;
 
-    int r = f_open(&f, load_fname, FA_READ);
+    r = f_open(&f, load_fname, FA_READ);
     if (r) {
         status("Cannot open file");
         goto loadnes_end;
     }
-    int off = 0, br, total = 0;
-    int size = file_sizes[rom];
+    unsigned int off = 0, br, total = 0;
+    unsigned int size = file_sizes[rom];
 
     // load actual ROM
     snes_ctrl(1);		// enable game loading, this resets SNES
@@ -1110,7 +1116,7 @@ void backup_load(char *name, int size) {
         goto backup_load_crc;
     }
     uint8_t *p = bsram;	
-    int load = 0;
+    unsigned int load = 0;
     while (load < size) {
         int br;
         if (f_read(&f, p, 1024, &br) != FR_OK || br < 1024) 
@@ -1148,7 +1154,7 @@ int backup_save(char *name, int size) {
         uart_printf("Cannot write save file");
         return 2;
     }
-    int bw;
+    unsigned int bw;
     // for (int off = 0; off < size; off += bw) {
     // 	if (f_write(&f, bsram, 1024, &bw) != FR_OK) {
     if (f_write(&f, bsram, size, &bw) != FR_OK || bw != size) {
@@ -1167,7 +1173,7 @@ bsram_save_close:
 
 int backup_success_time;
 void backup_process() {
-    if (!snes_running || !option_backup_bsram || snes_ramsize == 0)
+    if ((CORE_ID != CORE_SNES )|| !snes_running || !option_backup_bsram || snes_ramsize == 0)
         return;
     int t = time_millis();
     if (t - snes_backup_time >= 10000) {
