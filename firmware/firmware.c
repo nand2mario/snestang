@@ -38,8 +38,13 @@ bool snes_running;
 int snes_ramsize;
 bool snes_backup_valid;		// whether it is okay to save
 char snes_backup_name[256];
+char nes_backup_name_bsram[32] = "";
+char nes_backup_path_bsram[39] = "saves/";
+char snes_backup_path[266] = "saves/";
 uint16_t snes_bsram_crc16;
 uint32_t snes_backup_time;
+
+
 
 char load_fname[1024];
 char load_buf[1024];
@@ -91,6 +96,19 @@ int load_option()  {
                 option_backup_bsram = true;
             else
                 option_backup_bsram = false;
+        } else if (strcmp(key, "enhanced_apu") == 0) {
+            if (strcasecmp(value, "true") == 0)
+                option_enhanced_apu = true;
+            else
+                option_enhanced_apu = false;
+
+            reg_enhanced_apu = option_enhanced_apu;
+        } else if (strcmp(key, "cheats_enabled") == 0) {
+            if (strcasecmp(value, "true") == 0)
+                option_cheats_enabled = true;
+            else
+                option_cheats_enabled = false;
+            reg_cheats_enabled = option_cheats_enabled;
         } else {
             // just ignore unknown keys
         }
@@ -795,9 +813,60 @@ void menu_cheats_options() {
 }
 
 void save_bsram(void){
-    int r = backup_save(snes_backup_name, snes_ramsize);
-    if(!r) status("BSRAM saved!");
-    else   status("ERROR: BSRAM not saved!");
+    FIL f;
+    FILINFO fno;
+    uint8_t *bsram = (uint8_t *)0x700000;		// directly read from BSRAM
+    int r = 0;
+
+    if (f_stat(snes_backup_path, &fno) != FR_OK) {
+        if (f_mkdir(snes_backup_path) != FR_OK) {
+            status("Cannot create /saves");
+            uart_printf("Cannot create /saves\n");
+            return;
+        }
+    }
+
+    // // for(ix=0;ix<31;++ix){
+    // //     if((char *)snes_backup_name[ix] == "."){
+    // //         goto save_bsram_concatenate;
+    // //     }
+    // //     nes_backup_name_bsram[ix] = snes_backup_name[ix];
+    // // }
+    // nes_backup_path_bsram[38] = "\0";
+    // nes_backup_path_bsram[6] = snes_backup_name[0];
+    // unsigned int ix = 7;
+    // for(ix=7; ix<38; ix++){
+    //     nes_backup_path_bsram[ix] = nes_backup_name_bsram[ix-6];
+    // }
+    if(nes_backup_name_bsram == ""){
+        status("ERROR: invalid name!");
+        return;
+    }
+
+save_bsram_concatenate:
+    strcat(nes_backup_path_bsram, nes_backup_name_bsram);
+    if(nes_backup_path_bsram == ""){
+        status("ERROR: invalid path!");
+        return;
+    }
+
+    char test[] = "Kirby's Dream Land";
+    strcat(nes_backup_path_bsram, test);
+    if (f_open(&f, nes_backup_path_bsram, (FA_WRITE | FA_CREATE_ALWAYS)) != FR_OK) {
+        status("Cannot write save file");
+        uart_printf("Cannot write save file");
+        return;
+    }
+    unsigned int bw;
+    if (f_write(&f, bsram, snes_ramsize, &bw) != FR_OK || bw != snes_ramsize) {
+        status("ERROR: BSRAM not saved!");
+        uart_printf("Write failure, bw=%d\n", bw);
+        r = 2;
+    }
+    status("BSRAM saved!");
+
+	f_close(&f);
+    return;
 }
 
 void menu_options() {
@@ -1047,6 +1116,7 @@ int loadnes(int rom) {
     strncpy(load_fname, pwd, 1024);
     strncat(load_fname, "/", 1024);
     strncat(load_fname, file_names[rom], 1024);
+    strncpy(nes_backup_name_bsram, load_fname, 32);
 
     DEBUG("loadnes start\n");
 
@@ -1108,21 +1178,20 @@ loadnes_end:
 void backup_load(char *name, int size) {
     snes_backup_valid = false;
     if (!option_backup_bsram || size == 0) return;
-    char path[266] = "/saves/";
     FILINFO fno;
     uint8_t *bsram = (uint8_t *)0x700000;			// directly read into BSRAM
 
-    if (f_stat(path, &fno) != FR_OK) {
-        if (f_mkdir(path) != FR_OK) {
+    if (f_stat(snes_backup_path, &fno) != FR_OK) {
+        if (f_mkdir(snes_backup_path) != FR_OK) {
             status("Cannot create /saves");
             uart_printf("Cannot create /saves\n");
             goto backup_load_crc;
         }
     }
-    strcat(path, snes_backup_name);
+    strcat(snes_backup_path, snes_backup_name);
     uart_printf("Loading bsram from: %s\n", snes_backup_name);
     FIL f;
-    if (f_open(&f, path, FA_READ) != FR_OK) {
+    if (f_open(&f, snes_backup_path, FA_READ) != FR_OK) {
         snes_backup_valid = true;					// new save file, mark as valid
         uart_printf("Cannot open bsram file, assuming new\n");
         goto backup_load_crc;
