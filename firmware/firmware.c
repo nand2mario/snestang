@@ -34,6 +34,8 @@ bool option_enhanced_apu = false;
 bool option_cheats_enabled = false;
 bool option_sys_type_is_pal = false;
 
+uint8_t option_aspect_ratio = 0x01;
+
 static bool rom_loaded = false;
 
 bool snes_running;
@@ -120,6 +122,14 @@ int load_option()  {
             else
                 option_sys_type_is_pal = true;
             reg_sys_type = (uint32_t)option_sys_type_is_pal;
+        } else if (strcmp(key, "aspect_ratio") == 0) {
+            if (strcasecmp(value, "0") == 0)
+                option_aspect_ratio = 0;
+            else if (strcasecmp(value, "0") == 2)
+                option_aspect_ratio = 2;
+            else
+                option_aspect_ratio = 1;
+            reg_aspect_ratio = option_aspect_ratio;
         } else {
             // just ignore unknown keys
         }
@@ -171,6 +181,9 @@ int save_option() {
 	}
 	else{
 		f_puts("false\n", &f);
+	}
+    else{
+		f_puts("1\n", &f);
 	}
 		
 save_options_close:
@@ -998,7 +1011,7 @@ void menu_options() {
 					} else if (choice == 8) {
 						option_sys_type_is_pal = !option_sys_type_is_pal;
                         reg_sys_type = (uint32_t)option_sys_type_is_pal;
-					}
+                        reg_aspect_ratio = option_aspect_ratio;
 					if((choice != 5)&&(choice != 6)&&(choice != 7)){
 						status("Saving options...");
 					    if (save_option()) {
