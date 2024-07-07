@@ -38,8 +38,8 @@ bool snes_running;
 int snes_ramsize;
 bool snes_backup_valid;		// whether it is okay to save
 char snes_backup_name[256];
-char nes_backup_name_bsram[32] = "";
-char nes_backup_path_bsram[39] = "saves/";
+char nes_backup_name_bsram[256] = "";
+char nes_backup_path_bsram[266] = "saves/";
 char snes_backup_path[266] = "saves/";
 uint16_t snes_bsram_crc16;
 uint32_t snes_backup_time;
@@ -825,33 +825,15 @@ void save_bsram(void){
             return;
         }
     }
-
-    // // for(ix=0;ix<31;++ix){
-    // //     if((char *)snes_backup_name[ix] == "."){
-    // //         goto save_bsram_concatenate;
-    // //     }
-    // //     nes_backup_name_bsram[ix] = snes_backup_name[ix];
-    // // }
-    // nes_backup_path_bsram[38] = "\0";
-    // nes_backup_path_bsram[6] = snes_backup_name[0];
-    // unsigned int ix = 7;
-    // for(ix=7; ix<38; ix++){
-    //     nes_backup_path_bsram[ix] = nes_backup_name_bsram[ix-6];
-    // }
     if(nes_backup_name_bsram == ""){
         status("ERROR: invalid name!");
         return;
     }
-
-save_bsram_concatenate:
     strcat(nes_backup_path_bsram, nes_backup_name_bsram);
     if(nes_backup_path_bsram == ""){
         status("ERROR: invalid path!");
         return;
     }
-
-    char test[] = "Kirby's Dream Land";
-    strcat(nes_backup_path_bsram, test);
     if (f_open(&f, nes_backup_path_bsram, (FA_WRITE | FA_CREATE_ALWAYS)) != FR_OK) {
         status("Cannot write save file");
         uart_printf("Cannot write save file");
@@ -1116,7 +1098,10 @@ int loadnes(int rom) {
     strncpy(load_fname, pwd, 1024);
     strncat(load_fname, "/", 1024);
     strncat(load_fname, file_names[rom], 1024);
-    strncpy(nes_backup_name_bsram, load_fname, 32);
+    int i=0;
+    while(file_names[rom][i] != '\0')
+        ++i;
+    strncpy(nes_backup_name_bsram, file_names[rom], (i-4));
 
     DEBUG("loadnes start\n");
 
