@@ -38,7 +38,7 @@
 // System type
 #define reg_sys_type            (*(volatile uint32_t*)0x020001C0)
 // Aspect Ratio
-#define reg_aspect_ratio        (*(volatile uint32_t*)0x020001A0)
+#define reg_aspect_ratio        (*(volatile uint32_t*)0x020001E0)
 
 
 

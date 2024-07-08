@@ -34,7 +34,7 @@ bool option_enhanced_apu = false;
 bool option_cheats_enabled = false;
 bool option_sys_type_is_pal = false;
 
-uint8_t option_aspect_ratio = 0x01;
+uint32_t option_aspect_ratio = 0x00;
 
 static bool rom_loaded = false;
 
@@ -125,8 +125,6 @@ int load_option()  {
         } else if (strcmp(key, "aspect_ratio") == 0) {
             if (strcasecmp(value, "0") == 0)
                 option_aspect_ratio = 0;
-            else if (strcasecmp(value, "0") == 2)
-                option_aspect_ratio = 2;
             else
                 option_aspect_ratio = 1;
             reg_aspect_ratio = option_aspect_ratio;
@@ -182,8 +180,12 @@ int save_option() {
 	else{
 		f_puts("false\n", &f);
 	}
-    else{
+    f_puts("aspect_ratio=", &f);
+	if (option_aspect_ratio){
 		f_puts("1\n", &f);
+	}
+    else{
+		f_puts("0\n", &f);
 	}
 		
 save_options_close:
@@ -968,17 +970,24 @@ void menu_options() {
         cursor(2, 19);
 		print("Load BSRAM");
         cursor(2, 20);
-		print("System");
+		print("System:");
         cursor(16, 20);
         if(!option_sys_type_is_pal)
 			print("NTSC/DENDY");
 		else
 			print("PAL");
+        cursor(2, 21);
+        print("Aspect:");
+        cursor(16, 21);
+        if(!option_aspect_ratio)
+			print("1:1");
+		else
+			print("8:7");
 
 		delay(300);
 
 		for (;;) {
-			if (joy_choice(12, 9, &choice, OSD_KEY_CODE) == 1) {
+			if (joy_choice(12, 10, &choice, OSD_KEY_CODE) == 1) {
 				if (choice == 0) {
 					return;
 				} else if (choice == 1) {
@@ -1011,7 +1020,11 @@ void menu_options() {
 					} else if (choice == 8) {
 						option_sys_type_is_pal = !option_sys_type_is_pal;
                         reg_sys_type = (uint32_t)option_sys_type_is_pal;
-                        reg_aspect_ratio = option_aspect_ratio;
+                    } else if (choice == 9) {
+						option_aspect_ratio = !option_aspect_ratio;
+                        reg_aspect_ratio = (uint32_t)option_aspect_ratio;
+                    }
+                    // 
 					if((choice != 5)&&(choice != 6)&&(choice != 7)){
 						status("Saving options...");
 					    if (save_option()) {
