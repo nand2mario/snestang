@@ -25,21 +25,33 @@ uint32_t CORE_ID;
 
 // SNES BSRAM is mapped at address 7MB 
 volatile uint8_t *SNES_BSRAM = (volatile uint8_t *)0x07000000;
+volatile uint8_t *NES_BSRAM = (volatile uint8_t *)0x00006000;
 
 int option_osd_key = OPTION_OSD_KEY_SELECT_RIGHT;
 #define OSD_KEY_CODE (option_osd_key == OPTION_OSD_KEY_SELECT_START ? 0xC : (option_osd_key == OPTION_OSD_KEY_SELECT_RIGHT ? 0x84 : 0x24))
 bool option_backup_bsram = false;
 bool option_enhanced_apu = false;
 bool option_cheats_enabled = false;
+bool option_sys_type_is_pal = false;
+
+uint32_t option_aspect_ratio = 0x00;
 
 static bool rom_loaded = false;
 
 bool snes_running;
 int snes_ramsize;
+bool nes_backup_valid;		// whether it is okay to save
 bool snes_backup_valid;		// whether it is okay to save
 char snes_backup_name[256];
+char nes_backup_name_bsram[256] = "";
+char nes_backup_save_str_bsram[] = "saves/";
+char nes_backup_path_bsram[266] = "";
+char snes_backup_path[266] = "saves/";
+uint16_t nes_bsram_crc16;
 uint16_t snes_bsram_crc16;
 uint32_t snes_backup_time;
+
+
 
 char load_fname[1024];
 char load_buf[1024];
@@ -91,6 +103,31 @@ int load_option()  {
                 option_backup_bsram = true;
             else
                 option_backup_bsram = false;
+        } else if (strcmp(key, "enhanced_apu") == 0) {
+            if (strcasecmp(value, "true") == 0)
+                option_enhanced_apu = true;
+            else
+                option_enhanced_apu = false;
+
+            reg_enhanced_apu = (uint32_t)option_enhanced_apu;
+        } else if (strcmp(key, "cheats_enabled") == 0) {
+            if (strcasecmp(value, "true") == 0)
+                option_cheats_enabled = true;
+            else
+                option_cheats_enabled = false;
+            reg_cheats_enabled = (uint32_t)option_cheats_enabled;
+        } else if (strcmp(key, "system") == 0) {
+            if (strcasecmp(value, "false") == 0)
+                option_sys_type_is_pal = false;
+            else
+                option_sys_type_is_pal = true;
+            reg_sys_type = (uint32_t)option_sys_type_is_pal;
+        } else if (strcmp(key, "aspect_ratio") == 0) {
+            if (strcasecmp(value, "0") == 0)
+                option_aspect_ratio = 0;
+            else
+                option_aspect_ratio = 1;
+            reg_aspect_ratio = option_aspect_ratio;
         } else {
             // just ignore unknown keys
         }
@@ -135,6 +172,20 @@ int save_option() {
 	}
 	else{
 		f_puts("false\n", &f);
+	}
+    f_puts("system=", &f);
+	if (option_sys_type_is_pal){
+		f_puts("true\n", &f);
+	}
+	else{
+		f_puts("false\n", &f);
+	}
+    f_puts("aspect_ratio=", &f);
+	if (option_aspect_ratio){
+		f_puts("1\n", &f);
+	}
+    else{
+		f_puts("0\n", &f);
 	}
 		
 save_options_close:
@@ -794,6 +845,92 @@ void menu_cheats_options() {
 	}
 }
 
+void save_bsram(void){
+    FIL f;
+    FILINFO fno;
+    uint8_t *nes_bsram_starting_address = (uint8_t *)0x006000;			// directly read into BSRAM
+    uint32_t nes_bsram_size = (0x8000 - 0x6000);
+    int r = 0;
+
+    if (f_stat(snes_backup_path, &fno) != FR_OK) {
+        if (f_mkdir(snes_backup_path) != FR_OK) {
+            status("Cannot create /saves");
+            uart_printf("Cannot create /saves\n");
+            return;
+        }
+    }
+    if(nes_backup_name_bsram == ""){
+        status("ERROR: invalid name!");
+        return;
+    }
+    if(nes_backup_path_bsram == ""){
+        status("ERROR: invalid path!");
+        return;
+    }
+    if (f_open(&f, nes_backup_path_bsram, (FA_WRITE | FA_CREATE_ALWAYS)) != FR_OK) {
+        status("Cannot write save file");
+        uart_printf("Cannot write save file");
+        return;
+    }
+    unsigned int bw;
+    if (f_write(&f, nes_bsram_starting_address, nes_bsram_size, &bw) != FR_OK || bw != nes_bsram_size) {
+        status("ERROR: BSRAM not saved!");
+        uart_printf("Write failure, bw=%d\n", bw);
+        r = 2;
+    }
+    status("BSRAM saved!");
+
+	f_close(&f);
+    return;
+}
+
+// 1 if error
+// 0 if OK
+int load_bsram(void){
+    nes_backup_valid = false;
+    FILINFO fno;
+    uint8_t *nes_bsram_starting_address = (uint8_t *)0x006000;			// directly read into BSRAM
+    uint32_t nes_bsram_size = (0x8000 - 0x6000);
+
+    reg_load_bsram = 1;
+
+    if (f_stat(nes_backup_path_bsram, &fno) != FR_OK) {
+        if (f_mkdir(nes_backup_path_bsram) != FR_OK) {
+            status("Cannot create /saves");
+            uart_printf("Cannot create /saves\n");
+            return 1;
+        }
+    }
+    uart_printf("Loading bsram from: %s\n", nes_backup_path_bsram);
+    FIL f;
+    if (f_open(&f, nes_backup_path_bsram, FA_READ) != FR_OK) {
+        nes_backup_valid = true;					// new save file, mark as valid
+        status("Cannot open bsram file, assuming new");
+        uart_printf("Cannot open bsram file, assuming new\n");
+        return 1;
+    }
+    uint8_t *p = nes_bsram_starting_address;	
+    unsigned int load = 0;
+    while (load < nes_bsram_size) {
+        int br;
+        if (f_read(&f, p, 1024, &br) != FR_OK || br < 1024) 
+            break;
+        p += br;
+        load += br;
+    }
+    nes_backup_valid = true;
+    f_close(&f);
+    int crc = gen_crc16(nes_bsram_starting_address, nes_bsram_size);
+    uart_printf("Bsram backup loaded %d bytes CRC=%x.\n", load, crc);
+    status("BSRAM loaded!");
+
+    nes_bsram_crc16 = gen_crc16(nes_bsram_starting_address, nes_bsram_size);
+
+    reg_load_bsram = 0;
+	return 0;
+}
+
+
 void menu_options() {
 	int choice = 0;
 	while (1) {
@@ -828,11 +965,29 @@ void menu_options() {
 			print("No");
 		cursor(2, 17);
 		print("Cheats");
+        cursor(2, 18);
+		print("Save BSRAM");
+        cursor(2, 19);
+		print("Load BSRAM");
+        cursor(2, 20);
+		print("System:");
+        cursor(16, 20);
+        if(!option_sys_type_is_pal)
+			print("NTSC/DENDY");
+		else
+			print("PAL");
+        cursor(2, 21);
+        print("Aspect:");
+        cursor(16, 21);
+        if(!option_aspect_ratio)
+			print("1:1");
+		else
+			print("8:7");
 
 		delay(300);
 
 		for (;;) {
-			if (joy_choice(12, 6, &choice, OSD_KEY_CODE) == 1) {
+			if (joy_choice(12, 10, &choice, OSD_KEY_CODE) == 1) {
 				if (choice == 0) {
 					return;
 				} else if (choice == 1) {
@@ -854,12 +1009,28 @@ void menu_options() {
 						delay(300);
 						menu_cheats_options();
 						//continue;
-					}
-					if(choice != 5)
+					} else if (choice == 6) {
+						delay(300);
+						save_bsram();
+						//continue;
+					}else if (choice == 7) {
+						delay(300);
+						load_bsram();
+						//continue;
+					} else if (choice == 8) {
+						option_sys_type_is_pal = !option_sys_type_is_pal;
+                        reg_sys_type = (uint32_t)option_sys_type_is_pal;
+                    } else if (choice == 9) {
+						option_aspect_ratio = !option_aspect_ratio;
+                        reg_aspect_ratio = (uint32_t)option_aspect_ratio;
+                    }
+                    // 
+					if((choice != 5)&&(choice != 6)&&(choice != 7)){
 						status("Saving options...");
-					if (save_option()) {
-						message("Cannot save options to SD",1);
-						break;
+					    if (save_option()) {
+						    message("Cannot save options to SD",1);
+						    break;
+                        }
 					}
 					break;	// redraw UI
 				}
@@ -924,6 +1095,10 @@ int parse_snes_header(FIL *fp, int pos, int file_size, int typ, char *hdr,
 // actually load a rom file. if bsram backup is needed, also loads the backup.
 // return 0 if successful
 int loadsnes(int rom) {
+    if(CORE_ID == CORE_NES){
+        return load_bsram();
+    }
+
     FIL f;
     int r=1;
     strncpy(load_fname, pwd, 1024);
@@ -1035,6 +1210,16 @@ int loadnes(int rom) {
     strncpy(load_fname, pwd, 1024);
     strncat(load_fname, "/", 1024);
     strncat(load_fname, file_names[rom], 1024);
+    int i=0;
+    for(int i=0; i<266; ++i)
+        nes_backup_path_bsram[i] = '\0';
+    i = 0;
+    while(file_names[rom][i] != '\0')
+        ++i;
+    memset(nes_backup_path_bsram, '\0', 266);
+    strncpy(nes_backup_name_bsram, file_names[rom], (i-4));
+    strcat(nes_backup_path_bsram, nes_backup_save_str_bsram);
+    strcat(nes_backup_path_bsram, nes_backup_name_bsram);
 
     DEBUG("loadnes start\n");
 
@@ -1096,22 +1281,21 @@ loadnes_end:
 void backup_load(char *name, int size) {
     snes_backup_valid = false;
     if (!option_backup_bsram || size == 0) return;
-    char path[266] = "/saves/";
     FILINFO fno;
     uint8_t *bsram = (uint8_t *)0x700000;			// directly read into BSRAM
 
-    if (f_stat(path, &fno) != FR_OK) {
-        if (f_mkdir(path) != FR_OK) {
+    if (f_stat(snes_backup_path, &fno) != FR_OK) {
+        if (f_mkdir(snes_backup_path) != FR_OK) {
             status("Cannot create /saves");
             uart_printf("Cannot create /saves\n");
             goto backup_load_crc;
         }
     }
-    strcat(path, snes_backup_name);
+    strcat(snes_backup_path, snes_backup_name);
     uart_printf("Loading bsram from: %s\n", snes_backup_name);
     FIL f;
-    if (f_open(&f, path, FA_READ) != FR_OK) {
-        snes_backup_valid = true;					// new save file, mark as valid
+    if (f_open(&f, snes_backup_path, FA_READ) != FR_OK) {
+        nes_backup_valid = true;					// new save file, mark as valid
         uart_printf("Cannot open bsram file, assuming new\n");
         goto backup_load_crc;
     }
@@ -1249,6 +1433,12 @@ int main() {
 
     // initialize UART
     reg_uart_clkdiv = 187; // 21505400 / 115200;
+
+    // Init reg_load_bsram
+    reg_load_bsram = 0;
+
+    // Init system type
+    reg_sys_type = (option_sys_type_is_pal ? (uint32_t)0x01 : (uint32_t)0x00);
 
     sd_init();
     delay(100);

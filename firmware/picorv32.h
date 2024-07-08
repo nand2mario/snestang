@@ -32,6 +32,15 @@
 #define reg_cheats_1            (*(volatile uint32_t*)0x02000120)
 #define reg_cheats_0            (*(volatile uint32_t*)0x02000140)
 #define reg_cheats_data_ready   (*(volatile uint32_t*)0x02000160)
+// BSRAM
+#define reg_save_bsram          (*(volatile uint32_t*)0x02000180)
+#define reg_load_bsram          (*(volatile uint32_t*)0x020001A0)
+// System type
+#define reg_sys_type            (*(volatile uint32_t*)0x020001C0)
+// Aspect Ratio
+#define reg_aspect_ratio        (*(volatile uint32_t*)0x020001E0)
+
+
 
 // Standard library for PicoRV32 RV32I softcore
 
