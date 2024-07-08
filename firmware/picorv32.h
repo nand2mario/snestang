@@ -34,6 +34,9 @@
 #define reg_cheats_data_ready   (*(volatile uint32_t*)0x02000160)
 // BSRAM
 #define reg_save_bsram          (*(volatile uint32_t*)0x02000180)
+#define reg_load_bsram          (*(volatile uint32_t*)0x020001A0)
+// System type
+#define reg_sys_type            (*(volatile uint32_t*)0x020001C0)
 
 
 // Standard library for PicoRV32 RV32I softcore
