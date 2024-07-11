@@ -116,7 +116,7 @@ int load_option()  {
             else
                 option_cheats_enabled = false;
             reg_cheats_enabled = (uint32_t)option_cheats_enabled;
-        } else if (strcmp(key, "system") == 0) {
+        } else if (strcmp(key, "system_is_pal") == 0) {
             if (strcasecmp(value, "false") == 0)
                 option_sys_type_is_pal = false;
             else
@@ -173,7 +173,7 @@ int save_option() {
 	else{
 		f_puts("false\n", &f);
 	}
-    f_puts("system=", &f);
+    f_puts("system_is_pal=", &f);
 	if (option_sys_type_is_pal){
 		f_puts("true\n", &f);
 	}
