@@ -367,7 +367,11 @@ int menu_loadrom(int *choice) {
                 }
             }
             delay(300);
+            int joy1, joy2;
             while (1) {
+                joy_get(&joy1, &joy2);
+                if(joy1&0x02)
+                    return 1;
                 int r = joy_choice(TOPLINE, file_len, &active, OSD_KEY_CODE);
                 if (r == 1) {
                     if (strcmp(pwd, "/") == 0 && page == 0 && active == 0) {
@@ -601,6 +605,7 @@ void menu_select_core(int verify) {
     }
     delay(300);
 
+    int joy1, joy2;
     for (;;) {
         if (draw) {
             clear();
@@ -613,7 +618,11 @@ void menu_select_core(int verify) {
             }
             draw = 0;
         }
-        if (joy_choice(2, total, &choice, OSD_KEY_CODE) == 1) {
+        joy_get(&joy1, &joy2);
+        if(joy1&0x02)
+            return;
+        int r = joy_choice(2, total, &choice, OSD_KEY_CODE);
+        if (r == 1) {
             if (choice == 0)
                 return;
             else {
@@ -745,7 +754,11 @@ int menu_load_cheats(int *choice) {
 				}
 			}
 			delay(300);
+            int joy1, joy2;
 			while (1) {
+                joy_get(&joy1, &joy2);
+                if(joy1&0x02)
+                    return 1;
 				int r = joy_choice(TOPLINE, file_len, &active, OSD_KEY_CODE);
 				if (r == 1) {
 					if (strcmp(pwd, "/") == 0 && page == 0 && active == 0) {
@@ -817,9 +830,14 @@ void menu_cheats_options() {
 	
 
 		delay(300);
+        int joy1, joy2;
 
 		for (;;) {
-			if (joy_choice(12, 4, &choice, OSD_KEY_CODE) == 1) {
+            joy_get(&joy1, &joy2);
+            if(joy1&0x02)
+                return;
+            int r = joy_choice(12, 4, &choice, OSD_KEY_CODE);
+			if (r == 1) {
 				if (choice == 0) {
 					return;
 				} else if (choice == 1) {
@@ -985,9 +1003,13 @@ void menu_options() {
 			print("8:7");
 
 		delay(300);
-
+        int joy1, joy2;
 		for (;;) {
-			if (joy_choice(12, 10, &choice, OSD_KEY_CODE) == 1) {
+            joy_get(&joy1, &joy2);
+            if(joy1&0x02)
+                return;
+            int r = joy_choice(12, 10, &choice, OSD_KEY_CODE);
+			if (r == 1) {
 				if (choice == 0) {
 					return;
 				} else if (choice == 1) {
@@ -1490,9 +1512,11 @@ int main() {
         delay(300);
 
         int choice = 0;
+        int joy1, joy2;
         for (;;) {
+            joy_get(&joy1, &joy2);
             int r = joy_choice(12, 3, &choice, OSD_KEY_CODE);
-            if (r == 1) break;
+            if ((r == 1)||(joy1&0x02)) break;
         }
 
         if (choice == 0) {
