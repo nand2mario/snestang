@@ -39,6 +39,11 @@
 #define reg_sys_type            (*(volatile uint32_t*)0x020001C0)
 // Aspect Ratio
 #define reg_aspect_ratio        (*(volatile uint32_t*)0x020001E0)
+// Timer Interrupts
+#define reg_timer_interrupts    (*(volatile uint32_t*)0x02000200)
+// Timer0 Load Register
+#define reg_timer0_load_value   (*(volatile uint32_t*)0x02000220)
+
 
 
 

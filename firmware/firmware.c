@@ -51,8 +51,6 @@ uint16_t nes_bsram_crc16;
 uint16_t snes_bsram_crc16;
 uint32_t snes_backup_time;
 
-
-
 char load_fname[1024];
 char load_buf[1024];
 
@@ -1258,6 +1256,9 @@ int loadnes(int rom) {
     snes_ctrl(1);		// enable game loading, this resets SNES
     snes_running = false;
 
+    // Load BSRAM
+    load_bsram();
+
     // Send rom content to snes
     if ((r = f_lseek(&f, off)) != FR_OK) {
         status("Seek failure");
@@ -1376,6 +1377,7 @@ void backup_process() {
     if (t - snes_backup_time >= 10000) {
         // need to save
         int r = backup_save(snes_backup_name, snes_ramsize);
+        save_bsram();
         if (r == 0)
             backup_success_time = t;
         if (backup_success_time != 0) {
