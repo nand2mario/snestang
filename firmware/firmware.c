@@ -27,6 +27,9 @@ uint32_t CORE_ID;
 volatile uint8_t *SNES_BSRAM = (volatile uint8_t *)0x07000000;
 volatile uint8_t *NES_BSRAM = (volatile uint8_t *)0x00006000;
 
+uint8_t *nes_bsram_starting_address = (uint8_t *)0x006000;			// directly read into BSRAM
+const uint32_t nes_bsram_size = (0x8000 - 0x6000);
+
 int option_osd_key = OPTION_OSD_KEY_SELECT_RIGHT;
 #define OSD_KEY_CODE (option_osd_key == OPTION_OSD_KEY_SELECT_START ? 0xC : (option_osd_key == OPTION_OSD_KEY_SELECT_RIGHT ? 0x84 : 0x24))
 bool option_backup_bsram = false;
@@ -862,8 +865,6 @@ void menu_cheats_options() {
 int save_bsram(void){
     FIL f;
     FILINFO fno;
-    uint8_t *nes_bsram_starting_address = (uint8_t *)0x006000;			// directly read into BSRAM
-    uint32_t nes_bsram_size = (0x8000 - 0x6000);
     int r = 0;
 
     if (f_stat(snes_backup_path, &fno) != FR_OK) {
@@ -904,8 +905,6 @@ int save_bsram(void){
 int load_bsram(void){
     nes_backup_valid = false;
     FILINFO fno;
-    uint8_t *nes_bsram_starting_address = (uint8_t *)0x006000;			// directly read into BSRAM
-    uint32_t nes_bsram_size = (0x8000 - 0x6000);
 
     reg_load_bsram = 1;
     delay(250);
@@ -1266,22 +1265,32 @@ int loadnes(int rom) {
         status("Seek failure");
         goto loadnes_nes_end;
     }
+    int bsram_counter = 0;
     do {
         if ((r = f_read(&f, load_buf, 1024, &br)) != FR_OK)
             break;
+        total += br;    // bytes
+        // if((total >= 0x6000)&&(total < 0x8000)){
+        //     memset((nes_bsram_starting_address + bsram_counter), 0, br);
+        //     bsram_counter++;
+        // }
         for (int i = 0; i < br; i += 4) {
             uint32_t *w = (uint32_t *)(load_buf + i);
             snes_data(*w);				// send actual ROM data
         }
-        total += br;
         if ((total & 0xfff) == 0) {	// display progress every 4KB
             status("");
             printf("%d/%dK", total >> 10, size >> 10);
         }
     } while (br == 1024);
+    f_close(&f);
 
-    if(option_backup_bsram)
-        flag_load_nes_bsram = true;
+    // Load BSRAM
+    if(option_backup_bsram){
+        // uint32_t nes_bsram_local;
+        // memset(nes_bsram_starting_address, 0, 0x2000);
+        // r = load_bsram();
+    }
     
     DEBUG("loadnes: %d bytes\n", total);
     status("Success");
@@ -1289,16 +1298,6 @@ int loadnes(int rom) {
 
 loadnes_nes_end:
 	snes_ctrl(0);	// turn off game loading, this starts the core
-loadnes_close_file:
-	f_close(&f);
-loadnes_load_bsram:
-    // if(flag_load_nes_bsram){
-    //     // Load BSRAM
-    // //    uint32_t nes_bsram_local;
-    //     if(option_backup_bsram)
-    //         r = load_bsram();
-    //     flag_load_nes_bsram = false;
-    // }
 loadnes_end:
     overlay(0);		// turn off OSD
 	return r;
