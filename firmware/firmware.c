@@ -11,8 +11,9 @@
 #include "firmware.h"
 
 uint32_t CORE_ID;
-#define CORE_NES 1
-#define CORE_SNES 2
+#define CORE_NES    1
+#define CORE_SNES   2
+#define CORE_GB     3
 
 #define OPTION_FILE "/snestang.ini"
 #define OPTION_INVALID 2
@@ -1501,10 +1502,21 @@ int main() {
         clear();
         cursor(2, 10);
         //     01234567890123456789012345678901
-        if (CORE_ID == 1)
+        switch(CORE_ID){
+        case 1:
             print("=== Welcome to NESTang ===");
-        else
+            break;
+        case 2:
             print("~~~ Welcome to SNESTang ~~~");
+            break;
+        case 3:
+            print("... Welcome to GBTang ...");
+            break;
+        default:
+            print("ERR: undefined COREID");
+            break;
+        }
+
 
         cursor(2, 12);
         print("1) Load ROM from SD card\n");
