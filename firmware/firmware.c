@@ -963,6 +963,23 @@ int load_bsram(void){
 	return 0;
 }
 
+#define MENU_OPTIONS_OFFSET_COL1_X      2
+#define MENU_OPTIONS_OFFSET_COL2_X      16
+#define MENU_OPTIONS_OFFSET_Y           12
+
+enum {
+    MENU_OPTIONS_RETURN = 0,
+    MENU_OPTIONS_NOTHING = 1,
+    MENU_OPTIONS_OSD_HOT_KEY,
+    MENU_OPTIONS_BACKUP_BSRAM,
+    MENU_OPTIONS_ENHANCED_APU,
+    MENU_OPTIONS_CHEATS,
+    MENU_OPTIONS_SAVE_BSRAM,
+    MENU_OPTIONS_LOAD_BSRAM,
+    MENU_OPTIONS_SYSTEM,
+    MENU_OPTIONS_ASPECT,
+    MENU_OPTIONS_COUNT
+}menu_options_values;
 
 void menu_options() {
 	int choice = 0;
@@ -971,47 +988,56 @@ void menu_options() {
 		cursor(8, 10);
 		print("--- Options ---");
 
-		cursor(2, 12);
+        // Return to main menu
+		cursor(MENU_OPTIONS_OFFSET_COL1_X, MENU_OPTIONS_OFFSET_Y);
 		print("<< Return to main menu");
-		cursor(2, 14);
+        // OSD hot key
+		cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_OSD_HOT_KEY-1));
 		print("OSD hot key:");
-		cursor(16, 14);
+		cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_OSD_HOT_KEY-1));
 		if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
 			print("SELECT&START");
 		else if(option_osd_key == OPTION_OSD_KEY_SELECT_RIGHT)
 			print("SELECT&RIGHT");
 		else
 			print("HOME");
-		cursor(2, 15);
+		// Backup BSRAM
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_BACKUP_BSRAM-1));
 		print("Backup BSRAM:");
-		cursor(16, 15);
+		cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_BACKUP_BSRAM-1));
 		if (option_backup_bsram)
 			print("Yes");
 		else
 			print("No");
-		cursor(2, 16);
+		// Enhanced APU
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ENHANCED_APU-1));
 		print("Enhanced APU:");
-		cursor(16, 16);
+		cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ENHANCED_APU-1));
 		if (option_enhanced_apu)
 			print("Yes");
 		else
 			print("No");
-		cursor(2, 17);
+		// Cheats
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_CHEATS-1));
 		print("Cheats");
-        cursor(2, 18);
+        // Save BSRAM
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_SAVE_BSRAM-1));
 		print("Save BSRAM");
-        cursor(2, 19);
+        // Load BSRAM
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_LOAD_BSRAM-1));
 		print("Load BSRAM");
-        cursor(2, 20);
+        // System - NTSC/DENDY or PAL
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_SYSTEM-1));
 		print("System:");
-        cursor(16, 20);
+        cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_SYSTEM-1));
         if(!option_sys_type_is_pal)
 			print("NTSC/DENDY");
 		else
 			print("PAL");
-        cursor(2, 21);
+        // Aspect Ratio
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ASPECT-1));
         print("Aspect:");
-        cursor(16, 21);
+        cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ASPECT-1));
         if(!option_aspect_ratio)
 			print("1:1");
 		else
@@ -1024,44 +1050,44 @@ void menu_options() {
             if(r == 4) 
                 return;
 			if (r == 1) {
-				if (choice == 0) {
+				if (choice == MENU_OPTIONS_RETURN) {
 					return;
-				} else if (choice == 1) {
+				} else if (choice == MENU_OPTIONS_NOTHING) {
 					// nothing
 				} else {
-					if (choice == 2) {
+					if (choice == MENU_OPTIONS_OSD_HOT_KEY) {
 						if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
 							option_osd_key = OPTION_OSD_KEY_SELECT_RIGHT;
 						else if (option_osd_key == OPTION_OSD_KEY_SELECT_RIGHT)
 							option_osd_key = OPTION_OSD_KEY_HOME;
 						else
 							option_osd_key = OPTION_OSD_KEY_SELECT_START;
-					} else if (choice == 3) {
+					} else if (choice == MENU_OPTIONS_BACKUP_BSRAM) {
 						option_backup_bsram = !option_backup_bsram;
-					} else if (choice == 4) {
+					} else if (choice == MENU_OPTIONS_ENHANCED_APU) {
 						option_enhanced_apu = !option_enhanced_apu;
 						reg_enhanced_apu = !reg_enhanced_apu;
-					} else if (choice == 5) {
+					} else if (choice == MENU_OPTIONS_CHEATS) {
 						delay(300);
 						menu_cheats_options();
 						//continue;
-					} else if (choice == 6) {
+					} else if (choice == MENU_OPTIONS_SAVE_BSRAM) {
 						delay(300);
 						save_bsram();
 						//continue;
-					}else if (choice == 7) {
+					}else if (choice  == MENU_OPTIONS_LOAD_BSRAM) {
 						delay(300);
 						load_bsram();
 						//continue;
-					} else if (choice == 8) {
+					} else if (choice == MENU_OPTIONS_SYSTEM) {
 						option_sys_type_is_pal = !option_sys_type_is_pal;
                         reg_sys_type = (uint32_t)option_sys_type_is_pal;
-                    } else if (choice == 9) {
+                    } else if (choice == MENU_OPTIONS_ASPECT) {
 						option_aspect_ratio = !option_aspect_ratio;
                         reg_aspect_ratio = (uint32_t)option_aspect_ratio;
                     }
                     // 
-					if((choice != 5)&&(choice != 6)&&(choice != 7)){
+					if((choice != MENU_OPTIONS_CHEATS)&&(choice != MENU_OPTIONS_SAVE_BSRAM)&&(choice != MENU_OPTIONS_LOAD_BSRAM)){
 						status("Saving options...");
 					    if (save_option()) {
 						    message("Cannot save options to SD",1);
