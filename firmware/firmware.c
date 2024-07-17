@@ -1016,13 +1016,11 @@ void menu_options() {
 			print("1:1");
 		else
 			print("8:7");
-        cursor(2, 22);
-        print("Load config");
 
 		delay(300);
 
 		for (;;) {
-            int r = joy_choice(12, 11, &choice, OSD_KEY_CODE);
+            int r = joy_choice(12, 10, &choice, OSD_KEY_CODE);
             if(r == 4) 
                 return;
 			if (r == 1) {
@@ -1061,11 +1059,9 @@ void menu_options() {
                     } else if (choice == 9) {
 						option_aspect_ratio = !option_aspect_ratio;
                         reg_aspect_ratio = (uint32_t)option_aspect_ratio;
-                    } else if (choice == 10) {
-						load_option();
                     }
                     // 
-					if((choice != 5)&&(choice != 6)&&(choice != 7)&&(choice != 10)){
+					if((choice != 5)&&(choice != 6)&&(choice != 7)){
 						status("Saving options...");
 					    if (save_option()) {
 						    message("Cannot save options to SD",1);
