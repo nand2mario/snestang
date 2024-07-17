@@ -11,9 +11,11 @@
 #include "firmware.h"
 
 uint32_t CORE_ID;
-#define CORE_NES    1
-#define CORE_SNES   2
-#define CORE_GB     3
+enum {
+    CORE_NES  =  1,
+    CORE_SNES =  2,
+    CORE_GB   =  3
+}core_ids;
 
 #define OPTION_FILE "/snestang.ini"
 #define OPTION_INVALID 2
@@ -23,6 +25,33 @@ uint32_t CORE_ID;
 #define OPTION_OSD_KEY_HOME         3
 
 #define CHEATS_MAX_NUMBER 16
+
+#define MENU_OPTIONS_OFFSET_COL1_X      2
+#define MENU_OPTIONS_OFFSET_COL2_X      16
+#define MENU_OPTIONS_OFFSET_Y           12
+
+enum {
+    MENU_OPTIONS_RETURN = 0,
+    MENU_OPTIONS_NOTHING = 1,
+    MENU_OPTIONS_OSD_HOT_KEY,
+    MENU_OPTIONS_BACKUP_BSRAM,
+    MENU_OPTIONS_ENHANCED_APU,
+    MENU_OPTIONS_CHEATS,
+    MENU_OPTIONS_SAVE_BSRAM,
+    MENU_OPTIONS_LOAD_BSRAM,
+    MENU_OPTIONS_SYSTEM,
+    MENU_OPTIONS_ASPECT,
+    MENU_OPTIONS_COUNT
+}menu_options_values;
+
+enum{
+    MAIN_OPTIONS_LOAD_ROM = 0,
+    MAIN_OPTIONS_LOAD_CORE,
+    MAIN_OPTIONS_OPTIONS,
+    MAIN_OPTIONS_NOTHING,
+    MAIN_OPTIONS_VERSION,
+    MAIN_OPTIONS_COUNT
+};
 
 // SNES BSRAM is mapped at address 7MB 
 volatile uint8_t *SNES_BSRAM = (volatile uint8_t *)0x07000000;
@@ -963,24 +992,6 @@ int load_bsram(void){
 	return 0;
 }
 
-#define MENU_OPTIONS_OFFSET_COL1_X      2
-#define MENU_OPTIONS_OFFSET_COL2_X      16
-#define MENU_OPTIONS_OFFSET_Y           12
-
-enum {
-    MENU_OPTIONS_RETURN = 0,
-    MENU_OPTIONS_NOTHING = 1,
-    MENU_OPTIONS_OSD_HOT_KEY,
-    MENU_OPTIONS_BACKUP_BSRAM,
-    MENU_OPTIONS_ENHANCED_APU,
-    MENU_OPTIONS_CHEATS,
-    MENU_OPTIONS_SAVE_BSRAM,
-    MENU_OPTIONS_LOAD_BSRAM,
-    MENU_OPTIONS_SYSTEM,
-    MENU_OPTIONS_ASPECT,
-    MENU_OPTIONS_COUNT
-}menu_options_values;
-
 void menu_options() {
 	int choice = 0;
 	while (1) {
@@ -992,9 +1003,9 @@ void menu_options() {
 		cursor(MENU_OPTIONS_OFFSET_COL1_X, MENU_OPTIONS_OFFSET_Y);
 		print("<< Return to main menu");
         // OSD hot key
-		cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_OSD_HOT_KEY-1));
+		cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_OSD_HOT_KEY));
 		print("OSD hot key:");
-		cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_OSD_HOT_KEY-1));
+		cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_OSD_HOT_KEY));
 		if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
 			print("SELECT&START");
 		else if(option_osd_key == OPTION_OSD_KEY_SELECT_RIGHT)
@@ -1002,42 +1013,42 @@ void menu_options() {
 		else
 			print("HOME");
 		// Backup BSRAM
-        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_BACKUP_BSRAM-1));
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_BACKUP_BSRAM));
 		print("Backup BSRAM:");
-		cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_BACKUP_BSRAM-1));
+		cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_BACKUP_BSRAM));
 		if (option_backup_bsram)
 			print("Yes");
 		else
 			print("No");
 		// Enhanced APU
-        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ENHANCED_APU-1));
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ENHANCED_APU));
 		print("Enhanced APU:");
-		cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ENHANCED_APU-1));
+		cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ENHANCED_APU));
 		if (option_enhanced_apu)
 			print("Yes");
 		else
 			print("No");
 		// Cheats
-        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_CHEATS-1));
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_CHEATS));
 		print("Cheats");
         // Save BSRAM
-        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_SAVE_BSRAM-1));
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_SAVE_BSRAM));
 		print("Save BSRAM");
         // Load BSRAM
-        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_LOAD_BSRAM-1));
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_LOAD_BSRAM));
 		print("Load BSRAM");
         // System - NTSC/DENDY or PAL
-        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_SYSTEM-1));
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_SYSTEM));
 		print("System:");
-        cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_SYSTEM-1));
+        cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_SYSTEM));
         if(!option_sys_type_is_pal)
 			print("NTSC/DENDY");
 		else
 			print("PAL");
         // Aspect Ratio
-        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ASPECT-1));
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ASPECT));
         print("Aspect:");
-        cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ASPECT-1));
+        cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_OPTIONS_ASPECT));
         if(!option_aspect_ratio)
 			print("1:1");
 		else
@@ -1560,15 +1571,15 @@ int main() {
         }
 
 
-        cursor(2, 12);
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MAIN_OPTIONS_LOAD_ROM));
         print("1) Load ROM from SD card\n");
-        cursor(2, 13);
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MAIN_OPTIONS_LOAD_CORE));
         print("2) Select core\n");
-        cursor(2, 14);
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MAIN_OPTIONS_OPTIONS));
         print("3) Options\n");
         // cursor(2, 15);
         // print("4) Verify core\n");
-        cursor(2, 16);
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MAIN_OPTIONS_VERSION));
         print("Version: ");
         print(__DATE__);
 
@@ -1580,13 +1591,13 @@ int main() {
             if (r == 1) break;
         }
 
-        if (choice == 0) {
+        if (choice == MAIN_OPTIONS_LOAD_ROM) {
             int rom;
             delay(300);
             menu_loadrom(&rom);
-        } else if (choice == 1) {
+        } else if (choice == MAIN_OPTIONS_LOAD_CORE) {
             menu_select_core(0);
-        } else if (choice == 2) {
+        } else if (choice == MAIN_OPTIONS_OPTIONS) {
             delay(300);
             menu_options();
             continue;
