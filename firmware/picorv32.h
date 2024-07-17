@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdlib.h>     // for atoi()
 
+#define UART_DEBUG_ENABLED 0
+
 #define DEBUG(...) uart_printf(__VA_ARGS__)
 // #define DEBUG(...) do {} while(0)
 

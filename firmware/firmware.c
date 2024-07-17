@@ -20,7 +20,7 @@ uint32_t CORE_ID;
 
 #define OPTION_OSD_KEY_SELECT_START 1
 #define OPTION_OSD_KEY_SELECT_RIGHT 2
-#define OPTION_OSD_KEY_HOME 3
+#define OPTION_OSD_KEY_HOME         3
 
 #define CHEATS_MAX_NUMBER 16
 
@@ -31,16 +31,16 @@ volatile uint8_t *NES_BSRAM = (volatile uint8_t *)0x00006000;
 uint8_t *nes_bsram_starting_address = (uint8_t *)0x006000;			// directly read into BSRAM
 const uint32_t nes_bsram_size = (0x8000 - 0x6000);
 
-int option_osd_key = OPTION_OSD_KEY_SELECT_RIGHT;
+int option_osd_key;
 #define OSD_KEY_CODE (option_osd_key == OPTION_OSD_KEY_SELECT_START ? 0xC : (option_osd_key == OPTION_OSD_KEY_SELECT_RIGHT ? 0x84 : 0x24))
-bool option_backup_bsram = false;
-bool option_enhanced_apu = false;
-bool option_cheats_enabled = false;
-bool option_sys_type_is_pal = false;
+bool option_backup_bsram;
+bool option_enhanced_apu;
+bool option_cheats_enabled;
+bool option_sys_type_is_pal;
 
-bool flag_load_nes_bsram = false;
+bool flag_load_nes_bsram;
 
-uint32_t option_aspect_ratio = 0x00;
+uint32_t option_aspect_ratio;
 
 static bool rom_loaded = false;
 
@@ -95,46 +95,60 @@ int load_option()  {
         key = trimwhitespace(line);
         value = trimwhitespace(s+1);
         // status("");
-        uart_printf("key=%s, value=%s\n", key, value);
+        uart_printf("key=%s, value=%s\r\n", key, value);
         // message("see below",1);
 
         // now handle all key-value pairs
         if (strcmp(key, "osd_key") == 0) {
             option_osd_key = atoi(value);
+            uart_printf("osd_key: %d\r\n", option_osd_key);
             if (option_osd_key <= 0) {
                 r = OPTION_INVALID;
                 goto load_option_close;
             }
         } else if (strcmp(key, "backup_bsram") == 0) {
+            uart_printf("backup_bsram: %d\r\n", value);
             if (strcasecmp(value, "true") == 0)
                 option_backup_bsram = true;
             else
                 option_backup_bsram = false;
+            uart_printf("option_backup_bsram: %d\r\n", option_backup_bsram);
         } else if (strcmp(key, "enhanced_apu") == 0) {
+            uart_printf("enhanced_apu: %d\r\n", value);
             if (strcasecmp(value, "true") == 0)
                 option_enhanced_apu = true;
             else
                 option_enhanced_apu = false;
-
+            uart_printf("option_enhanced_apu: %d\r\n", option_enhanced_apu);
             reg_enhanced_apu = (uint32_t)option_enhanced_apu;
+            uart_printf("reg_enhanced_apu: %d\r\n", reg_enhanced_apu);
         } else if (strcmp(key, "cheats_enabled") == 0) {
+            uart_printf("cheats_enabled: %d\r\n", value);
             if (strcasecmp(value, "true") == 0)
                 option_cheats_enabled = true;
             else
                 option_cheats_enabled = false;
+            uart_printf("option_cheats_enabled: %d\r\n", option_cheats_enabled);
             reg_cheats_enabled = (uint32_t)option_cheats_enabled;
+            uart_printf("reg_cheats_enabled: %d\r\n", reg_cheats_enabled);
         } else if (strcmp(key, "system") == 0) {
+            uart_printf("system: %d\r\n", value);
             if (strcasecmp(value, "false") == 0)
                 option_sys_type_is_pal = false;
             else
                 option_sys_type_is_pal = true;
+            uart_printf("option_sys_type_is_pal: %d\r\n", option_sys_type_is_pal);
             reg_sys_type = (uint32_t)option_sys_type_is_pal;
+            uart_printf("reg_sys_type: %d\r\n", reg_sys_type);
         } else if (strcmp(key, "aspect_ratio") == 0) {
+            uart_printf("aspect_ratio: %d\r\n", value);
             if (strcasecmp(value, "0") == 0)
                 option_aspect_ratio = 0;
             else
                 option_aspect_ratio = 1;
+            uart_printf("option_aspect_ratio: %d\r\n", option_aspect_ratio);
             reg_aspect_ratio = option_aspect_ratio;
+            uart_printf("reg_aspect_ratio: %d\r\n", reg_aspect_ratio);
         } else {
             // just ignore unknown keys
         }
@@ -159,8 +173,10 @@ int save_option() {
     }
     if (option_osd_key == OPTION_OSD_KEY_SELECT_START)
         f_puts("1\n", &f);
-    else
+    else if(option_osd_key == OPTION_OSD_KEY_SELECT_RIGHT)
         f_puts("2\n", &f);
+    else
+        f_puts("3\n", &f);
     f_puts("backup_bsram=", &f);
     if (option_backup_bsram)
         f_puts("true\n", &f);
@@ -295,7 +311,7 @@ int file_len;		// number of files on this page
 // set to valid entries on this page.
 // return: 0 if successful
 int load_dir(char *dir, int start, int len, int *count) {
-    DEBUG("load_dir: %s, start=%d, len=%d\n", dir, start, len);
+    DEBUG("load_dir: %s, start=%d, len=%d\r\n", dir, start, len);
     int cnt = 0;
     int r = 0;
     DIR d;
@@ -344,7 +360,7 @@ int load_dir(char *dir, int start, int len, int *count) {
     }
     f_closedir(&d);
     *count = cnt;
-    DEBUG("load_dir: count=%d\n", cnt);
+    DEBUG("load_dir: count=%d\r\n", cnt);
     return 0;
 }
 
@@ -458,14 +474,14 @@ bool verify_flash(uint8_t *corebuf, uint32_t addr, int cnt) {
     spiflash_read(addr, buf, 256);
     for (int j = 0; j < cnt; j++) {
         if (buf[j] != corebuf[j]) {
-            uart_printf("Verify error at %x: %d != %d. Data read:\n", addr+j, buf[j], corebuf[j]);
+            uart_printf("Verify error at %x: %d != %d. Data read:\r\n", addr+j, buf[j], corebuf[j]);
             for (int i = 0; i < 256; i++) {
                 if (i > 0 && i % 16 == 0)
-                    uart_print("\n");
+                    uart_print("\r\n");
                 uart_print_hex_digits(buf[i], 2);
                 uart_print(" ");
             }
-            uart_print("\n");
+            uart_print("\r\n");
             return false;
         }
     }
@@ -512,9 +528,9 @@ void load_core(char *fname, int verify) {
     int binfile = strcasestr(fname, ".bin") != NULL;      // 1: bin        
     t_ready = 0; t_flash = 0, t_file = 0; t_parse = 0;
     if (binfile)
-        uart_printf("Loading bin file: %s\n", fname);
+        uart_printf("Loading bin file: %s\r\n", fname);
     else
-        uart_printf("Loading fs file: %s\n", fname);
+        uart_printf("Loading fs file: %s\r\n", fname);
     if (verify && !binfile) {
         message("Verify only supported for .bin files", 1);
         return;
@@ -575,7 +591,7 @@ void load_core(char *fname, int verify) {
                         uart_print_hex_digits(corebuf[j], 2);
                         uart_print(" ");
                     }
-                    uart_print("\n");
+                    uart_print("\r\n");
                     write_flash(corebuf, addr, cnt);
                     addr += cnt;
                     cnt = 0;
@@ -592,8 +608,8 @@ void load_core(char *fname, int verify) {
     f_close(&f);
 
     const uint32_t MS = 21500;
-    uart_printf("File read cycles: %d, parse cycles: %d, flash total cycles: %d, flash wait cycles: %d\n", t_file, t_parse, t_flash, t_ready);
-    uart_printf("File read time: %d ms, parse time: %d ms, flash total time: %d ms, flash wait time: %d ms\n", t_file / MS, t_parse / MS, t_flash / MS, t_ready / MS);
+    uart_printf("File read cycles: %d, parse cycles: %d, flash total cycles: %d, flash wait cycles: %d\r\n", t_file, t_parse, t_flash, t_ready);
+    uart_printf("File read time: %d ms, parse time: %d ms, flash total time: %d ms, flash wait time: %d ms\r\n", t_file / MS, t_parse / MS, t_flash / MS, t_ready / MS);
     if (verify)
         message("Core matches", 1);
     else
@@ -651,18 +667,18 @@ void menu_select_core(int verify) {
 
 void _menu_select_core() {
     uint8_t buf[256];
-    uart_printf("begin select_core\n");
+    uart_printf("begin select_core\r\n");
     spiflash_read(0*1024*1024, buf, 256);
     for (int i = 0; i < 256; i++) {
         if (i > 0 && i % 16 == 0)
-            uart_printf("\n");
+            uart_printf("\r\n");
         uart_print_hex_digits(buf[i], 2);
         uart_print(" ");
     }
-    uart_printf("\n");
+    uart_printf("\r\n");
     
     status("Check UART for log");
-    uart_printf("end select_core\n");
+    uart_printf("end select_core\r\n");
 }
 
 // load a cheats file.
@@ -673,7 +689,7 @@ int load_cheats(int cheat_file) {
 	strncat(load_fname, "/", 1024);
 	strncat(load_fname, file_names[cheat_file], 1024);
 
-	DEBUG("load cheats start\n");
+	DEBUG("load cheats start\r\n");
 
 	// check extension .sfc or .smc
 	char *p = strcasestr(file_names[cheat_file], ".cwz");
@@ -871,7 +887,7 @@ int save_bsram(void){
     if (f_stat(snes_backup_path, &fno) != FR_OK) {
         if (f_mkdir(snes_backup_path) != FR_OK) {
             status("Cannot create /saves");
-            uart_printf("Cannot create /saves\n");
+            uart_printf("Cannot create /saves\r\n");
             return 1;
         }
     }
@@ -891,7 +907,7 @@ int save_bsram(void){
     unsigned int bw;
     if (f_write(&f, nes_bsram_starting_address, nes_bsram_size, &bw) != FR_OK || bw != nes_bsram_size) {
         status("ERROR: BSRAM not saved!");
-        uart_printf("Write failure, bw=%d\n", bw);
+        uart_printf("Write failure, bw=%d\r\n", bw);
         r = 2;
         return 1;
     }
@@ -916,7 +932,7 @@ int load_bsram(void){
             return 1;
         }
     }
-    uart_printf("Loading bsram from: %s\n", nes_backup_path_bsram);
+    uart_printf("Loading bsram from: %s\r\n", nes_backup_path_bsram);
     FIL f;
     if (f_open(&f, nes_backup_path_bsram, FA_READ) != FR_OK) {
         nes_backup_valid = true;
@@ -1000,11 +1016,13 @@ void menu_options() {
 			print("1:1");
 		else
 			print("8:7");
+        cursor(2, 22);
+        print("Load config");
 
 		delay(300);
 
 		for (;;) {
-            int r = joy_choice(12, 10, &choice, OSD_KEY_CODE);
+            int r = joy_choice(12, 11, &choice, OSD_KEY_CODE);
             if(r == 4) 
                 return;
 			if (r == 1) {
@@ -1043,9 +1061,11 @@ void menu_options() {
                     } else if (choice == 9) {
 						option_aspect_ratio = !option_aspect_ratio;
                         reg_aspect_ratio = (uint32_t)option_aspect_ratio;
+                    } else if (choice == 10) {
+						load_option();
                     }
                     // 
-					if((choice != 5)&&(choice != 6)&&(choice != 7)){
+					if((choice != 5)&&(choice != 6)&&(choice != 7)&&(choice != 10)){
 						status("Saving options...");
 					    if (save_option()) {
 						    message("Cannot save options to SD",1);
@@ -1093,7 +1113,7 @@ int parse_snes_header(FIL *fp, int pos, int file_size, int typ, char *hdr,
             all_ascii = 0;
     score += all_ascii;
 
-    DEBUG("pos=%x, type=%d, map_ctrl=%d, rom=%d, ram=%d, checksum=%x, checksum_comp=%x, reset=%x, score=%d\n", 
+    DEBUG("pos=%x, type=%d, map_ctrl=%d, rom=%d, ram=%d, checksum=%x, checksum_comp=%x, reset=%x, score=%d\r\n", 
             pos, typ, mc, rom, ram, checksum, checksum_compliment, reset, score);
 
     if (rom < 14 && ram <= 7 && score >= 1 && 
@@ -1148,7 +1168,7 @@ int loadsnes(int rom) {
     // parse SNES header from ROM file
     int off = size & 0x3ff;		// rom header (0 or 512)
     int header_pos;
-    DEBUG("off=%d\n", off);
+    DEBUG("off=%d\r\n", off);
     
     header_pos = 0x7fc0 + off;
     if (parse_snes_header(&f, header_pos, size-off, 0, load_buf, &map_ctrl, &rom_type_header, &rom_size, &ram_size, &company)) {
@@ -1237,7 +1257,7 @@ int loadnes(int rom) {
     strcat(nes_backup_path_bsram, nes_backup_save_str_bsram);
     strcat(nes_backup_path_bsram, nes_backup_name_bsram);
 
-    DEBUG("loadnes start\n");
+    DEBUG("loadnes start\r\n");
 
     // check extension .sfc or .smc
     char *p = strcasestr(file_names[rom], ".nes");
@@ -1293,7 +1313,7 @@ int loadnes(int rom) {
         // r = load_bsram();
     }
     
-    DEBUG("loadnes: %d bytes\n", total);
+    DEBUG("loadnes: %d bytes\r\n", total);
     status("Success");
     snes_running = true;
 
@@ -1313,16 +1333,16 @@ void backup_load(char *name, int size) {
     if (f_stat(snes_backup_path, &fno) != FR_OK) {
         if (f_mkdir(snes_backup_path) != FR_OK) {
             status("Cannot create /saves");
-            uart_printf("Cannot create /saves\n");
+            uart_printf("Cannot create /saves\r\n");
             goto backup_load_crc;
         }
     }
     strcat(snes_backup_path, snes_backup_name);
-    uart_printf("Loading bsram from: %s\n", snes_backup_name);
+    uart_printf("Loading bsram from: %s\r\n", snes_backup_name);
     FIL f;
     if (f_open(&f, snes_backup_path, FA_READ) != FR_OK) {
         nes_backup_valid = true;					// new save file, mark as valid
-        uart_printf("Cannot open bsram file, assuming new\n");
+        uart_printf("Cannot open bsram file, assuming new\r\n");
         goto backup_load_crc;
     }
     uint8_t *p = bsram;	
@@ -1337,7 +1357,7 @@ void backup_load(char *name, int size) {
     snes_backup_valid = true;
     f_close(&f);
     int crc = gen_crc16(bsram, size);
-    uart_printf("Bsram backup loaded %d bytes CRC=%x.\n", load, crc);
+    uart_printf("Bsram backup loaded %d bytes CRC=%x.\r\n", load, crc);
 
 backup_load_crc:
     snes_bsram_crc16 = gen_crc16(bsram, size);
@@ -1354,7 +1374,7 @@ int backup_save(char *name, int size) {
 
     // first check if BSRAM content is changed since last save
     int newcrc = gen_crc16(bsram, size);
-    uart_printf("New CRC: %x, size=%d\n", newcrc, size);
+    uart_printf("New CRC: %x, size=%d\r\n", newcrc, size);
     if (newcrc == snes_bsram_crc16)
         return 1;
 
@@ -1369,7 +1389,7 @@ int backup_save(char *name, int size) {
     // 	if (f_write(&f, bsram, 1024, &bw) != FR_OK) {
     if (f_write(&f, bsram, size, &bw) != FR_OK || bw != size) {
         status("Write failure");
-        uart_printf("Write failure, bw=%d\n", bw);
+        uart_printf("Write failure, bw=%d\r\n", bw);
         r = 2;
         goto bsram_save_close;
     }
@@ -1474,7 +1494,7 @@ int main() {
 
     sd_init();
     delay(100);
-    DEBUG("CORE_ID=%d\n", CORE_ID);
+    DEBUG("CORE_ID=%d\r\n", CORE_ID);
     
     int mounted = 0;
     while(!mounted) {

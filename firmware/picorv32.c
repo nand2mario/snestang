@@ -155,8 +155,10 @@ int uart_putchar(int c) {
 }
 
 int uart_print(const char *s) {
+#if (UART_DEBUG_ENABLED == 1)
 	while (*s)
-		_putchar(*(s++), 1);   
+		_putchar(*(s++), 1); 
+#endif
    return 0;
 }
 
