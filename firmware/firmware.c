@@ -48,10 +48,16 @@ enum{
     MAIN_OPTIONS_LOAD_ROM = 0,
     MAIN_OPTIONS_LOAD_CORE,
     MAIN_OPTIONS_OPTIONS,
-    MAIN_OPTIONS_NOTHING,
-    MAIN_OPTIONS_VERSION,
     MAIN_OPTIONS_COUNT
 };
+
+enum{
+    MENU_CHEATS_RETURN = 0,
+    MENU_CHEATS_NOTHING,
+    MENU_CHEATS_ON,
+    MENU_CHEATS_LOAD,
+    MENU_CHEATS_COUNT,
+}menu_cheats_options_values;
 
 // SNES BSRAM is mapped at address 7MB 
 volatile uint8_t *SNES_BSRAM = (volatile uint8_t *)0x07000000;
@@ -862,35 +868,35 @@ void menu_cheats_options() {
 		cursor(8, 10);
 		print("--- Cheats ---");
 
-		cursor(2, 12);
+		cursor(MENU_OPTIONS_OFFSET_COL1_X, MENU_OPTIONS_OFFSET_Y);
 		print("<< Return to main menu");
-		cursor(2, 14);
+		cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_CHEATS_ON));
 		print("Cheats:");
-		cursor(16, 14);
+		cursor(MENU_OPTIONS_OFFSET_COL2_X, (MENU_OPTIONS_OFFSET_Y+MENU_CHEATS_ON));
 		if (option_cheats_enabled)
 			print("On");
 		else
 			print("Off");
-		cursor(2, 15);
+		cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MENU_CHEATS_LOAD));
 		print("Load cheat file");
 	
 
 		delay(300);
 
 		for (;;) {
-            int r = joy_choice(12, 4, &choice, OSD_KEY_CODE);
+            int r = joy_choice(12, MENU_CHEATS_COUNT, &choice, OSD_KEY_CODE);
             if(r == 4) 
                 return;
 			if (r == 1) {
-				if (choice == 0) {
+				if (choice == MENU_CHEATS_RETURN) {
 					return;
-				} else if (choice == 1) {
+				} else if (choice == MENU_CHEATS_NOTHING) {
 					// nothing
 				} else {
-					if (choice == 2) {
+					if (choice == MENU_CHEATS_ON) {
 						option_cheats_enabled = !option_cheats_enabled;
 						reg_cheats_enabled = option_cheats_enabled;
-					} else if (choice == 3) {
+					} else if (choice == MENU_CHEATS_LOAD) {
 						delay(300);
 						menu_load_cheats(&cheat_file);
 						// continue;
@@ -1579,7 +1585,7 @@ int main() {
         print("3) Options\n");
         // cursor(2, 15);
         // print("4) Verify core\n");
-        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+MAIN_OPTIONS_VERSION));
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y+4));
         print("Version: ");
         print(__DATE__);
 
@@ -1587,7 +1593,7 @@ int main() {
 
         int choice = 0;
         for (;;) {
-            int r = joy_choice(12, 3, &choice, OSD_KEY_CODE);
+            int r = joy_choice(12, MAIN_OPTIONS_COUNT, &choice, OSD_KEY_CODE);
             if (r == 1) break;
         }
 
