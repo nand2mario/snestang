@@ -1559,7 +1559,7 @@ int main() {
     for (;;) {
         // main menu
         clear();
-        cursor(2, 10);
+        cursor(MENU_OPTIONS_OFFSET_COL1_X, (MENU_OPTIONS_OFFSET_Y-2));
         //     01234567890123456789012345678901
         switch(CORE_ID){
         case 1:
