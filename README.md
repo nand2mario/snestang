@@ -16,12 +16,7 @@ SNESTang is an open source project to recreate the Super Nintendo Entertainment 
 * Automatic BSRAM backup and restore.
 * SNES or DS2 controllers.
 
-If you haven't bought your board yet, Tang Primer 25K is probably the one to get. Tang Nano 20K only runs games smaller than 3.75MB (30Mbits) due to its limited SDRAM size.
-
-Current development focus,
-
-* [SNAC](https://boogermann.github.io/Bible_MiSTer/hardware/io-board/#serial-io) native controller adapter support.
-* Core switching between SNESTang and [NESTang](https://github.com/nand2mario/nestang).
+If you haven't bought your board yet, Tang Primer 25K (or the upcoming TangConsole 60K) is probably the one to get. Tang Nano 20K only runs games smaller than 3.75MB (30Mbits) due to its limited SDRAM size.
 
 ## Setup Instructions
 
@@ -58,6 +53,11 @@ I am developing with Gowin IDE 1.9.9 Pro version (not the EDU version). It requi
 Read the updated [design notes](doc/design.md) to understand the code or to add features.
 
 You can also simulate the code with [our verilator harness](verilator). `src/test_loader.v` specifies which rom is used by the simulation. Then `make sim` will start a SDL-based graphical simulation.
+
+Upcoming feature that I may work on,
+
+* [SNAC](https://boogermann.github.io/Bible_MiSTer/hardware/io-board/#serial-io) native controller adapter support.
+
 
 ## Special Thanks
 
