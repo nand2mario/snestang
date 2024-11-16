@@ -39,6 +39,22 @@ if {$dev eq "nano20k"} {
     add_file -type verilog "src/primer25k/gowin_pll_snes.v"
     add_file -type verilog "src/primer25k/sdram_cl2_3ch.v"
     set_option -output_base_name snestang_${dev}_${controller}
+} elseif {$dev eq "mega60k"} {
+    set_device GW5AT-LV60PG484AC1/I0 -device_version B
+    if {$controller eq "snes"} {
+        add_file src/mega60k/config_snescontroller.v
+        add_file -type cst "src/mega60k/snestang_snescontroller.cst"
+    } elseif {$controller eq "ds2"} {
+        add_file src/mega60k/config.v
+        add_file -type cst "src/mega60k/snestang.cst"
+    } else {
+        error "Unknown controller $controller"
+    }
+    add_file -type verilog "src/primer25k/gowin_pll_27.v"
+    add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
+    add_file -type verilog "src/primer25k/gowin_pll_snes.v"
+    add_file -type verilog "src/primer25k/sdram_cl2_3ch.v"
+    set_option -output_base_name snestang_${dev}_${controller}
 } elseif {$dev eq "mega138k"} {
     set_device GW5AST-LV138FPG676AES -device_version B
     if {$controller eq "snes"} {

@@ -1,6 +1,16 @@
 
 
-set GWSH=..\..\Gowin_V1.9.9_x64\IDE\bin\gw_sh
+set GWSH=..\..\Gowin_V1.9.10.03_x64\IDE\bin\gw_sh
+
+echo
+echo "============ Building mega60k with snes controller ==============="
+echo
+%GWSH% build.tcl mega60k snes
+
+echo
+echo "============ Building mega60k with ds2 controller ==============="
+echo
+%GWSH% build.tcl mega60k ds2
 
 echo
 echo "============ Building nano20k ==============="
