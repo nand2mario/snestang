@@ -60,7 +60,8 @@
         <File path="src/smc_parser.v" type="file.verilog" enable="1"/>
         <File path="src/smp.v" type="file.verilog" enable="1"/>
         <File path="src/snes.v" type="file.verilog" enable="1"/>
-        <File path="src/snes2hdmi.v" type="file.verilog" enable="1"/>
+        <File path="src/snes2hdmi.v" type="file.verilog" enable="0"/>
+        <File path="src/snes2hdmi_nano.v" type="file.verilog" enable="1"/>
         <File path="src/snestang_top.v" type="file.verilog" enable="1"/>
         <File path="src/spc700/_spc700_package.v" type="file.verilog" enable="1"/>
         <File path="src/spc700/addrgen.v" type="file.verilog" enable="1"/>

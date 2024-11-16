@@ -17,6 +17,7 @@ if {$argc == 2} {
 if {$dev eq "nano20k"} {
     set_device GW2AR-LV18QN88C8/I7 -device_version C
     add_file src/nano20k/config.v
+    add_file -type verilog "src/snes2hdmi_nano.v"
     add_file -type cst "src/nano20k/snestang.cst"
     add_file -type verilog "src/nano20k/gowin_pll_hdmi.v"
     add_file -type verilog "src/nano20k/gowin_pll_snes.v"
@@ -34,6 +35,7 @@ if {$dev eq "nano20k"} {
     } else {
         error "Unknown controller $controller"
     }
+    add_file -type verilog "src/snes2hdmi.v"
     add_file -type verilog "src/primer25k/gowin_pll_27.v"
     add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
     add_file -type verilog "src/primer25k/gowin_pll_snes.v"
@@ -50,6 +52,7 @@ if {$dev eq "nano20k"} {
     } else {
         error "Unknown controller $controller"
     }
+    add_file -type verilog "src/snes2hdmi.v"
     add_file -type verilog "src/primer25k/gowin_pll_27.v"
     add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
     add_file -type verilog "src/primer25k/gowin_pll_snes.v"
@@ -66,6 +69,7 @@ if {$dev eq "nano20k"} {
     } else {
         error "Unknown controller $controller"
     }
+    add_file -type verilog "src/snes2hdmi.v"
     add_file -type verilog "src/mega138k/gowin_pll_27.v"
     add_file -type verilog "src/mega138k/gowin_pll_hdmi.v"
     add_file -type verilog "src/mega138k/gowin_pll_snes.v"
@@ -125,7 +129,6 @@ add_file -type verilog "src/ppuoam.v"
 add_file -type verilog "src/smc_parser.v"
 add_file -type verilog "src/smp.v"
 add_file -type verilog "src/snes.v"
-add_file -type verilog "src/snes2hdmi.v"
 add_file -type verilog "src/controller_adapter.sv"
 add_file -type verilog "src/controller_ds2.sv"
 add_file -type verilog "src/controller_snes.v"

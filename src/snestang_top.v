@@ -629,8 +629,8 @@ assign snes_joy1_di[1] = 0;  // P3
 assign snes_joy2_di[1] = 0;  // P4
 
 wire [14:0] overlay_color;
-wire [10:0] overlay_x;
-wire [9:0] overlay_y;
+wire [7:0] overlay_x;
+wire [7:0] overlay_y;
 
 wire [7:0] dbg_dat_out_loader;
 

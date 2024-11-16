@@ -1,5 +1,6 @@
 // NES video and sound to HDMI converter
 // nand2mario, 2022.9
+// This is a special version for tang nano 20k as it uses less BRAM (4 vs the normal 8)
 
 `timescale 1ns / 1ps
 
@@ -16,8 +17,8 @@ module snes2hdmi (
     input [8:0] ys, // {field,y}
 
     input overlay,
-    output [7:0] overlay_x,
-    output [7:0] overlay_y,
+    output reg [7:0] overlay_x,
+    output reg [7:0] overlay_y,
     input [14:0] overlay_color,
 
     input [15:0] audio_l,
@@ -72,13 +73,13 @@ module snes2hdmi (
     // BRAM line buffer for 16 lines. Each pixel is 5:5:5 RGB
     // Each BRAM block holds 4 lines. So 16 lines needs 4 blocks.
     //
-    localparam BUF_WIDTH = 5;        // 2 ^ BUF_WIDTH lines
+    localparam BUF_WIDTH = 4;        // 2 ^ BUF_WIDTH lines
     localparam BUF_SIZE = 1 << BUF_WIDTH;
     reg [14:0] mem [0:BUF_SIZE*256-1];
-    reg [BUF_WIDTH+8-1:0] mem_portA_addr;
+    reg [11:0] mem_portA_addr;
     reg [14:0] mem_portA_wdata;
     reg mem_portA_we;
-    wire [BUF_WIDTH+8-1:0] mem_portB_addr;
+    wire [11:0] mem_portB_addr;
     reg [14:0] mem_portB_rdata;
     reg mem_writeto = 1'b0;     // current line we are writing to. we read from the other line
    
@@ -91,18 +92,15 @@ module snes2hdmi (
     reg sync_done = 1'b0;
     reg hdmi_first_line;
     reg pause_sync;     // pause for even number of cycles for PPU sdram access to stay in sync
-    reg hdmi_first_line_r, hdmi_first_line_rr;
     always @(posedge clk) begin
-        hdmi_first_line_r <= hdmi_first_line;
-        hdmi_first_line_rr <= hdmi_first_line_r;
         if (pause_snes_for_frame_sync) pause_sync <= ~pause_sync;
         if (~sync_done) begin
             if (~pause_snes_for_frame_sync) begin
-                if (ys[7:0] == 8'd1 && snes_refresh) begin      // halt SNES after first line is buffered
+                if (ys[7:0] == 8'd2 && snes_refresh) begin      // halt SNES during snes dram refresh on line 2
                     pause_snes_for_frame_sync <= 1'b1;
                     pause_sync <= 0;
                 end
-            end else if (hdmi_first_line_rr && pause_sync) begin                 // HDMI frame start, now resume SNES
+            end else if (hdmi_first_line && pause_sync) begin                 // HDMI frame start, now resume SNES
                 pause_snes_for_frame_sync <= 1'b0;
                 sync_done <= 1'b1;
             end
@@ -111,7 +109,7 @@ module snes2hdmi (
         if (ys[7:0] == 8'd200) sync_done <= 1'b0;               // reset sync_done for next frame
     end
     always @(posedge clk_pixel) begin
-        if (cy == 0 && cx >= 11'd160)      
+        if (cy == 10'd24 && cx >= 11'd256 && cx < 11'd356)      // first 100 pixels of first line
             hdmi_first_line <= 1;
         else
             hdmi_first_line <= 0;
@@ -205,77 +203,55 @@ module snes2hdmi (
     //
     // Video
     //
-    reg [23:0] rgb;             // actual RGB output
-    reg active;
-    reg [7:0] xx;               // scaled-down pixel position
-    reg [7:0] yy;
-    reg [10:0] xcnt;
-    reg [10:0] ycnt;            // fractional scaling counters
-    reg [9:0] cy_r;
-    assign mem_portB_addr = {yy[BUF_WIDTH-1:0], xx};
-    assign overlay_x = xx;
-    assign overlay_y = yy;
-    localparam XSTART = (1280 - 960) / 2;   // 960:720 = 4:3
-    localparam XSTOP = (1280 + 960) / 2;
+    assign active = cx >= 11'd256 && cx < 11'd1024 && cy >= 10'd24 && cy < 10'd696;
+    wire [10:0] x0 = cx - 11'd256;
+    wire [9:0] y0 = cy - 10'd24;
 
-    // address calculation
-    // Assume the video occupies fully on the Y direction, we are upscaling the video by `720/height`.
-    // xcnt and ycnt are fractional scaling counters.
+    // synthesizer takes care of integer const division with a few ALUs and no DSP usage
+    assign x = (cx - 256) / 3;  
+    assign y = (cy - 24) / 3;
+    // another way that works but uses more resources
+    // 0.3333 = 0.0101010101 binary
+//    assign x = (x0 + (x0 >> 2) + (x0 >> 4) + (x0 >> 6) + (x0 >> 8)) >> 2;
+    // assign y = (y0 + (y0 >> 2) + (y0 >> 4) + (y0 >> 6) + (y0 >> 8)) >> 2;
+    assign mem_portB_addr = {y[BUF_WIDTH-1:0], x};
+    reg [23:0] rgb;
+
+    reg [1:0] overlay_cnt;
+
     always @(posedge clk_pixel) begin
-        reg active_t;
-        reg [10:0] xcnt_next;
-        reg [10:0] ycnt_next;
-        xcnt_next = xcnt + 256;
-        ycnt_next = ycnt + 224;
-
-        active_t = 0;
-        if (cx == XSTART - 1) begin
-            active_t = 1;
-            active <= 1;
-        end else if (cx == XSTOP - 1) begin
-            active_t = 0;
-            active <= 0;
-        end
-
-        if (active_t | active) begin        // increment xx
-            xcnt <= xcnt_next;
-            if (xcnt_next >= 960) begin
-                xcnt <= xcnt_next - 960;
-                xx <= xx + 1;
-            end
-        end
-
-        cy_r <= cy;
-        if (cy[0] != cy_r[0]) begin         // increment yy at new lines
-            ycnt <= ycnt_next;
-            if (ycnt_next >= 720) begin
-                ycnt <= ycnt_next - 720;
-                yy <= yy + 1;
-            end
-        end
-
         if (cx == 0) begin
-            xx <= 0;
-            xcnt <= 0;
+            overlay_x <= 0;
+            overlay_cnt <= 0;
         end
-        
-        if (cy == 0) begin
-            yy <= 0;
-            ycnt <= 0;
-        end 
-
+        if (cx >= 256) begin
+            overlay_cnt <= overlay_cnt == 2 ? 0 : overlay_cnt + 1;
+            if (overlay_cnt == 1)
+                overlay_x <= overlay_x + 1;
+        end
+        overlay_y <= y;
     end
 
     // calc rgb value to hdmi
-    always @(posedge clk_pixel) begin
-        if (active) begin
-            if (overlay)
-                rgb <= {overlay_color[4:0],3'b0,overlay_color[9:5],3'b0,overlay_color[14:10],3'b0};       // BGR5 to RGB8
-            else
+    always @(posedge clk_pixel) r_active <= active;
+
+    always @* begin
+        if (r_active)
+//             if (y < 1)             // XXX: for debug purposes, show a gradient on the top
+//                 rgb <= {x, x, x};
+//             else
+            if (~overlay)
                 rgb <= {mem_portB_rdata[4:0], 3'b0, mem_portB_rdata[9:5], 3'b0, mem_portB_rdata[14:10], 3'b0};                
-        end else
-            rgb <= 24'h303030;
+            else begin
+//                if (overlay_color == 0) 
+//                    rgb <= {2'b0, mem_portB_rdata[4:0], 3'b0, mem_portB_rdata[9:5], 3'b0, mem_portB_rdata[14:10], 1'b0};
+//                else
+                    rgb <= {overlay_color[4:0], 3'b0, overlay_color[9:5], 3'b0, overlay_color[14:10], 3'b0};
+            end
+        else
+            rgb <= 24'h303030;      // show a grey background
     end
+
 
     // HDMI output.
     logic[2:0] tmds;
