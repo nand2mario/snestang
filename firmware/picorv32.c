@@ -155,8 +155,10 @@ int uart_putchar(int c) {
 }
 
 int uart_print(const char *s) {
+#if (UART_DEBUG_ENABLED == 1)
 	while (*s)
-		_putchar(*(s++), 1);   
+		_putchar(*(s++), 1); 
+#endif
    return 0;
 }
 
@@ -222,6 +224,8 @@ int joy_choice(int start_line, int len, int *active, int overlay_key_code) {
    if ((joy1 & 0x20) || (joy2 & 0x20)) {
       if (*active < len-1) (*active)++;
    }
+   if ((joy1 & 0x02) || (joy2 & 0x02))
+      return 4;      // B button
    if ((joy1 & 0x40) || (joy2 & 0x40))
       return 3;      // previous page
    if ((joy1 & 0x80) || (joy2 & 0x80))
