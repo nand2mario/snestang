@@ -23,8 +23,10 @@
         <File path="src/chip/GSU/GSU.v" type="file.verilog" enable="1"/>
         <File path="src/chip/GSU/GSUMap.v" type="file.verilog" enable="1"/>
         <File path="src/chip/GSU/GSU_PKG.v" type="file.verilog" enable="1"/>
+        <File path="src/controller_adapter.sv" type="file.verilog" enable="1"/>
+        <File path="src/controller_ds2.sv" type="file.verilog" enable="1"/>
+        <File path="src/controller_snes.v" type="file.verilog" enable="1"/>
         <File path="src/cpu.v" type="file.verilog" enable="1"/>
-        <File path="src/ds2snes.sv" type="file.verilog" enable="1"/>
         <File path="src/dsp.v" type="file.verilog" enable="1"/>
         <File path="src/dual_clk_fifo.v" type="file.verilog" enable="1"/>
         <File path="src/dualshock_controller.v" type="file.verilog" enable="1"/>
