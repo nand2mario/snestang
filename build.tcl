@@ -1,6 +1,6 @@
 if {$argc == 0} {
     puts "Usage: $argv0 <device> [<controller>]"
-    puts "          device: nano20k, primer25k, mega138k"
+    puts "          device: nano20k, primer25k, mega60k, mega138k, console60k"
     puts "      controller: snes, ds2"
     puts "Note: nano20k supports both controllers simultaneously, so build with just: gw_sh build.tcl nano20k"
     exit 1
@@ -76,6 +76,23 @@ if {$dev eq "nano20k"} {
     add_file -type verilog "src/mega138k/sdram_cl2_2ch.v"
     add_file -type verilog "src/mega138k/vram.v"
     add_file -type verilog "src/mega138k/vram_spb.v"
+    set_option -output_base_name snestang_${dev}_${controller}
+} elseif {$dev eq "console60k"} {
+    set_device GW5AT-LV60PG484AC1/I0 -device_version B
+    if {$controller eq "snes"} {
+        add_file src/console60k/config_snescontroller.v
+        add_file -type cst "src/console60k/snestang_snescontroller.cst"
+    } elseif {$controller eq "ds2"} {
+        add_file src/console60k/config.v
+        add_file -type cst "src/console60k/snestang.cst"
+    } else {
+        error "Unknown controller $controller"
+    }
+    add_file -type verilog "src/snes2hdmi.v"
+    add_file -type verilog "src/primer25k/gowin_pll_27.v"
+    add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
+    add_file -type verilog "src/primer25k/gowin_pll_snes.v"
+    add_file -type verilog "src/primer25k/sdram_cl2_3ch.v"
     set_option -output_base_name snestang_${dev}_${controller}
 } else {
     error "Unknown device $dev"

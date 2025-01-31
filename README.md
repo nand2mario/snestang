@@ -48,7 +48,7 @@ Core Switching
 
 ## Development
 
-I am developing with Gowin IDE 1.9.9 Pro version (not the EDU version). It requires a free license. Just open the project file snestang_primer25k.gprj.
+I am developing with Gowin IDE 1.9.10_03 Pro version (not the EDU version). It requires a free license. Just open the project file snestang_console60k.gprj. The release files are built with `buildall.bat`.
 
 Read the updated [design notes](doc/design.md) to understand the code or to add features.
 
