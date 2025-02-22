@@ -1,8 +1,8 @@
-// Sys - TangCore system components 
-// This manages UART connection to the companion MCU, accepts ROM loading and other requests,
+// Sys - Tangcores system components 
+// This manages slave SPI connection to the companion MCU, accepts ROM loading and other requests,
 // and display the text overlay when needed.
 // 
-// Author: nand2mario, 2/2024
+// Author: nand2mario, 1/2024
 
 module sys #(
     parameter FREQ=21_477_000,
@@ -11,6 +11,7 @@ module sys #(
 )
 (
     input clk,                      // main logic clock
+    // input clk50,                    // 50mhz clock for UART
     input hclk,                     // hdmi clock
     input resetn,
 
@@ -39,7 +40,7 @@ localparam [8*STR_LEN-1:0] CONF_STR = "Tangcores;-;O12,OSD key,Right+Select,Sele
 
 // Remove SPI parameters and add UART parameters
 localparam CLK_FREQ = FREQ;
-localparam BAUD_RATE = 2_000_000;
+localparam BAUD_RATE = 1_000_000;
 
 reg overlay_reg = 1;
 assign overlay = overlay_reg;
@@ -47,7 +48,6 @@ assign overlay = overlay_reg;
 // UART receiver signals
 wire [7:0] rx_data;
 wire rx_valid;
-wire rx_error;
 
 // UART transmitter signals
 reg [7:0] tx_data;
@@ -56,29 +56,19 @@ wire tx_ready;
 
 // Instantiate UART modules
 uart_rx #(
-    .CLK_FREQ(CLK_FREQ),
-    .BAUD_RATE(BAUD_RATE)
+    .DIV_NUM(CLK_FREQ/1000),
+    .DIV_DEN(BAUD_RATE/1000)
 ) uart_receiver (
     .clk(clk),
     .resetn(resetn),
     .rx(uart_rx),
     .data(rx_data),
-    .valid(rx_valid),
-    .error(rx_error)
+    .valid(rx_valid)
 );
 
-//uart_rx #(
-//    .CLKS_PER_BIT((CLK_FREQ + BAUD_RATE/2)/ BAUD_RATE)
-//) uart_receiver (
-//    .i_Clock(clk),
-//    .i_Rx_Serial(uart_rx),
-//    .o_Rx_DV(rx_valid),
-//    .o_Rx_Byte(rx_data)
-//);
-
 uart_tx #(
-    .CLK_FREQ(CLK_FREQ),
-    .BAUD_RATE(BAUD_RATE)
+    .DIV_NUM(CLK_FREQ/1000),
+    .DIV_DEN(BAUD_RATE/1000)
 ) uart_transmitter (
     .clk(clk),
     .resetn(resetn),
@@ -225,7 +215,7 @@ localparam SEND_JOYPAD = 2;
 
 reg [1:0] send_state;
 reg [2:0] send_idx;
-localparam JOY_UPDATE_INTERVAL = CLK_FREQ / 50; // 20ms interval for 50Hz
+localparam JOY_UPDATE_INTERVAL = 50_000_000 / 50; // 20ms interval for 50Hz
 reg [31:0] joy_timer;
 reg [15:0] joy1_reg;
 reg [15:0] joy2_reg;
