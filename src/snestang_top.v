@@ -34,22 +34,6 @@ module snestang_top (
     // LED
     output [1:0] led,
 
-    // MicroSD
-    output sd_clk,
-    inout  sd_cmd,      // MOSI
-    input  sd_dat0,     // MISO
-    output sd_dat1,
-    output sd_dat2,
-    output sd_dat3,
-
-    // SPI flash
-    output flash_spi_cs_n,          // chip select
-    input flash_spi_miso,           // master in slave out
-    output flash_spi_mosi,          // mster out slave in
-    output flash_spi_clk,           // spi clock
-    output flash_spi_wp_n,          // write protect
-    output flash_spi_hold_n,        // hold operations
-
 `ifdef CONTROLLER_SNES
     // snes controllers
     output joy1_strb,
@@ -86,7 +70,7 @@ module snestang_top (
 );
 
 // Clock signals
-wire mclk;                      // SNES master clock at 21.5054Mhz (~21.477)
+wire mclk;                      // SNES master clock at 21.485Mhz (~21.477)
 wire fclk;                      // Fast clock for sdram for SDRAM
 wire fclk_p;                    // 180-degree shifted fclk
 wire clk27;                     // 27Mhz for hdmi clock generation
@@ -546,8 +530,8 @@ sdram_snes sdram(
 `endif
 
     // IOSys risc-v softcore
-    .rv_addr({rv_addr[22:2], rv_word}), .rv_din(rv_word ? rv_wdata[31:16] : rv_wdata[15:0]), 
-    .rv_ds(rv_ds), .rv_dout(rv_dout), .rv_req(rv_req), .rv_req_ack(rv_req_ack), .rv_we(rv_wstrb != 0)
+    .rv_addr(), .rv_din(), 
+    .rv_ds(), .rv_dout(), .rv_req(), .rv_req_ack(), .rv_we()
 );
 
 `ifndef SDRAM_3CH
@@ -647,28 +631,16 @@ snes2hdmi s2h(
     .tmds_d_n(tmds_d_n), .tmds_d_p(tmds_d_p)
 );
 
-// IOSys for menu, rom loading...
-iosys #(.CORE_ID(2)) iosys (        // CORE ID 2: SNESTang
-    .clk(mclk), .hclk(hclk), /*.clkref(DOTCLK),*/ .resetn(resetn),
+// sys module for menu, rom loading...
+sys #(.CORE_ID(2), .FREQ(21_485_000)) iosys (        // CORE ID 2: SNESTang
+    .clk(mclk), .hclk(hclk), .resetn(resetn),
 
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color),
     .joy1(joy1_btns), .joy2(joy2_btns),
 
     .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid), 
-    .ram_busy(sdram_busy),
-
-    .rv_valid(rv_valid), .rv_ready(rv_ready), .rv_addr(rv_addr),
-    .rv_wdata(rv_wdata), .rv_wstrb(rv_wstrb), .rv_rdata(rv_rdata),
-
-    .flash_spi_cs_n(flash_spi_cs_n), .flash_spi_miso(flash_spi_miso),
-    .flash_spi_mosi(flash_spi_mosi), .flash_spi_clk(flash_spi_clk),
-    .flash_spi_wp_n(flash_spi_wp_n), .flash_spi_hold_n(flash_spi_hold_n),
-
-    .uart_tx(UART_TXD), .uart_rx(UART_RXD),
-
-    .sd_clk(sd_clk), .sd_cmd(sd_cmd), .sd_dat0(sd_dat0), .sd_dat1(sd_dat1),
-    .sd_dat2(sd_dat2), .sd_dat3(sd_dat3)
+    .uart_tx(UART_TXD), .uart_rx(UART_RXD)
 );
 
 `else

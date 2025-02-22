@@ -20,6 +20,7 @@
         <File path="src/chip/DSP/OBC1.v" type="file.verilog" enable="1"/>
         <File path="src/chip/DSP/SRTC.v" type="file.verilog" enable="1"/>
         <File path="src/chip/dsp/dsp_data_ram.v" type="file.verilog" enable="1"/>
+        <File path="src/console60k/config.v" type="file.verilog" enable="1"/>
         <File path="src/controller_adapter.sv" type="file.verilog" enable="1"/>
         <File path="src/controller_ds2.sv" type="file.verilog" enable="1"/>
         <File path="src/controller_snes.v" type="file.verilog" enable="1"/>
@@ -40,14 +41,6 @@
         <File path="src/hdmi2/serializer.sv" type="file.verilog" enable="1"/>
         <File path="src/hdmi2/source_product_description_info_frame.sv" type="file.verilog" enable="1"/>
         <File path="src/hdmi2/tmds_channel.sv" type="file.verilog" enable="1"/>
-        <File path="src/iosys/gowin_dpb_menu.v" type="file.verilog" enable="1"/>
-        <File path="src/iosys/iosys.v" type="file.verilog" enable="1"/>
-        <File path="src/iosys/picorv32.v" type="file.verilog" enable="1"/>
-        <File path="src/iosys/simplespimaster.v" type="file.verilog" enable="1"/>
-        <File path="src/iosys/simpleuart.v" type="file.verilog" enable="1"/>
-        <File path="src/iosys/spi_master.v" type="file.verilog" enable="1"/>
-        <File path="src/iosys/spiflash.v" type="file.verilog" enable="1"/>
-        <File path="src/iosys/textdisp.v" type="file.verilog" enable="1"/>
         <File path="src/main.v" type="file.verilog" enable="1"/>
         <File path="src/mega138k/vram.v" type="file.verilog" enable="1"/>
         <File path="src/mega138k/vram_spb.v" type="file.verilog" enable="1"/>
@@ -55,7 +48,6 @@
         <File path="src/ppucgram.v" type="file.verilog" enable="1"/>
         <File path="src/ppuhoam.v" type="file.verilog" enable="1"/>
         <File path="src/ppuoam.v" type="file.verilog" enable="1"/>
-        <File path="src/console60k/config.v" type="file.verilog" enable="1"/>
         <File path="src/primer25k/gowin_pll_27.v" type="file.verilog" enable="1"/>
         <File path="src/primer25k/gowin_pll_hdmi.v" type="file.verilog" enable="1"/>
         <File path="src/primer25k/gowin_pll_snes.v" type="file.verilog" enable="1"/>
@@ -74,7 +66,12 @@
         <File path="src/spc700/muldiv.v" type="file.verilog" enable="1"/>
         <File path="src/spc700/spc700.v" type="file.verilog" enable="1"/>
         <File path="src/swram.v" type="file.verilog" enable="1"/>
-        <File path="src/uart_tx_V2.v" type="file.verilog" enable="1"/>
+        <File path="src/sys/gowin_dpb_menu.v" type="file.verilog" enable="1"/>
+        <File path="src/sys/hw_uart.v" type="file.verilog" enable="0"/>
+        <File path="src/sys/sys.v" type="file.verilog" enable="1"/>
+        <File path="src/sys/textdisp.v" type="file.verilog" enable="1"/>
+        <File path="src/sys/uart_rx.v" type="file.verilog" enable="1"/>
+        <File path="src/sys/uart_tx.v" type="file.verilog" enable="1"/>
         <File path="src/console60k/snestang.cst" type="file.cst" enable="1"/>
         <File path="src/snestang.sdc" type="file.sdc" enable="1"/>
         <File path="src/mega138k/snestang.gao" type="file.gao" enable="0"/>
