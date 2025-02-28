@@ -1,7 +1,8 @@
 if {$argc == 0} {
-    puts "Usage: $argv0 <device> [<controller>]"
+    puts "Usage: $argv0 <device> [<controller>] <mcu>"
     puts "          device: nano20k, primer25k, mega60k, mega138k, console60k"
     puts "      controller: snes, ds2"
+    puts "             mcu: bl616, picorv32"
     puts "Note: nano20k supports both controllers simultaneously, so build with just: gw_sh build.tcl nano20k"
     exit 1
 }
@@ -57,7 +58,7 @@ if {$dev eq "nano20k"} {
     add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
     add_file -type verilog "src/primer25k/gowin_pll_snes.v"
     add_file -type verilog "src/primer25k/sdram_cl2_3ch.v"
-    set_option -output_base_name snestang_${dev}_${controller}
+    set_option -output_base_name snestang_${dev}_${controller}_${mcu}
 } elseif {$dev eq "mega138k"} {
     set_device GW5AST-LV138FPG676AES -device_version B
     if {$controller eq "snes"} {
@@ -76,7 +77,7 @@ if {$dev eq "nano20k"} {
     add_file -type verilog "src/mega138k/sdram_cl2_2ch.v"
     add_file -type verilog "src/mega138k/vram.v"
     add_file -type verilog "src/mega138k/vram_spb.v"
-    set_option -output_base_name snestang_${dev}_${controller}
+    set_option -output_base_name snestang_${dev}_${controller}_${mcu}
 } elseif {$dev eq "console60k"} {
     set_device GW5AT-LV60PG484AC1/I0 -device_version B
     if {$controller eq "snes"} {
@@ -93,9 +94,25 @@ if {$dev eq "nano20k"} {
     add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
     add_file -type verilog "src/primer25k/gowin_pll_snes.v"
     add_file -type verilog "src/primer25k/sdram_cl2_3ch.v"
-    set_option -output_base_name snestang_${dev}_${controller}
+    set_option -output_base_name snestang_${dev}_${controller}_${mcu}
 } else {
     error "Unknown device $dev"
+}
+
+if {$mcu eq "bl616"} {
+    add_file -type verilog "src/iosys/iosys_bl616.v"
+    add_file -type verilog "src/iosys/uart_fractional.v"
+    add_file -type verilog "src/iosys/textdisp.v"
+} elseif {$mcu eq "picorv32"} {
+    add_file -type verilog "src/iosys/iosys_picorv32.v"
+    add_file -type verilog "src/iosys/picorv32.v"
+    add_file -type verilog "src/iosys/simplespimaster.v"
+    add_file -type verilog "src/iosys/simpleuart.v"
+    add_file -type verilog "src/iosys/spi_master.v"
+    add_file -type verilog "src/iosys/spiflash.v"
+    add_file -type verilog "src/iosys/textdisp.v"
+} else {
+    error "Unknown MCU $mcu"
 }
 
 add_file -type verilog "src/65C816/ALU.v"
@@ -131,13 +148,6 @@ add_file -type verilog "src/hdmi2/serializer.sv"
 add_file -type verilog "src/hdmi2/source_product_description_info_frame.sv"
 add_file -type verilog "src/hdmi2/tmds_channel.sv"
 add_file -type verilog "src/iosys/gowin_dpb_menu.v"
-add_file -type verilog "src/iosys/iosys.v"
-add_file -type verilog "src/iosys/picorv32.v"
-add_file -type verilog "src/iosys/simplespimaster.v"
-add_file -type verilog "src/iosys/simpleuart.v"
-add_file -type verilog "src/iosys/spi_master.v"
-add_file -type verilog "src/iosys/spiflash.v"
-add_file -type verilog "src/iosys/textdisp.v"
 add_file -type verilog "src/main.v"
 add_file -type verilog "src/ppu.v"
 add_file -type verilog "src/ppucgram.v"

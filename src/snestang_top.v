@@ -419,81 +419,6 @@ wire [15:0] rv_dout;
 reg [1:0]   rv_ds;
 reg         rv_new_req;
 
-always @(posedge mclk) begin            // RV
-    if (~resetn) begin
-        rvst <= RV_IDLE_REQ0;
-        rv_ready <= 0;
-    end else begin
-        reg write = rv_wstrb != 0;
-        reg rv_new_req_t = rv_valid & ~rv_valid_r;
-        if (rv_new_req_t) rv_new_req <= 1;
-
-        rv_ready <= 0;
-        rv_valid_r <= rv_valid;
-
-        case (rvst)
-        RV_IDLE_REQ0: if (rv_new_req || rv_new_req_t) begin
-            rv_new_req <= 0;
-            rv_req <= ~rv_req;
-            if (write && rv_wstrb[1:0] == 2'b0) begin
-                // shortcut for only writing the upper word
-                rv_word <= 1;
-                rv_ds <= rv_wstrb[3:2];
-                rvst <= RV_WAIT1;
-            end else begin
-                rv_word <= 0;
-                if (write)
-                    rv_ds <= rv_wstrb[1:0];
-                else
-                    rv_ds <= 2'b11;
-                rvst <= RV_WAIT0_REQ1;
-            end
-        end
-
-        RV_WAIT0_REQ1: begin
-            if (rv_req == rv_req_ack) begin
-                rv_req <= ~rv_req;      // request 1
-                rv_word <= 1;
-                if (write) begin
-                    rvst <= RV_WAIT1;
-                    if (rv_wstrb[3:2] == 2'b0) begin
-                        // shortcut for only writing the lower word
-                        rv_req <= rv_req;
-                        rv_ready <= 1;
-                        rvst <= RV_IDLE_REQ0;
-                    end
-                    rv_ds <= rv_wstrb[3:2];
-                end else begin
-                    rv_ds <= 2'b11;
-                    rvst <= RV_DATA0;
-                end
-            end
-        end
-
-        RV_DATA0: begin
-            rv_dout0 <= rv_dout;
-            rvst <= RV_WAIT1;
-        end
-            
-        RV_WAIT1: 
-            if (rv_req == rv_req_ack) begin
-                if (write)  begin
-                    rv_ready <= 1;
-                    rvst <= RV_IDLE_REQ0;
-                end else
-                    rvst <= RV_DATA1;
-            end
-
-        RV_DATA1: begin
-            rv_ready <= 1;
-            rvst <= RV_IDLE_REQ0;
-        end
-
-        default:;
-        endcase
-    end
-end
-
 reg [14:0] vram1_addr_sd, vram2_addr_sd;
 reg vram1_we_n_old, vram2_we_n_old;
 reg vram1_req /* synthesis syn_keep=1 */; 
@@ -647,9 +572,22 @@ snes2hdmi s2h(
     .tmds_d_n(tmds_d_n), .tmds_d_p(tmds_d_p)
 );
 
+`ifdef MCU_BL616
+
+iosys_bl616 #(.CORE_ID(2), .FREQ(21_505_000)) iosys (
+    .clk(mclk), .hclk(hclk), .resetn(resetn),
+    .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
+    .overlay_color(overlay_color),
+    .joy1(joy1_btns), .joy2(joy2_btns),
+    .uart_tx(UART_TXD), .uart_rx(UART_RXD),
+    .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid)
+);
+
+`else       
+
 // IOSys for menu, rom loading...
-iosys #(.CORE_ID(2)) iosys (        // CORE ID 2: SNESTang
-    .clk(mclk), .hclk(hclk), /*.clkref(DOTCLK),*/ .resetn(resetn),
+iosys_picorv32 #(.CORE_ID(2)) iosys (        // CORE ID 2: SNESTang
+    .clk(mclk), .hclk(hclk), .resetn(resetn),
 
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color),
@@ -671,7 +609,84 @@ iosys #(.CORE_ID(2)) iosys (        // CORE ID 2: SNESTang
     .sd_dat2(sd_dat2), .sd_dat3(sd_dat3)
 );
 
-`else
+always @(posedge mclk) begin            // RV
+    if (~resetn) begin
+        rvst <= RV_IDLE_REQ0;
+        rv_ready <= 0;
+    end else begin
+        reg write = rv_wstrb != 0;
+        reg rv_new_req_t = rv_valid & ~rv_valid_r;
+        if (rv_new_req_t) rv_new_req <= 1;
+
+        rv_ready <= 0;
+        rv_valid_r <= rv_valid;
+
+        case (rvst)
+        RV_IDLE_REQ0: if (rv_new_req || rv_new_req_t) begin
+            rv_new_req <= 0;
+            rv_req <= ~rv_req;
+            if (write && rv_wstrb[1:0] == 2'b0) begin
+                // shortcut for only writing the upper word
+                rv_word <= 1;
+                rv_ds <= rv_wstrb[3:2];
+                rvst <= RV_WAIT1;
+            end else begin
+                rv_word <= 0;
+                if (write)
+                    rv_ds <= rv_wstrb[1:0];
+                else
+                    rv_ds <= 2'b11;
+                rvst <= RV_WAIT0_REQ1;
+            end
+        end
+
+        RV_WAIT0_REQ1: begin
+            if (rv_req == rv_req_ack) begin
+                rv_req <= ~rv_req;      // request 1
+                rv_word <= 1;
+                if (write) begin
+                    rvst <= RV_WAIT1;
+                    if (rv_wstrb[3:2] == 2'b0) begin
+                        // shortcut for only writing the lower word
+                        rv_req <= rv_req;
+                        rv_ready <= 1;
+                        rvst <= RV_IDLE_REQ0;
+                    end
+                    rv_ds <= rv_wstrb[3:2];
+                end else begin
+                    rv_ds <= 2'b11;
+                    rvst <= RV_DATA0;
+                end
+            end
+        end
+
+        RV_DATA0: begin
+            rv_dout0 <= rv_dout;
+            rvst <= RV_WAIT1;
+        end
+            
+        RV_WAIT1: 
+            if (rv_req == rv_req_ack) begin
+                if (write)  begin
+                    rv_ready <= 1;
+                    rvst <= RV_IDLE_REQ0;
+                end else
+                    rvst <= RV_DATA1;
+            end
+
+        RV_DATA1: begin
+            rv_ready <= 1;
+            rvst <= RV_IDLE_REQ0;
+        end
+
+        default:;
+        endcase
+    end
+end
+
+`endif      // MCU_BL616
+
+`else       // VERILATOR
 
 // test loader with embedded rom
 test_loader test_loader (

@@ -41,7 +41,7 @@
         <File path="src/hdmi2/source_product_description_info_frame.sv" type="file.verilog" enable="1"/>
         <File path="src/hdmi2/tmds_channel.sv" type="file.verilog" enable="1"/>
         <File path="src/iosys/gowin_dpb_menu.v" type="file.verilog" enable="1"/>
-        <File path="src/iosys/iosys.v" type="file.verilog" enable="1"/>
+        <File path="src/iosys/iosys_picorv32.v" type="file.verilog" enable="1"/>
         <File path="src/iosys/picorv32.v" type="file.verilog" enable="1"/>
         <File path="src/iosys/simplespimaster.v" type="file.verilog" enable="1"/>
         <File path="src/iosys/simpleuart.v" type="file.verilog" enable="1"/>
