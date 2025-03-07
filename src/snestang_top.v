@@ -147,7 +147,7 @@ end
 // Mega 138K: mclk=21.5054, fclk=64.5161
 // Primer 25K: mclk=21.4844, fclk=85.9375
 gowin_pll_snes pll_snes (
-    .clkout0(mclk),
+    .clkout0(mclk),             // 21.4844
     .clkout1(fclk),
     .clkout2(fclk_p),
     .clkin(sys_clk)             // 50 Mhz input
@@ -470,9 +470,14 @@ sdram_snes sdram(
     .vram2_we(~vram2_we_n_old),  .vram2_din(vram2_din), .vram2_dout(VRAM2_Q),
 `endif
 
+`ifdef MCU_BL616
+    .rv_addr(), .rv_din(), 
+    .rv_ds(), .rv_dout(), .rv_req(), .rv_req_ack(), .rv_we()
+`else
     // IOSys risc-v softcore
     .rv_addr({rv_addr[22:2], rv_word}), .rv_din(rv_word ? rv_wdata[31:16] : rv_wdata[15:0]), 
     .rv_ds(rv_ds), .rv_dout(rv_dout), .rv_req(rv_req), .rv_req_ack(rv_req_ack), .rv_we(rv_wstrb != 0)
+`endif
 );
 
 `ifndef SDRAM_3CH
@@ -574,7 +579,7 @@ snes2hdmi s2h(
 
 `ifdef MCU_BL616
 
-iosys_bl616 #(.CORE_ID(2), .FREQ(21_505_000)) iosys (
+iosys_bl616 #(.CORE_ID(2), .FREQ(21_484_000)) iosys (
     .clk(mclk), .hclk(hclk), .resetn(resetn),
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color),

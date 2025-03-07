@@ -1,0 +1,1436 @@
+[
+ {
+  "InstFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+  "InstLine" : 8,
+  "InstName" : "snestang_top",
+  "Mode" : 1,
+  "ModuleFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+  "ModuleLine" : 8,
+  "ModuleName" : "snestang_top",
+  "Process" : 0,
+  "SetMode" : false,
+  "SetProcess" : false,
+  "SubNodes" : [
+   {
+    "InstFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+    "InstLine" : 86,
+    "InstName" : "pll_27",
+    "Mode" : 1,
+    "ModuleFile" : "D:/Gowin/dev/snestang/src/mega138k/gowin_pll_27.v",
+    "ModuleLine" : 10,
+    "ModuleName" : "gowin_pll_27",
+    "Process" : 0,
+    "SetMode" : false,
+    "SetProcess" : false
+   },
+   {
+    "InstFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+    "InstLine" : 92,
+    "InstName" : "pll_snes",
+    "Mode" : 1,
+    "ModuleFile" : "D:/Gowin/dev/snestang/src/mega138k/gowin_pll_snes.v",
+    "ModuleLine" : 10,
+    "ModuleName" : "gowin_pll_snes",
+    "Process" : 0,
+    "SetMode" : false,
+    "SetProcess" : false
+   },
+   {
+    "InstFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+    "InstLine" : 100,
+    "InstName" : "pll_hdmi",
+    "Mode" : 1,
+    "ModuleFile" : "D:/Gowin/dev/snestang/src/mega138k/gowin_pll_hdmi.v",
+    "ModuleLine" : 10,
+    "ModuleName" : "gowin_pll_hdmi",
+    "Process" : 0,
+    "SetMode" : false,
+    "SetProcess" : false
+   },
+   {
+    "InstFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+    "InstLine" : 213,
+    "InstName" : "main",
+    "Mode" : 1,
+    "ModuleFile" : "D:/Gowin/dev/snestang/src/main.v",
+    "ModuleLine" : 3,
+    "ModuleName" : "main",
+    "Process" : 0,
+    "SetMode" : false,
+    "SetProcess" : false,
+    "SubNodes" : [
+     {
+      "InstFile" : "D:/Gowin/dev/snestang/src/main.v",
+      "InstLine" : 155,
+      "InstName" : "SNES",
+      "Mode" : 1,
+      "ModuleFile" : "D:/Gowin/dev/snestang/src/snes.v",
+      "ModuleLine" : 5,
+      "ModuleName" : "SNES",
+      "Process" : 0,
+      "SetMode" : false,
+      "SetProcess" : false,
+      "SubNodes" : [
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/snes.v",
+        "InstLine" : 152,
+        "InstName" : "CPU",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/cpu.v",
+        "ModuleLine" : 6,
+        "ModuleName" : "SCPU",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false,
+        "SubNodes" : [
+         {
+          "InstFile" : "D:/Gowin/dev/snestang/src/cpu.v",
+          "InstLine" : 288,
+          "InstName" : "P65C816",
+          "Mode" : 1,
+          "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/P65C816.v",
+          "ModuleLine" : 8,
+          "ModuleName" : "P65C816",
+          "Process" : 0,
+          "SetMode" : false,
+          "SetProcess" : false,
+          "SubNodes" : [
+           {
+            "InstFile" : "D:/Gowin/dev/snestang/src/65C816/P65C816.v",
+            "InstLine" : 209,
+            "InstName" : "MCode",
+            "Mode" : 1,
+            "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/mcode.sv",
+            "ModuleLine" : 8,
+            "ModuleName" : "mcode",
+            "Process" : 0,
+            "SetMode" : false,
+            "SetProcess" : false
+           },
+           {
+            "InstFile" : "D:/Gowin/dev/snestang/src/65C816/P65C816.v",
+            "InstLine" : 212,
+            "InstName" : "AddrGen",
+            "Mode" : 1,
+            "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/AddrGen.v",
+            "ModuleLine" : 2,
+            "ModuleName" : "AddrGen",
+            "Process" : 0,
+            "SetMode" : false,
+            "SetProcess" : false
+           },
+           {
+            "InstFile" : "D:/Gowin/dev/snestang/src/65C816/P65C816.v",
+            "InstLine" : 244,
+            "InstName" : "ALU",
+            "Mode" : 1,
+            "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/ALU.v",
+            "ModuleLine" : 3,
+            "ModuleName" : "ALU",
+            "Process" : 0,
+            "SetMode" : false,
+            "SetProcess" : false,
+            "SubNodes" : [
+             {
+              "InstFile" : "D:/Gowin/dev/snestang/src/65C816/ALU.v",
+              "InstLine" : 103,
+              "InstName" : "AddSub",
+              "Mode" : 1,
+              "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/AddSubBCD.v",
+              "ModuleLine" : 2,
+              "ModuleName" : "AddSubBCD",
+              "Process" : 0,
+              "SetMode" : false,
+              "SetProcess" : false,
+              "SubNodes" : [
+               {
+                "InstFile" : "D:/Gowin/dev/snestang/src/65C816/AddSubBCD.v",
+                "InstLine" : 20,
+                "InstName" : "add0",
+                "Mode" : 1,
+                "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                "ModuleLine" : 2,
+                "ModuleName" : "BCDAdder",
+                "Process" : 0,
+                "SetMode" : false,
+                "SetProcess" : false,
+                "SubNodes" : [
+                 {
+                  "InstFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                  "InstLine" : 24,
+                  "InstName" : "bin_adder",
+                  "Mode" : 1,
+                  "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                  "ModuleLine" : 2,
+                  "ModuleName" : "adder4",
+                  "Process" : 0,
+                  "SetMode" : false,
+                  "SetProcess" : false,
+                  "SubNodes" : [
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 15,
+                    "InstName" : "b_add0",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 17,
+                    "InstName" : "b_add1",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 19,
+                    "InstName" : "b_add2",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 21,
+                    "InstName" : "b_add3",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   }
+                  ]
+                 },
+                 {
+                  "InstFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                  "InstLine" : 29,
+                  "InstName" : "bcd_corr_adder",
+                  "Mode" : 1,
+                  "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                  "ModuleLine" : 2,
+                  "ModuleName" : "adder4",
+                  "Process" : 0,
+                  "SetMode" : false,
+                  "SetProcess" : false,
+                  "SubNodes" : [
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 15,
+                    "InstName" : "b_add0",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 17,
+                    "InstName" : "b_add1",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 19,
+                    "InstName" : "b_add2",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 21,
+                    "InstName" : "b_add3",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   }
+                  ]
+                 }
+                ]
+               },
+               {
+                "InstFile" : "D:/Gowin/dev/snestang/src/65C816/AddSubBCD.v",
+                "InstLine" : 21,
+                "InstName" : "add1",
+                "Mode" : 1,
+                "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                "ModuleLine" : 2,
+                "ModuleName" : "BCDAdder",
+                "Process" : 0,
+                "SetMode" : false,
+                "SetProcess" : false,
+                "SubNodes" : [
+                 {
+                  "InstFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                  "InstLine" : 24,
+                  "InstName" : "bin_adder",
+                  "Mode" : 1,
+                  "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                  "ModuleLine" : 2,
+                  "ModuleName" : "adder4",
+                  "Process" : 0,
+                  "SetMode" : false,
+                  "SetProcess" : false,
+                  "SubNodes" : [
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 15,
+                    "InstName" : "b_add0",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 17,
+                    "InstName" : "b_add1",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 19,
+                    "InstName" : "b_add2",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 21,
+                    "InstName" : "b_add3",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   }
+                  ]
+                 },
+                 {
+                  "InstFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                  "InstLine" : 29,
+                  "InstName" : "bcd_corr_adder",
+                  "Mode" : 1,
+                  "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                  "ModuleLine" : 2,
+                  "ModuleName" : "adder4",
+                  "Process" : 0,
+                  "SetMode" : false,
+                  "SetProcess" : false,
+                  "SubNodes" : [
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 15,
+                    "InstName" : "b_add0",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 17,
+                    "InstName" : "b_add1",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 19,
+                    "InstName" : "b_add2",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 21,
+                    "InstName" : "b_add3",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   }
+                  ]
+                 }
+                ]
+               },
+               {
+                "InstFile" : "D:/Gowin/dev/snestang/src/65C816/AddSubBCD.v",
+                "InstLine" : 22,
+                "InstName" : "add2",
+                "Mode" : 1,
+                "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                "ModuleLine" : 2,
+                "ModuleName" : "BCDAdder",
+                "Process" : 0,
+                "SetMode" : false,
+                "SetProcess" : false,
+                "SubNodes" : [
+                 {
+                  "InstFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                  "InstLine" : 24,
+                  "InstName" : "bin_adder",
+                  "Mode" : 1,
+                  "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                  "ModuleLine" : 2,
+                  "ModuleName" : "adder4",
+                  "Process" : 0,
+                  "SetMode" : false,
+                  "SetProcess" : false,
+                  "SubNodes" : [
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 15,
+                    "InstName" : "b_add0",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 17,
+                    "InstName" : "b_add1",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 19,
+                    "InstName" : "b_add2",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 21,
+                    "InstName" : "b_add3",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   }
+                  ]
+                 },
+                 {
+                  "InstFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                  "InstLine" : 29,
+                  "InstName" : "bcd_corr_adder",
+                  "Mode" : 1,
+                  "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                  "ModuleLine" : 2,
+                  "ModuleName" : "adder4",
+                  "Process" : 0,
+                  "SetMode" : false,
+                  "SetProcess" : false,
+                  "SubNodes" : [
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 15,
+                    "InstName" : "b_add0",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 17,
+                    "InstName" : "b_add1",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 19,
+                    "InstName" : "b_add2",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 21,
+                    "InstName" : "b_add3",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   }
+                  ]
+                 }
+                ]
+               },
+               {
+                "InstFile" : "D:/Gowin/dev/snestang/src/65C816/AddSubBCD.v",
+                "InstLine" : 23,
+                "InstName" : "add3",
+                "Mode" : 1,
+                "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                "ModuleLine" : 2,
+                "ModuleName" : "BCDAdder",
+                "Process" : 0,
+                "SetMode" : false,
+                "SetProcess" : false,
+                "SubNodes" : [
+                 {
+                  "InstFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                  "InstLine" : 24,
+                  "InstName" : "bin_adder",
+                  "Mode" : 1,
+                  "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                  "ModuleLine" : 2,
+                  "ModuleName" : "adder4",
+                  "Process" : 0,
+                  "SetMode" : false,
+                  "SetProcess" : false,
+                  "SubNodes" : [
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 15,
+                    "InstName" : "b_add0",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 17,
+                    "InstName" : "b_add1",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 19,
+                    "InstName" : "b_add2",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 21,
+                    "InstName" : "b_add3",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   }
+                  ]
+                 },
+                 {
+                  "InstFile" : "D:/Gowin/dev/snestang/src/65C816/BCDAdder.v",
+                  "InstLine" : 29,
+                  "InstName" : "bcd_corr_adder",
+                  "Mode" : 1,
+                  "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                  "ModuleLine" : 2,
+                  "ModuleName" : "adder4",
+                  "Process" : 0,
+                  "SetMode" : false,
+                  "SetProcess" : false,
+                  "SubNodes" : [
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 15,
+                    "InstName" : "b_add0",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 17,
+                    "InstName" : "b_add1",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 19,
+                    "InstName" : "b_add2",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   },
+                   {
+                    "InstFile" : "D:/Gowin/dev/snestang/src/65C816/adder4.v",
+                    "InstLine" : 21,
+                    "InstName" : "b_add3",
+                    "Mode" : 1,
+                    "ModuleFile" : "D:/Gowin/dev/snestang/src/65C816/bit_adder.v",
+                    "ModuleLine" : 2,
+                    "ModuleName" : "bit_adder",
+                    "Process" : 0,
+                    "SetMode" : false,
+                    "SetProcess" : false
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/snes.v",
+        "InstLine" : 180,
+        "InstName" : "wram",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/swram.v",
+        "ModuleLine" : 2,
+        "ModuleName" : "SWRAM",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/snes.v",
+        "InstLine" : 196,
+        "InstName" : "PPU",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/ppu.v",
+        "ModuleLine" : 5,
+        "ModuleName" : "SPPU",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false,
+        "SubNodes" : [
+         {
+          "InstFile" : "D:/Gowin/dev/snestang/src/ppu.v",
+          "InstLine" : 296,
+          "InstName" : "cgram",
+          "Mode" : 1,
+          "ModuleFile" : "D:/Gowin/dev/snestang/src/ppucgram.v",
+          "ModuleLine" : 4,
+          "ModuleName" : "ppucgram",
+          "Process" : 0,
+          "SetMode" : false,
+          "SetProcess" : false,
+          "SubNodes" : [
+           {
+            "InstFile" : "D:/Gowin/dev/snestang/src/ppucgram.v",
+            "InstLine" : 18,
+            "InstName" : "mem",
+            "Mode" : 1,
+            "ModuleFile" : "D:/Gowin/dev/snestang/src/gowin_dpb_cgram.v",
+            "ModuleLine" : 10,
+            "ModuleName" : "gowin_dpb_cgram",
+            "Process" : 0,
+            "SetMode" : false,
+            "SetProcess" : false
+           }
+          ]
+         },
+         {
+          "InstFile" : "D:/Gowin/dev/snestang/src/ppu.v",
+          "InstLine" : 1409,
+          "InstName" : "OAM",
+          "Mode" : 1,
+          "ModuleFile" : "D:/Gowin/dev/snestang/src/ppuoam.v",
+          "ModuleLine" : 4,
+          "ModuleName" : "ppuoam",
+          "Process" : 0,
+          "SetMode" : false,
+          "SetProcess" : false,
+          "SubNodes" : [
+           {
+            "InstFile" : "D:/Gowin/dev/snestang/src/ppuoam.v",
+            "InstLine" : 18,
+            "InstName" : "mem",
+            "Mode" : 1,
+            "ModuleFile" : "D:/Gowin/dev/snestang/src/gowin_dpb_oam.v",
+            "ModuleLine" : 9,
+            "ModuleName" : "Gowin_DPB_OAM",
+            "Process" : 0,
+            "SetMode" : false,
+            "SetProcess" : false
+           }
+          ]
+         },
+         {
+          "InstFile" : "D:/Gowin/dev/snestang/src/ppu.v",
+          "InstLine" : 1673,
+          "InstName" : "spr_buf",
+          "Mode" : 1,
+          "ModuleFile" : "D:/Gowin/dev/snestang/src/ppusprbuf.v",
+          "ModuleLine" : 6,
+          "ModuleName" : "ppusprbuf",
+          "Process" : 0,
+          "SetMode" : false,
+          "SetProcess" : false,
+          "SubNodes" : [
+           {
+            "InstFile" : "D:/Gowin/dev/snestang/src/ppusprbuf.v",
+            "InstLine" : 28,
+            "InstName" : "mem0",
+            "Mode" : 1,
+            "ModuleFile" : "D:/Gowin/dev/snestang/src/gowin_dpb_spr_buf.v",
+            "ModuleLine" : 10,
+            "ModuleName" : "gowin_dpb_spr_buf",
+            "Process" : 0,
+            "SetMode" : false,
+            "SetProcess" : false
+           },
+           {
+            "InstFile" : "D:/Gowin/dev/snestang/src/ppusprbuf.v",
+            "InstLine" : 38,
+            "InstName" : "mem1",
+            "Mode" : 1,
+            "ModuleFile" : "D:/Gowin/dev/snestang/src/gowin_dpb_spr_buf.v",
+            "ModuleLine" : 10,
+            "ModuleName" : "gowin_dpb_spr_buf",
+            "Process" : 0,
+            "SetMode" : false,
+            "SetProcess" : false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/snes.v",
+        "InstLine" : 214,
+        "InstName" : "smp",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/smp.v",
+        "ModuleLine" : 3,
+        "ModuleName" : "SMP",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false,
+        "SubNodes" : [
+         {
+          "InstFile" : "D:/Gowin/dev/snestang/src/smp.v",
+          "InstLine" : 122,
+          "InstName" : "SPC700",
+          "Mode" : 1,
+          "ModuleFile" : "D:/Gowin/dev/snestang/src/spc700/spc700.v",
+          "ModuleLine" : 4,
+          "ModuleName" : "SPC700",
+          "Process" : 0,
+          "SetMode" : false,
+          "SetProcess" : false,
+          "SubNodes" : [
+           {
+            "InstFile" : "D:/Gowin/dev/snestang/src/spc700/spc700.v",
+            "InstLine" : 240,
+            "InstName" : "MCode",
+            "Mode" : 1,
+            "ModuleFile" : "D:/Gowin/dev/snestang/src/spc700/mcode.v",
+            "ModuleLine" : 5,
+            "ModuleName" : "SPC700_MCode",
+            "Process" : 0,
+            "SetMode" : false,
+            "SetProcess" : false
+           },
+           {
+            "InstFile" : "D:/Gowin/dev/snestang/src/spc700/spc700.v",
+            "InstLine" : 248,
+            "InstName" : "AddrGen",
+            "Mode" : 1,
+            "ModuleFile" : "D:/Gowin/dev/snestang/src/spc700/addrgen.v",
+            "ModuleLine" : 3,
+            "ModuleName" : "SPC700_AddrGen",
+            "Process" : 0,
+            "SetMode" : false,
+            "SetProcess" : false
+           },
+           {
+            "InstFile" : "D:/Gowin/dev/snestang/src/spc700/spc700.v",
+            "InstLine" : 274,
+            "InstName" : "ALU",
+            "Mode" : 1,
+            "ModuleFile" : "D:/Gowin/dev/snestang/src/spc700/alu.v",
+            "ModuleLine" : 4,
+            "ModuleName" : "SPC700_ALU",
+            "Process" : 0,
+            "SetMode" : false,
+            "SetProcess" : false,
+            "SubNodes" : [
+             {
+              "InstFile" : "D:/Gowin/dev/snestang/src/spc700/alu.v",
+              "InstLine" : 88,
+              "InstName" : "AddSub",
+              "Mode" : 1,
+              "ModuleFile" : "D:/Gowin/dev/snestang/src/spc700/addsub.v",
+              "ModuleLine" : 3,
+              "ModuleName" : "SPC700_AddSub",
+              "Process" : 0,
+              "SetMode" : false,
+              "SetProcess" : false
+             },
+             {
+              "InstFile" : "D:/Gowin/dev/snestang/src/spc700/alu.v",
+              "InstLine" : 98,
+              "InstName" : "BCD",
+              "Mode" : 1,
+              "ModuleFile" : "D:/Gowin/dev/snestang/src/spc700/bcdadj.v",
+              "ModuleLine" : 3,
+              "ModuleName" : "SPC700_BCDAdj",
+              "Process" : 0,
+              "SetMode" : false,
+              "SetProcess" : false
+             }
+            ]
+           },
+           {
+            "InstFile" : "D:/Gowin/dev/snestang/src/spc700/spc700.v",
+            "InstLine" : 283,
+            "InstName" : "MulDiv",
+            "Mode" : 1,
+            "ModuleFile" : "D:/Gowin/dev/snestang/src/spc700/muldiv.v",
+            "ModuleLine" : 4,
+            "ModuleName" : "MulDiv",
+            "Process" : 0,
+            "SetMode" : false,
+            "SetProcess" : false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/snes.v",
+        "InstLine" : 224,
+        "InstName" : "dsp",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/dsp.v",
+        "ModuleLine" : 8,
+        "ModuleName" : "DSP",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       }
+      ]
+     },
+     {
+      "InstFile" : "D:/Gowin/dev/snestang/src/main.v",
+      "InstLine" : 279,
+      "InstName" : "DSP_LHRomMap",
+      "Mode" : 1,
+      "ModuleFile" : "D:/Gowin/dev/snestang/src/chip/DSP/DSP_LHRomMap.v",
+      "ModuleLine" : 25,
+      "ModuleName" : "DSP_LHRomMap",
+      "Process" : 0,
+      "SetMode" : false,
+      "SetProcess" : false,
+      "SubNodes" : [
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/chip/DSP/DSP_LHRomMap.v",
+        "InstLine" : 99,
+        "InstName" : "CEGen",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/CEGen.v",
+        "ModuleLine" : 25,
+        "ModuleName" : "CEGen",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/chip/DSP/DSP_LHRomMap.v",
+        "InstLine" : 233,
+        "InstName" : "OBC1",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/chip/DSP/OBC1.v",
+        "ModuleLine" : 25,
+        "ModuleName" : "OBC1",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/chip/DSP/DSP_LHRomMap.v",
+        "InstLine" : 247,
+        "InstName" : "SRTC",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/chip/DSP/SRTC.v",
+        "ModuleLine" : 2,
+        "ModuleName" : "SRTC",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "InstFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+    "InstLine" : 256,
+    "InstName" : "vram",
+    "Mode" : 1,
+    "ModuleFile" : "D:/Gowin/dev/snestang/src/vram.v",
+    "ModuleLine" : 3,
+    "ModuleName" : "vram",
+    "Process" : 0,
+    "SetMode" : false,
+    "SetProcess" : false
+   },
+   {
+    "InstFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+    "InstLine" : 327,
+    "InstName" : "sdram",
+    "Mode" : 1,
+    "ModuleFile" : "D:/Gowin/dev/snestang/src/sdram_snes.v",
+    "ModuleLine" : 33,
+    "ModuleName" : "sdram_snes",
+    "Process" : 0,
+    "SetMode" : false,
+    "SetProcess" : false
+   },
+   {
+    "InstFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+    "InstLine" : 384,
+    "InstName" : "joy1",
+    "Mode" : 1,
+    "ModuleFile" : "D:/Gowin/dev/snestang/src/ds2snes.sv",
+    "ModuleLine" : 3,
+    "ModuleName" : "ds2snes",
+    "Process" : 0,
+    "SetMode" : false,
+    "SetProcess" : false,
+    "SubNodes" : [
+     {
+      "InstFile" : "D:/Gowin/dev/snestang/src/ds2snes.sv",
+      "InstLine" : 34,
+      "InstName" : "ds",
+      "Mode" : 1,
+      "ModuleFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+      "ModuleLine" : 46,
+      "ModuleName" : "dualshock_controller",
+      "Process" : 0,
+      "SetMode" : false,
+      "SetProcess" : false,
+      "SubNodes" : [
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "InstLine" : 93,
+        "InstName" : "pls",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "ModuleLine" : 144,
+        "ModuleName" : "ps_pls_gan",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "InstLine" : 100,
+        "InstName" : "txd",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "ModuleLine" : 262,
+        "ModuleName" : "ps_txd",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "InstLine" : 105,
+        "InstName" : "rxd",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "ModuleLine" : 237,
+        "ModuleName" : "ps_rxd",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "InstFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+    "InstLine" : 390,
+    "InstName" : "joy2",
+    "Mode" : 1,
+    "ModuleFile" : "D:/Gowin/dev/snestang/src/ds2snes.sv",
+    "ModuleLine" : 3,
+    "ModuleName" : "ds2snes",
+    "Process" : 0,
+    "SetMode" : false,
+    "SetProcess" : false,
+    "SubNodes" : [
+     {
+      "InstFile" : "D:/Gowin/dev/snestang/src/ds2snes.sv",
+      "InstLine" : 34,
+      "InstName" : "ds",
+      "Mode" : 1,
+      "ModuleFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+      "ModuleLine" : 46,
+      "ModuleName" : "dualshock_controller",
+      "Process" : 0,
+      "SetMode" : false,
+      "SetProcess" : false,
+      "SubNodes" : [
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "InstLine" : 93,
+        "InstName" : "pls",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "ModuleLine" : 144,
+        "ModuleName" : "ps_pls_gan",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "InstLine" : 100,
+        "InstName" : "txd",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "ModuleLine" : 262,
+        "ModuleName" : "ps_txd",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "InstLine" : 105,
+        "InstName" : "rxd",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/dualshock_controller.v",
+        "ModuleLine" : 237,
+        "ModuleName" : "ps_rxd",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "InstFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+    "InstLine" : 405,
+    "InstName" : "s2h",
+    "Mode" : 1,
+    "ModuleFile" : "D:/Gowin/dev/snestang/src/snes2hdmi.v",
+    "ModuleLine" : 6,
+    "ModuleName" : "snes2hdmi",
+    "Process" : 0,
+    "SetMode" : false,
+    "SetProcess" : false,
+    "SubNodes" : [
+     {
+      "InstFile" : "D:/Gowin/dev/snestang/src/snes2hdmi.v",
+      "InstLine" : 198,
+      "InstName" : "audio_fifo",
+      "Mode" : 1,
+      "ModuleFile" : "D:/Gowin/dev/snestang/src/dual_clk_fifo.v",
+      "ModuleLine" : 3,
+      "ModuleName" : "dual_clk_fifo",
+      "Process" : 0,
+      "SetMode" : false,
+      "SetProcess" : false
+     },
+     {
+      "InstFile" : "D:/Gowin/dev/snestang/src/snes2hdmi.v",
+      "InstLine" : 256,
+      "InstName" : "hdmi",
+      "Mode" : 1,
+      "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/hdmi.sv",
+      "ModuleLine" : 4,
+      "ModuleName" : "hdmi",
+      "Process" : 0,
+      "SetMode" : false,
+      "SetProcess" : false,
+      "SubNodes" : [
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/hdmi2/hdmi.sv",
+        "InstLine" : 313,
+        "InstName" : "true_hdmi_output.packet_picker",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/packet_picker.sv",
+        "ModuleLine" : 4,
+        "ModuleName" : "packet_picker",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false,
+        "SubNodes" : [
+         {
+          "InstFile" : "D:/Gowin/dev/snestang/src/hdmi2/packet_picker.sv",
+          "InstLine" : 51,
+          "InstName" : "audio_clock_regeneration_packet",
+          "Mode" : 1,
+          "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/audio_clock_regeneration_packet.sv",
+          "ModuleLine" : 5,
+          "ModuleName" : "audio_clock_regeneration_packet",
+          "Process" : 0,
+          "SetMode" : false,
+          "SetProcess" : false
+         },
+         {
+          "InstFile" : "D:/Gowin/dev/snestang/src/hdmi2/packet_picker.sv",
+          "InstLine" : 131,
+          "InstName" : "audio_sample_packet",
+          "Mode" : 1,
+          "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/audio_sample_packet.sv",
+          "ModuleLine" : 8,
+          "ModuleName" : "audio_sample_packet",
+          "Process" : 0,
+          "SetMode" : false,
+          "SetProcess" : false
+         },
+         {
+          "InstFile" : "D:/Gowin/dev/snestang/src/hdmi2/packet_picker.sv",
+          "InstLine" : 137,
+          "InstName" : "auxiliary_video_information_info_frame",
+          "Mode" : 1,
+          "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/auxiliary_video_information_info_frame.sv",
+          "ModuleLine" : 5,
+          "ModuleName" : "auxiliary_video_information_info_frame",
+          "Process" : 0,
+          "SetMode" : false,
+          "SetProcess" : false
+         },
+         {
+          "InstFile" : "D:/Gowin/dev/snestang/src/hdmi2/packet_picker.sv",
+          "InstLine" : 140,
+          "InstName" : "source_product_description_info_frame",
+          "Mode" : 1,
+          "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/source_product_description_info_frame.sv",
+          "ModuleLine" : 5,
+          "ModuleName" : "source_product_description_info_frame",
+          "Process" : 0,
+          "SetMode" : false,
+          "SetProcess" : false
+         },
+         {
+          "InstFile" : "D:/Gowin/dev/snestang/src/hdmi2/packet_picker.sv",
+          "InstLine" : 143,
+          "InstName" : "audio_info_frame",
+          "Mode" : 1,
+          "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/audio_info_frame.sv",
+          "ModuleLine" : 5,
+          "ModuleName" : "audio_info_frame",
+          "Process" : 0,
+          "SetMode" : false,
+          "SetProcess" : false
+         }
+        ]
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/hdmi2/hdmi.sv",
+        "InstLine" : 315,
+        "InstName" : "true_hdmi_output.packet_assembler",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/packet_assembler.sv",
+        "ModuleLine" : 4,
+        "ModuleName" : "packet_assembler",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/hdmi2/hdmi.sv",
+        "InstLine" : 366,
+        "InstName" : "tmds_gen[0].tmds_channel",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/tmds_channel.sv",
+        "ModuleLine" : 4,
+        "ModuleName" : "tmds_channel",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/hdmi2/hdmi.sv",
+        "InstLine" : 366,
+        "InstName" : "tmds_gen[1].tmds_channel",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/tmds_channel.sv",
+        "ModuleLine" : 4,
+        "ModuleName" : "tmds_channel",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/hdmi2/hdmi.sv",
+        "InstLine" : 366,
+        "InstName" : "tmds_gen[2].tmds_channel",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/tmds_channel.sv",
+        "ModuleLine" : 4,
+        "ModuleName" : "tmds_channel",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       },
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/hdmi2/hdmi.sv",
+        "InstLine" : 370,
+        "InstName" : "serializer",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/hdmi2/serializer.sv",
+        "ModuleLine" : 3,
+        "ModuleName" : "serializer",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "InstFile" : "D:/Gowin/dev/snestang/src/snestang_top.v",
+    "InstLine" : 419,
+    "InstName" : "iosys",
+    "Mode" : 1,
+    "ModuleFile" : "D:/Gowin/dev/snestang/src/iosys/iosys.v",
+    "ModuleLine" : 34,
+    "ModuleName" : "iosys",
+    "Process" : 0,
+    "SetMode" : false,
+    "SetProcess" : false,
+    "SubNodes" : [
+     {
+      "InstFile" : "D:/Gowin/dev/snestang/src/iosys/iosys.v",
+      "InstLine" : 106,
+      "InstName" : "flash",
+      "Mode" : 1,
+      "ModuleFile" : "D:/Gowin/dev/snestang/src/iosys/spiflash.v",
+      "ModuleLine" : 2,
+      "ModuleName" : "spiflash",
+      "Process" : 0,
+      "SetMode" : false,
+      "SetProcess" : false,
+      "SubNodes" : [
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/iosys/spiflash.v",
+        "InstLine" : 38,
+        "InstName" : "spi",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/iosys/spi_master.v",
+        "ModuleLine" : 33,
+        "ModuleName" : "SPI_Master",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       }
+      ]
+     },
+     {
+      "InstFile" : "D:/Gowin/dev/snestang/src/iosys/iosys.v",
+      "InstLine" : 190,
+      "InstName" : "rv32",
+      "Mode" : 1,
+      "ModuleFile" : "D:/Gowin/dev/snestang/src/iosys/picorv32.v",
+      "ModuleLine" : 62,
+      "ModuleName" : "picorv32",
+      "Process" : 0,
+      "SetMode" : false,
+      "SetProcess" : false,
+      "SubNodes" : [
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/iosys/picorv32.v",
+        "InstLine" : 1375,
+        "InstName" : "cpuregs",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/iosys/iosys.v",
+        "ModuleLine" : 367,
+        "ModuleName" : "picosoc_regs",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       }
+      ]
+     },
+     {
+      "InstFile" : "D:/Gowin/dev/snestang/src/iosys/iosys.v",
+      "InstLine" : 197,
+      "InstName" : "disp",
+      "Mode" : 1,
+      "ModuleFile" : "D:/Gowin/dev/snestang/src/iosys/textdisp.v",
+      "ModuleLine" : 4,
+      "ModuleName" : "textdisp",
+      "Process" : 0,
+      "SetMode" : false,
+      "SetProcess" : false,
+      "SubNodes" : [
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/iosys/textdisp.v",
+        "InstLine" : 48,
+        "InstName" : "menu_mem",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/iosys/gowin_dpb_menu.v",
+        "ModuleLine" : 10,
+        "ModuleName" : "gowin_dpb_menu",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       }
+      ]
+     },
+     {
+      "InstFile" : "D:/Gowin/dev/snestang/src/iosys/iosys.v",
+      "InstLine" : 244,
+      "InstName" : "simplespi",
+      "Mode" : 1,
+      "ModuleFile" : "D:/Gowin/dev/snestang/src/iosys/simplespimaster.v",
+      "ModuleLine" : 10,
+      "ModuleName" : "simplespimaster",
+      "Process" : 0,
+      "SetMode" : false,
+      "SetProcess" : false,
+      "SubNodes" : [
+       {
+        "InstFile" : "D:/Gowin/dev/snestang/src/iosys/simplespimaster.v",
+        "InstLine" : 36,
+        "InstName" : "spi_io_master",
+        "Mode" : 1,
+        "ModuleFile" : "D:/Gowin/dev/snestang/src/iosys/spi_master.v",
+        "ModuleLine" : 33,
+        "ModuleName" : "SPI_Master",
+        "Process" : 0,
+        "SetMode" : false,
+        "SetProcess" : false
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+]

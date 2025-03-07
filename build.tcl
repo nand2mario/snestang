@@ -1,5 +1,5 @@
 if {$argc == 0} {
-    puts "Usage: $argv0 <device> [<controller>] <mcu>"
+    puts "Usage: $argv0 <device> [<controller>] [<mcu>]"
     puts "          device: nano20k, primer25k, mega60k, mega138k, console60k"
     puts "      controller: snes, ds2"
     puts "             mcu: bl616, picorv32"
@@ -8,10 +8,16 @@ if {$argc == 0} {
 }
 
 set dev [lindex $argv 0]
-if {$argc == 2} {
+if {$argc >= 2} {
     set controller [lindex $argv 1]
 } else {
     set controller ""
+}
+
+if {$argc >= 3} {
+    set mcu [lindex $argv 2]
+} else {
+    set mcu "bl616"
 }
 
 # process $dev and $controller
@@ -103,6 +109,7 @@ if {$mcu eq "bl616"} {
     add_file -type verilog "src/iosys/iosys_bl616.v"
     add_file -type verilog "src/iosys/uart_fractional.v"
     add_file -type verilog "src/iosys/textdisp.v"
+    add_file -type verilog "src/iosys/uart_fixed.v"
 } elseif {$mcu eq "picorv32"} {
     add_file -type verilog "src/iosys/iosys_picorv32.v"
     add_file -type verilog "src/iosys/picorv32.v"
