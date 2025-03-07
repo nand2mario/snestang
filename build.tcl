@@ -64,7 +64,7 @@ if {$dev eq "nano20k"} {
     add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
     add_file -type verilog "src/primer25k/gowin_pll_snes.v"
     add_file -type verilog "src/primer25k/sdram_cl2_3ch.v"
-    set_option -output_base_name snestang_${dev}_${controller}_${mcu}
+    set_option -output_base_name snestang_${dev}_${controller}
 } elseif {$dev eq "mega138k"} {
     set_device GW5AST-LV138FPG676AES -device_version B
     if {$controller eq "snes"} {
@@ -83,7 +83,7 @@ if {$dev eq "nano20k"} {
     add_file -type verilog "src/mega138k/sdram_cl2_2ch.v"
     add_file -type verilog "src/mega138k/vram.v"
     add_file -type verilog "src/mega138k/vram_spb.v"
-    set_option -output_base_name snestang_${dev}_${controller}_${mcu}
+    set_option -output_base_name snestang_${dev}_${controller}
 } elseif {$dev eq "console60k"} {
     set_device GW5AT-LV60PG484AC1/I0 -device_version B
     if {$controller eq "snes"} {
@@ -100,7 +100,7 @@ if {$dev eq "nano20k"} {
     add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
     add_file -type verilog "src/primer25k/gowin_pll_snes.v"
     add_file -type verilog "src/primer25k/sdram_cl2_3ch.v"
-    set_option -output_base_name snestang_${dev}_${controller}_${mcu}
+    set_option -output_base_name snestang_${dev}_${controller}
 } else {
     error "Unknown device $dev"
 }
