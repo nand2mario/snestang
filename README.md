@@ -16,23 +16,11 @@ SNESTang is an open source project to recreate the Super Nintendo Entertainment 
 * Automatic BSRAM backup and restore.
 * SNES or DS2 controllers.
 
-SNESTang has been integrated into [TangCore](https://github.com/nand2mario/tangcore), along with [NESTang](https://github.com/nand2mario/nestang), [GBATang](https://github.com/nand2mario/gbatang) and [MDTang](https://github.com/nand2mario/mdtang). Key new features include native USB support and utilization of the onboard BL616 MCU.
-
-**To install the latest SNESTang, follow the [TangCore](https://github.com/nand2mario/tangcore) installation instructions**. The rest of the README documents the legacy standalone version (≤ v0.9).
+SNESTang is part of [TangCore](https://github.com/nand2mario/tangcore), along with [NESTang](https://github.com/nand2mario/nestang), [GBATang](https://github.com/nand2mario/gbatang) and [MDTang](https://github.com/nand2mario/mdtang).
 
 ## Setup Instructions
 
-Detailed [step-by-step instructions](doc/installation.md).
-
-Quick instructions for experienced users:
-* Tang Primer 25K needs 4 modules: Tang sdram, DVI, SNES/Dualshock2 controller, SD and a pair of controllers. Currently these should cost ~$60 in total. Tang Nano 20K just needs controller adapters. Check [instructions](doc/installation.md) for how to connect the modules / adapters.
-* Download a [SNESTang release](https://github.com/nand2mario/snestang/releases), and program the corresponding `snestang_*.fs` to the board with Gowin programmer.
-* Program the softcore firmware `firmware.bin` to address `0x500000` of the on-board flash. See [this screenshot](doc/images/programmer_firmware.png) for how to do it.
-* Put your .sfc or .smc roms on a MicroSD card (exFAT or FAT32 file system).
-* Connect one or two DualShock2 controllers to the DS2 pmod.
-* Insert the MicroSD card, connect an HDMI monitor or TV, and enjoy your games.
-
-More information on [game compatibility](https://github.com/nand2mario/snestang/wiki/Game-Compatibility).
+To install SNESTang, follow the [TangCore](https://github.com/nand2mario/tangcore) installation instructions.
 
 ## Usage
 
@@ -50,7 +38,7 @@ Core Switching
 
 ## Development
 
-I am developing with Gowin IDE 1.9.10_03 Pro version (not the EDU version). It requires a free license. Just open the project file snestang_console60k.gprj. The release files are built with `buildall.bat`.
+[Building TangCore from the source](https://nand2mario.github.io/tangcore/dev-guide/building/)
 
 Read the updated [design notes](doc/design.md) to understand the code or to add features.
 
