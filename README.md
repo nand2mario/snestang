@@ -16,7 +16,9 @@ SNESTang is an open source project to recreate the Super Nintendo Entertainment 
 * Automatic BSRAM backup and restore.
 * SNES or DS2 controllers.
 
-If you haven't bought your board yet, Tang Primer 25K (or the upcoming TangConsole 60K) is probably the one to get. Tang Nano 20K only runs games smaller than 3.75MB (30Mbits) due to its limited SDRAM size.
+SNESTang has been integrated into [TangCore](https://github.com/nand2mario/tangcore), along with [NESTang](https://github.com/nand2mario/nestang), [GBATang](https://github.com/nand2mario/gbatang) and [MDTang](https://github.com/nand2mario/mdtang). Key new features include native USB support and utilization of the onboard BL616 MCU.
+
+**To install the latest SNESTang, follow the [TangCore](https://github.com/nand2mario/tangcore) installation instructions**. The rest of the README documents the legacy standalone version (≤ v0.9).
 
 ## Setup Instructions
 
