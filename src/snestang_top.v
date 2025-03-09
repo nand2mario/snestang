@@ -224,6 +224,7 @@ wire [1:0] snes_joy1_di, snes_joy2_di;
 
 // OR together when both SNES and DS2 controllers are connected (right now only nano20k supports both simultaneously)
 wor [11:0] joy1_btns, joy2_btns;
+wire [11:0] hid1, hid2;
 
 wire [5:0] ph;
 reg snes_start = 1'b0;
@@ -549,11 +550,11 @@ controller_ds2 joy2_ds2 (
 // output button presses to SNES
 controller_adapter joy1_adapter (
     .clk(mclk), .snes_joy_strb(snes_joy_strb), 
-    .snes_buttons(joy1_btns), .snes_joy_clk(snes_joy1_clk), .snes_joy_di(snes_joy1_di[0])
+    .snes_buttons(joy1_btns | hid1), .snes_joy_clk(snes_joy1_clk), .snes_joy_di(snes_joy1_di[0])
 );
 controller_adapter joy2_adapter (
     .clk(mclk), .snes_joy_strb(snes_joy_strb), 
-    .snes_buttons(joy2_btns), .snes_joy_clk(snes_joy2_clk), .snes_joy_di(snes_joy2_di[0])
+    .snes_buttons(joy2_btns | hid2), .snes_joy_clk(snes_joy2_clk), .snes_joy_di(snes_joy2_di[0])
 );
 assign snes_joy1_di[1] = 0;  // P3
 assign snes_joy2_di[1] = 0;  // P4
@@ -583,7 +584,7 @@ iosys_bl616 #(.CORE_ID(2), .FREQ(21_484_000)) iosys (
     .clk(mclk), .hclk(hclk), .resetn(resetn),
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color),
-    .joy1(joy1_btns), .joy2(joy2_btns),
+    .joy1(joy1_btns), .joy2(joy2_btns), .hid1(hid1), .hid2(hid2),
     .uart_tx(UART_TXD), .uart_rx(UART_RXD),
     .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid)
 );
