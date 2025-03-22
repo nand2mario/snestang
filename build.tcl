@@ -100,6 +100,8 @@ if {$dev eq "nano20k"} {
     add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
     add_file -type verilog "src/primer25k/gowin_pll_snes.v"
     add_file -type verilog "src/primer25k/sdram_cl2_3ch.v"
+    add_file -type verilog "src/usb_hid_host.v"
+    add_file -type verilog "src/console60k/pll_12.v"
     set_option -output_base_name snestang_${dev}_${controller}
 } else {
     error "Unknown device $dev"

@@ -4,6 +4,7 @@
 `define CHIP_DSPn
 // `define CHIP_GSU
 `define CONTROLLER_DS2
+`define CONSOLE
 
 package configPackage;  
 

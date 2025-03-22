@@ -32,7 +32,7 @@ module snestang_top (
     output [2:0] tmds_d_n,
 
     // LED
-    output [1:0] led,
+    output [7:0] led,
 
     // MicroSD
     output sd_clk,
@@ -71,6 +71,12 @@ module snestang_top (
     output ds_mosi2,
     output ds_cs2,
 `endif
+
+    // USB1 and USB2
+    inout usb1_dp,
+    inout usb1_dn,
+    inout usb2_dp,
+    inout usb2_dn,
 
     // SDRAM
     output O_sdram_clk,
@@ -224,6 +230,7 @@ wire [1:0] snes_joy1_di, snes_joy2_di;
 
 // OR together when both SNES and DS2 controllers are connected (right now only nano20k supports both simultaneously)
 wor [11:0] joy1_btns, joy2_btns;
+wire [11:0] joy1_usb, joy2_usb;
 wire [11:0] hid1, hid2;
 
 wire [5:0] ph;
@@ -547,14 +554,37 @@ controller_ds2 joy2_ds2 (
 );
 `endif
 
+`ifdef CONSOLE
+wire clk12;
+wire pll_lock_12;
+pll_12 pll12(.clkin(sys_clk), .clkout0(clk12), .lock(pll_lock_12));
+
+usb_hid_host usb_hid_host (
+    .usbclk(clk12), .usbrst_n(pll_lock_12),
+    .usb_dm(usb1_dn), .usb_dp(usb1_dp),
+    .typ(usb_type), .conerr(usb_conerr),
+    .game_snes(joy1_usb)
+);
+usb_hid_host usb_hid_host2 (
+    .usbclk(clk12), .usbrst_n(pll_lock_12),
+    .usb_dm(usb2_dn), .usb_dp(usb2_dp),
+    .game_snes(joy2_usb)
+);
+
+assign led = ~{joy1_usb[4:0], usb_type, usb_conerr};
+`else
+assign joy1_usb = 12'h0;
+assign joy2_usb = 12'h0;
+`endif
+
 // output button presses to SNES
 controller_adapter joy1_adapter (
     .clk(mclk), .snes_joy_strb(snes_joy_strb), 
-    .snes_buttons(joy1_btns | hid1), .snes_joy_clk(snes_joy1_clk), .snes_joy_di(snes_joy1_di[0])
+    .snes_buttons(joy1_btns | hid1 | joy1_usb), .snes_joy_clk(snes_joy1_clk), .snes_joy_di(snes_joy1_di[0])
 );
 controller_adapter joy2_adapter (
     .clk(mclk), .snes_joy_strb(snes_joy_strb), 
-    .snes_buttons(joy2_btns | hid2), .snes_joy_clk(snes_joy2_clk), .snes_joy_di(snes_joy2_di[0])
+    .snes_buttons(joy2_btns | hid2 | joy2_usb2), .snes_joy_clk(snes_joy2_clk), .snes_joy_di(snes_joy2_di[0])
 );
 assign snes_joy1_di[1] = 0;  // P3
 assign snes_joy2_di[1] = 0;  // P4
@@ -578,119 +608,14 @@ snes2hdmi s2h(
     .tmds_d_n(tmds_d_n), .tmds_d_p(tmds_d_p)
 );
 
-`ifdef MCU_BL616
-
 iosys_bl616 #(.CORE_ID(2), .FREQ(21_484_000)) iosys (
     .clk(mclk), .hclk(hclk), .resetn(resetn),
     .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
     .overlay_color(overlay_color),
-    .joy1(joy1_btns), .joy2(joy2_btns), .hid1(hid1), .hid2(hid2),
+    .joy1(joy1_btns | joy1_usb), .joy2(joy2_btns | joy2_usb), .hid1(hid1), .hid2(hid2),
     .uart_tx(UART_TXD), .uart_rx(UART_RXD),
     .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid)
 );
-
-`else       
-
-// IOSys for menu, rom loading...
-iosys_picorv32 #(.CORE_ID(2)) iosys (        // CORE ID 2: SNESTang
-    .clk(mclk), .hclk(hclk), .resetn(resetn),
-
-    .overlay(overlay), .overlay_x(overlay_x), .overlay_y(overlay_y),
-    .overlay_color(overlay_color),
-    .joy1(joy1_btns), .joy2(joy2_btns),
-
-    .rom_loading(loading), .rom_do(loader_do), .rom_do_valid(loader_do_valid), 
-    .ram_busy(sdram_busy),
-
-    .rv_valid(rv_valid), .rv_ready(rv_ready), .rv_addr(rv_addr),
-    .rv_wdata(rv_wdata), .rv_wstrb(rv_wstrb), .rv_rdata(rv_rdata),
-
-    .flash_spi_cs_n(flash_spi_cs_n), .flash_spi_miso(flash_spi_miso),
-    .flash_spi_mosi(flash_spi_mosi), .flash_spi_clk(flash_spi_clk),
-    .flash_spi_wp_n(flash_spi_wp_n), .flash_spi_hold_n(flash_spi_hold_n),
-
-    .uart_tx(UART_TXD), .uart_rx(UART_RXD),
-
-    .sd_clk(sd_clk), .sd_cmd(sd_cmd), .sd_dat0(sd_dat0), .sd_dat1(sd_dat1),
-    .sd_dat2(sd_dat2), .sd_dat3(sd_dat3)
-);
-
-always @(posedge mclk) begin            // RV
-    if (~resetn) begin
-        rvst <= RV_IDLE_REQ0;
-        rv_ready <= 0;
-    end else begin
-        reg write = rv_wstrb != 0;
-        reg rv_new_req_t = rv_valid & ~rv_valid_r;
-        if (rv_new_req_t) rv_new_req <= 1;
-
-        rv_ready <= 0;
-        rv_valid_r <= rv_valid;
-
-        case (rvst)
-        RV_IDLE_REQ0: if (rv_new_req || rv_new_req_t) begin
-            rv_new_req <= 0;
-            rv_req <= ~rv_req;
-            if (write && rv_wstrb[1:0] == 2'b0) begin
-                // shortcut for only writing the upper word
-                rv_word <= 1;
-                rv_ds <= rv_wstrb[3:2];
-                rvst <= RV_WAIT1;
-            end else begin
-                rv_word <= 0;
-                if (write)
-                    rv_ds <= rv_wstrb[1:0];
-                else
-                    rv_ds <= 2'b11;
-                rvst <= RV_WAIT0_REQ1;
-            end
-        end
-
-        RV_WAIT0_REQ1: begin
-            if (rv_req == rv_req_ack) begin
-                rv_req <= ~rv_req;      // request 1
-                rv_word <= 1;
-                if (write) begin
-                    rvst <= RV_WAIT1;
-                    if (rv_wstrb[3:2] == 2'b0) begin
-                        // shortcut for only writing the lower word
-                        rv_req <= rv_req;
-                        rv_ready <= 1;
-                        rvst <= RV_IDLE_REQ0;
-                    end
-                    rv_ds <= rv_wstrb[3:2];
-                end else begin
-                    rv_ds <= 2'b11;
-                    rvst <= RV_DATA0;
-                end
-            end
-        end
-
-        RV_DATA0: begin
-            rv_dout0 <= rv_dout;
-            rvst <= RV_WAIT1;
-        end
-            
-        RV_WAIT1: 
-            if (rv_req == rv_req_ack) begin
-                if (write)  begin
-                    rv_ready <= 1;
-                    rvst <= RV_IDLE_REQ0;
-                end else
-                    rvst <= RV_DATA1;
-            end
-
-        RV_DATA1: begin
-            rv_ready <= 1;
-            rvst <= RV_IDLE_REQ0;
-        end
-
-        default:;
-        endcase
-    end
-end
-
-`endif      // MCU_BL616
 
 `else       // VERILATOR
 
@@ -752,7 +677,7 @@ reg [19:0] timer;           // 21 times per second
 
 reg [9:0] status;
 //assign led = s0 == 1'b0 ? ~status[9:5] : ~status[4:0];        // s0==0 when pressed, for mega138k
-assign led = UART_TXD;
+// assign led = UART_TXD;
 //assign led = joy1_btns[1:0];        // Y and B
 
 always @(posedge mclk) begin
