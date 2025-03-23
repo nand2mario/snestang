@@ -1,8 +1,7 @@
 if {$argc == 0} {
-    puts "Usage: $argv0 <device> [<controller>] [<mcu>]"
+    puts "Usage: $argv0 <device> [<controller>]"
     puts "          device: nano20k, primer25k, mega60k, mega138k, console60k"
     puts "      controller: snes, ds2"
-    puts "             mcu: bl616, picorv32"
     puts "Note: nano20k supports both controllers simultaneously, so build with just: gw_sh build.tcl nano20k"
     exit 1
 }
@@ -12,12 +11,6 @@ if {$argc >= 2} {
     set controller [lindex $argv 1]
 } else {
     set controller ""
-}
-
-if {$argc >= 3} {
-    set mcu [lindex $argv 2]
-} else {
-    set mcu "bl616"
 }
 
 # process $dev and $controller
@@ -107,22 +100,11 @@ if {$dev eq "nano20k"} {
     error "Unknown device $dev"
 }
 
-if {$mcu eq "bl616"} {
-    add_file -type verilog "src/iosys/iosys_bl616.v"
-    add_file -type verilog "src/iosys/uart_fractional.v"
-    add_file -type verilog "src/iosys/textdisp.v"
-    add_file -type verilog "src/iosys/uart_fixed.v"
-} elseif {$mcu eq "picorv32"} {
-    add_file -type verilog "src/iosys/iosys_picorv32.v"
-    add_file -type verilog "src/iosys/picorv32.v"
-    add_file -type verilog "src/iosys/simplespimaster.v"
-    add_file -type verilog "src/iosys/simpleuart.v"
-    add_file -type verilog "src/iosys/spi_master.v"
-    add_file -type verilog "src/iosys/spiflash.v"
-    add_file -type verilog "src/iosys/textdisp.v"
-} else {
-    error "Unknown MCU $mcu"
-}
+add_file -type verilog "src/iosys/iosys_bl616.v"
+add_file -type verilog "src/iosys/uart_fractional.v"
+add_file -type verilog "src/iosys/textdisp.v"
+add_file -type verilog "src/iosys/uart_fixed.v"
+add_file -type verilog "src/iosys/crc16.v"
 
 add_file -type verilog "src/65C816/ALU.v"
 add_file -type verilog "src/65C816/AddSubBCD.v"

@@ -45,13 +45,13 @@ module test_loader (
 // localparam string FILE = "roms/SuperFX.hex";
 
 // 512KB roms
-localparam SIZE = 524800;
+// localparam SIZE = 524800;
 // localparam string FILE = "roms/inidisp_extend_vblank.hex";
-localparam string FILE = "roms/superbomberman.hex";
+// localparam string FILE = "roms/superbomberman.hex";
 
 // 256KB ROMS
-//localparam SIZE = 262656;
-//localparam string FILE = "roms/snes_10.hex";
+localparam SIZE = 262656;
+localparam string FILE = "roms/snes_10.hex";
 // localparam string FILE = "roms/hdma-textbox-wipe.hex";
 // localparam string FILE = "roms/window-precalculated-symmetrical.hex";
 // localparam string FILE = "roms/gradient-test.hex";

@@ -116,6 +116,9 @@ reg [7:0] response_type;
 reg response_req;
 reg response_ack;
 
+wire [15:0] crc16;
+reg crc16_req, crc16_ack;
+
 // The TangCore companion UART protocol:
 // Commmands from BL616 to FPGA:
 // 0x01                       get core ID (response: 0x11, followed by one byte of core ID)
@@ -133,6 +136,7 @@ reg response_ack;
 // 0x01 joy1[7:0] joy1[15:8] joy2[7:0] joy2[15:8]     Every 20ms, send DS2/SNES joypad state to BL616
 // 0x11 core_id[7:0]          send core ID
 // 0x22 <string>              send null-terminated core config string
+// 0x33 crc16[15:0]           send CRC16 of rom data after loading_state is set to 0
 
 // Command processing state machine (RX)
 always @(posedge clk) begin
@@ -261,6 +265,7 @@ localparam SEND_CORE_ID = 1;
 localparam SEND_CONFIG_HEADER = 2;
 localparam SEND_CONFIG_STRING = 3;
 localparam SEND_JOYPAD = 4;
+localparam SEND_CRC16 = 5;
 
 reg [2:0] send_state;
 reg [$clog2(STR_LEN+1)-1:0] send_idx;
@@ -296,6 +301,8 @@ always @(posedge clk) begin
                     end else if (response_type == 1) begin
                         send_state <= SEND_CORE_ID;
                     end
+                end else if (crc16_req != crc16_ack) begin
+                    send_state <= SEND_CRC16;
                 end
             end
 
@@ -356,6 +363,23 @@ always @(posedge clk) begin
                     end
                 end
             end
+
+            SEND_CRC16: begin
+                if (tx_ready && ~tx_valid) begin
+                    case (send_idx)
+                        0: tx_data <= 8'h33;
+                        1: tx_data <= crc16[15:8];
+                        2: tx_data <= crc16[7:0];
+                        default: ;
+                    endcase
+                    tx_valid <= 1;
+                    send_idx <= send_idx + 1;
+                    if (send_idx == 2) begin
+                        send_state <= SEND_IDLE;
+                        crc16_ack <= crc16_req;
+                    end
+                end
+            end
         endcase
     end
 end
@@ -371,5 +395,36 @@ textdisp #(.COLOR_LOGO(COLOR_LOGO)) disp (
     .reg_char_di(reg_char_di), .reg_char_we(reg_char_we)
 );
 `endif
+
+//
+// CRC16 calculation of rom loading data
+//
+
+reg rom_loading_r;
+
+crc16 crc16_inst (
+    .clk(clk),
+    .reset(rom_loading && !rom_loading_r),
+    .data_in(rom_do),
+    .data_in_en(rom_do_valid),
+    .crc_out(crc16)
+);
+
+// request sending of crc16 when rom_loading was non-zero and is now zero
+always @(posedge clk) begin
+    if (!resetn) begin
+        rom_loading_r <= 0;
+    end else begin
+        rom_loading_r <= (rom_loading != 0);
+    end
+end
+
+always @(posedge clk) begin
+    if (!resetn) begin
+        crc16_req <= 0;
+    end else if (rom_loading_r && rom_loading == 0) begin
+        crc16_req <= ~crc16_req;
+    end
+end
 
 endmodule
