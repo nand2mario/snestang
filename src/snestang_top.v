@@ -35,20 +35,20 @@ module snestang_top (
     output [7:0] led,
 
     // MicroSD
-    output sd_clk,
-    inout  sd_cmd,      // MOSI
-    input  sd_dat0,     // MISO
-    output sd_dat1,
-    output sd_dat2,
-    output sd_dat3,
+    // output sd_clk,
+    // inout  sd_cmd,      // MOSI
+    // input  sd_dat0,     // MISO
+    // output sd_dat1,
+    // output sd_dat2,
+    // output sd_dat3,
 
     // SPI flash
-    output flash_spi_cs_n,          // chip select
-    input flash_spi_miso,           // master in slave out
-    output flash_spi_mosi,          // mster out slave in
-    output flash_spi_clk,           // spi clock
-    output flash_spi_wp_n,          // write protect
-    output flash_spi_hold_n,        // hold operations
+    // output flash_spi_cs_n,          // chip select
+    // input flash_spi_miso,           // master in slave out
+    // output flash_spi_mosi,          // mster out slave in
+    // output flash_spi_clk,           // spi clock
+    // output flash_spi_wp_n,          // write protect
+    // output flash_spi_hold_n,        // hold operations
 
 `ifdef CONTROLLER_SNES
     // snes controllers
@@ -73,11 +73,14 @@ module snestang_top (
 `endif
 
     // USB1 and USB2
+`ifdef USB1
     inout usb1_dp,
     inout usb1_dn,
+`endif
+`ifdef USB2
     inout usb2_dp,
     inout usb2_dn,
-
+`endif
     // SDRAM
     output O_sdram_clk,
     output O_sdram_cke,
@@ -561,7 +564,7 @@ assign joy1_btns_ds2 = 12'h0;
 assign joy2_btns_ds2 = 12'h0;
 `endif
 
-`ifdef CONSOLE
+`ifdef USB1
 wire clk12;
 wire pll_lock_12;
 pll_12 pll12(.clkin(sys_clk), .clkout0(clk12), .lock(pll_lock_12));
@@ -572,17 +575,21 @@ usb_hid_host usb_hid_host (
     .typ(usb_type), .conerr(usb_conerr),
     .game_snes(joy1_usb)
 );
+`else
+assign joy1_usb = 12'h0;
+`endif
+
+`ifdef USB2
 usb_hid_host usb_hid_host2 (
     .usbclk(clk12), .usbrst_n(pll_lock_12),
     .usb_dm(usb2_dn), .usb_dp(usb2_dp),
     .game_snes(joy2_usb)
 );
-
-assign led = ~{joy1_usb[4:0], usb_type, usb_conerr};
 `else
-assign joy1_usb = 12'h0;
 assign joy2_usb = 12'h0;
 `endif
+
+assign led = ~{joy1_usb[4:0], usb_type, usb_conerr};
 
 // output button presses to SNES
 controller_adapter joy1_adapter (

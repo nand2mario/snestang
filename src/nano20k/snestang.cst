@@ -26,32 +26,32 @@ IO_LOC "led[0]" 15;
 IO_PORT "led[0]" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8 BANK_VCCIO=3.3;
 
 // MicroSD
-IO_LOC "sd_clk" 83;
-IO_PORT "sd_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
-IO_LOC "sd_cmd" 82;
-IO_PORT "sd_cmd" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
-IO_LOC "sd_dat0" 84;
-IO_PORT "sd_dat0" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
-IO_LOC "sd_dat1" 85;
-IO_PORT "sd_dat1" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
-IO_LOC "sd_dat2" 80;
-IO_PORT "sd_dat2" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
-IO_LOC "sd_dat3" 81;
-IO_PORT "sd_dat3" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+// IO_LOC "sd_clk" 83;
+// IO_PORT "sd_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+// IO_LOC "sd_cmd" 82;
+// IO_PORT "sd_cmd" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+// IO_LOC "sd_dat0" 84;
+// IO_PORT "sd_dat0" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+// IO_LOC "sd_dat1" 85;
+// IO_PORT "sd_dat1" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+// IO_LOC "sd_dat2" 80;
+// IO_PORT "sd_dat2" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+// IO_LOC "sd_dat3" 81;
+// IO_PORT "sd_dat3" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
 
 // SPI flash
-IO_LOC "flash_spi_cs_n" 60;
-IO_PORT "flash_spi_cs_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
-IO_LOC "flash_spi_wp_n" 57;
-IO_PORT "flash_spi_wp_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
-IO_LOC "flash_spi_hold_n" 63;
-IO_PORT "flash_spi_hold_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
-IO_LOC "flash_spi_miso" 62;   // MSPI_DO
-IO_PORT "flash_spi_miso" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
-IO_LOC "flash_spi_mosi" 61;   // MSPI_DI
-IO_PORT "flash_spi_mosi" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
-IO_LOC "flash_spi_clk" 59;
-IO_PORT "flash_spi_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+// IO_LOC "flash_spi_cs_n" 60;
+// IO_PORT "flash_spi_cs_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+// IO_LOC "flash_spi_wp_n" 57;
+// IO_PORT "flash_spi_wp_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+// IO_LOC "flash_spi_hold_n" 63;
+// IO_PORT "flash_spi_hold_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+// IO_LOC "flash_spi_miso" 62;   // MSPI_DO
+// IO_PORT "flash_spi_miso" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+// IO_LOC "flash_spi_mosi" 61;   // MSPI_DI
+// IO_PORT "flash_spi_mosi" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+// IO_LOC "flash_spi_clk" 59;
+// IO_PORT "flash_spi_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
 
 //
 // NO SDRAM ports necessary, they are connected through the "magical" port names of the top module

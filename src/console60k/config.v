@@ -5,6 +5,8 @@
 // `define CHIP_GSU
 `define CONTROLLER_DS2
 `define CONSOLE
+`define USB1
+`define USB2
 
 package configPackage;  
 

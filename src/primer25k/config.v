@@ -5,6 +5,7 @@
 // `define CHIP_GSU
 // `define CONTROLLER_SNES
 `define CONTROLLER_DS2
+`define USB1
 
 package configPackage;  
 

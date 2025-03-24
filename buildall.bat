@@ -1,6 +1,6 @@
 
 
-set GWSH=\Gowin\Gowin_V1.9.10.03_x64\IDE\bin\gw_sh
+set GWSH=\Gowin\Gowin_V1.9.11.01_x64\IDE\bin\gw_sh
 
 @REM echo
 @REM echo "============ Building console60k with snes controller ==============="
