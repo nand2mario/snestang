@@ -575,6 +575,7 @@ usb_hid_host usb_hid_host (
     .typ(usb_type), .conerr(usb_conerr),
     .game_snes(joy1_usb)
 );
+assign led = ~{joy1_usb[4:0], usb_type, usb_conerr};
 `else
 assign joy1_usb = 12'h0;
 `endif
@@ -588,8 +589,6 @@ usb_hid_host usb_hid_host2 (
 `else
 assign joy2_usb = 12'h0;
 `endif
-
-assign led = ~{joy1_usb[4:0], usb_type, usb_conerr};
 
 // output button presses to SNES
 controller_adapter joy1_adapter (
