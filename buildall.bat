@@ -1,6 +1,8 @@
 
 
-set GWSH=\Gowin\Gowin_V1.9.11.01_x64\IDE\bin\gw_sh
+@REM XXX 1.9.11.01 makes Mode 7 go black screen.
+@REM XXX So stick with 1.9.10.03 for now.
+set GWSH=\Gowin\Gowin_V1.9.10.03_x64\IDE\bin\gw_sh
 
 @REM echo
 @REM echo "============ Building console60k with snes controller ==============="
