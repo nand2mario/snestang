@@ -1,5 +1,6 @@
 
-`define PRIMER
+`define CONFIG_V
+
 `define SDRAM_3CH
 `define CHIP_DSPn
 // `define CHIP_GSU

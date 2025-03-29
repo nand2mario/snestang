@@ -1,12 +1,12 @@
 
-`define MEGA
+`define CONFIG_V
+
+`define SDRAM_3CH
 `define CHIP_DSPn
 // `define CHIP_GSU
+// `define CONTROLLER_SNES
 `define CONTROLLER_DS2
-
-// For debug purposes
-// `define DISABLE_SNES
-// `define DISABLE_SMP
+`define USB1
 
 package configPackage;  
 

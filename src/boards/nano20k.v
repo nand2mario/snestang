@@ -1,5 +1,7 @@
 
-`define NANO
+`define CONFIG_V
+
+`define PLL_R
 `define SDRAM_3CH
 `define CHIP_DSPn
 // `define CHIP_GSU

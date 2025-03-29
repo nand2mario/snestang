@@ -5,14 +5,8 @@
 
 //`define STEP_TRACE
 
-`ifndef VERILATOR
-`ifndef MEGA
-`ifndef PRIMER
-`ifndef NANO
+`ifndef CONFIG_V
 `error "config.v must be read before snestang_top.v"
-`endif
-`endif
-`endif
 `endif
 
 import configPackage::*;
@@ -113,7 +107,8 @@ always @(posedge mclk) begin
         resetn <= 1'b1;
 end
 
-`ifdef NANO
+// rPLL for Tang Nano 20K
+`ifdef PLL_R
 
 // Clocks for Nano 20K
 assign clk27 = sys_clk;

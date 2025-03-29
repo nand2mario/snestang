@@ -16,87 +16,101 @@ if {$argc >= 2} {
 # process $dev and $controller
 if {$dev eq "nano20k"} {
     set_device GW2AR-LV18QN88C8/I7 -device_version C
-    add_file src/nano20k/config.v
+    add_file src/boards/nano20k.v
     add_file -type verilog "src/snes2hdmi_nano.v"
-    add_file -type cst "src/nano20k/snestang.cst"
-    add_file -type verilog "src/nano20k/gowin_pll_hdmi.v"
-    add_file -type verilog "src/nano20k/gowin_pll_snes.v"
-    add_file -type verilog "src/nano20k/sdram_nano.v"
+    add_file -type cst "src/boards/nano20k.cst"
+    add_file -type verilog "src/pllr/gowin_pll_hdmi.v"
+    add_file -type verilog "src/pllr/gowin_pll_snes.v"
+    add_file -type verilog "src/sdram_nano.v"
     # nano20k supports both controllers simultaneously
     set_option -output_base_name snestang_${dev}
 } elseif {$dev eq "primer25k"} {
     set_device GW5A-LV25MG121NC1/I0 -device_version A
     if {$controller eq "snes"} {
-        add_file src/primer25k/config_snescontroller.v
-        add_file -type cst "src/primer25k/snestang_snescontroller.cst"
+        add_file src/boards/primer25k_snescontroller.v
+        add_file -type cst "src/boards/primer25k_snescontroller.cst"
     } elseif {$controller eq "ds2"} {
-        add_file src/primer25k/config.v
-        add_file -type cst "src/primer25k/snestang.cst"
+        add_file src/boards/primer25k.v
+        add_file -type cst "src/boards/primer25k.cst"
     } else {
         error "Unknown controller $controller"
     }
     add_file -type verilog "src/snes2hdmi.v"
-    add_file -type verilog "src/primer25k/gowin_pll_27.v"
-    add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
-    add_file -type verilog "src/primer25k/gowin_pll_snes.v"
-    add_file -type verilog "src/primer25k/sdram_cl2_3ch.v"
+    add_file -type verilog "src/plla/gowin_pll_27.v"
+    add_file -type verilog "src/plla/gowin_pll_hdmi.v"
+    add_file -type verilog "src/plla/gowin_pll_snes.v"
+    add_file -type verilog "src/sdram_cl2_3ch.v"
     add_file -type verilog "src/usb_hid_host.v"
-    add_file -type verilog "src/console60k/pll_12.v"
+    add_file -type verilog "src/plla/pll_12.v"
     set_option -output_base_name snestang_${dev}_${controller}
 } elseif {$dev eq "mega60k"} {
     set_device GW5AT-LV60PG484AC1/I0 -device_version B
     if {$controller eq "snes"} {
-        add_file src/mega60k/config_snescontroller.v
-        add_file -type cst "src/mega60k/snestang_snescontroller.cst"
+        add_file src/boards/mega60k_snescontroller.v
+        add_file -type cst "src/boards/mega60k_snescontroller.cst"
     } elseif {$controller eq "ds2"} {
-        add_file src/mega60k/config.v
-        add_file -type cst "src/mega60k/snestang.cst"
+        add_file src/boards/mega60k.v
+        add_file -type cst "src/boards/mega60k.cst"
     } else {
         error "Unknown controller $controller"
     }
     add_file -type verilog "src/snes2hdmi.v"
-    add_file -type verilog "src/primer25k/gowin_pll_27.v"
-    add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
-    add_file -type verilog "src/primer25k/gowin_pll_snes.v"
-    add_file -type verilog "src/primer25k/sdram_cl2_3ch.v"
+    add_file -type verilog "src/plla/gowin_pll_27.v"
+    add_file -type verilog "src/plla/gowin_pll_hdmi.v"
+    add_file -type verilog "src/plla/gowin_pll_snes.v"
+    add_file -type verilog "src/sdram_cl2_3ch.v"
     set_option -output_base_name snestang_${dev}_${controller}
 } elseif {$dev eq "mega138k"} {
     set_device GW5AST-LV138FPG676AES -device_version B
     if {$controller eq "snes"} {
-        add_file src/mega138k/config_snescontroller.v
-        add_file -type cst "src/mega138k/snestang_snescontroller.cst"
+        add_file src/boards/mega138k_snescontroller.v
+        add_file -type cst "src/boards/mega138k_snescontroller.cst"
     } elseif {$controller eq "ds2"} {
-        add_file src/mega138k/config.v
-        add_file -type cst "src/mega138k/snestang.cst"
+        add_file src/boards/mega138k.v
+        add_file -type cst "src/boards/mega138k.cst"
     } else {
         error "Unknown controller $controller"
     }
     add_file -type verilog "src/snes2hdmi.v"
-    add_file -type verilog "src/mega138k/gowin_pll_27.v"
-    add_file -type verilog "src/mega138k/gowin_pll_hdmi.v"
-    add_file -type verilog "src/mega138k/gowin_pll_snes.v"
-    add_file -type verilog "src/mega138k/sdram_cl2_2ch.v"
-    add_file -type verilog "src/mega138k/vram.v"
-    add_file -type verilog "src/mega138k/vram_spb.v"
+    add_file -type verilog "src/pll/gowin_pll_27.v"
+    add_file -type verilog "src/pll/gowin_pll_hdmi.v"
+    add_file -type verilog "src/pll/gowin_pll_snes.v"
+    add_file -type verilog "src/sdram_cl2_2ch.v"
+    add_file -type verilog "src/vram.v"
+    add_file -type verilog "src/vram_spb.v"
     set_option -output_base_name snestang_${dev}_${controller}
 } elseif {$dev eq "console60k"} {
     set_device GW5AT-LV60PG484AC1/I0 -device_version B
     if {$controller eq "snes"} {
-        add_file src/console60k/config_snescontroller.v
-        add_file -type cst "src/console60k/snestang_snescontroller.cst"
+        add_file src/boards/console60k_snescontroller.v
+        add_file -type cst "src/boards/console60k_snescontroller.cst"
     } elseif {$controller eq "ds2"} {
-        add_file src/console60k/config.v
-        add_file -type cst "src/console60k/snestang.cst"
+        add_file src/boards/console60k.v
+        add_file -type cst "src/boards/console.cst"
     } else {
         error "Unknown controller $controller"
     }
     add_file -type verilog "src/snes2hdmi.v"
-    add_file -type verilog "src/primer25k/gowin_pll_27.v"
-    add_file -type verilog "src/primer25k/gowin_pll_hdmi.v"
-    add_file -type verilog "src/primer25k/gowin_pll_snes.v"
-    add_file -type verilog "src/primer25k/sdram_cl2_3ch.v"
+    add_file -type verilog "src/plla/gowin_pll_27.v"
+    add_file -type verilog "src/plla/gowin_pll_hdmi.v"
+    add_file -type verilog "src/plla/gowin_pll_snes.v"
+    add_file -type verilog "src/sdram_cl2_3ch.v"
     add_file -type verilog "src/usb_hid_host.v"
-    add_file -type verilog "src/console60k/pll_12.v"
+    add_file -type verilog "src/plla/pll_12.v"
+    set_option -output_base_name snestang_${dev}_${controller}
+} elseif {$dev eq "console138k"} {
+    set_device GW5AST-LV138FPG676AES -device_version B
+    add_file src/boards/console138k.v
+    add_file -type cst "src/boards/console.cst"
+    add_file -type verilog "src/snes2hdmi.v"
+    add_file -type verilog "src/pll/gowin_pll_27.v"
+    add_file -type verilog "src/pll/gowin_pll_hdmi.v"
+    add_file -type verilog "src/pll/gowin_pll_snes.v"
+    add_file -type verilog "src/sdram_cl2_2ch.v"
+    add_file -type verilog "src/vram.v"
+    add_file -type verilog "src/vram_spb.v"
+    add_file -type verilog "src/usb_hid_host.v"
+    add_file -type verilog "src/pll/pll_12.v"
     set_option -output_base_name snestang_${dev}_${controller}
 } else {
     error "Unknown device $dev"

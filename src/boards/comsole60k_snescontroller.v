@@ -1,9 +1,14 @@
 
-`define PRIMER
+`define CONFIG_V
+
 `define SDRAM_3CH
 `define CHIP_DSPn
 // `define CHIP_GSU
+
 `define CONTROLLER_SNES
+
+`define USB1
+`define USB2
 
 package configPackage;  
 
