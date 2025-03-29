@@ -99,7 +99,7 @@ if {$dev eq "nano20k"} {
     add_file -type verilog "src/plla/pll_12.v"
     set_option -output_base_name snestang_${dev}_${controller}
 } elseif {$dev eq "console138k"} {
-    set_device GW5AST-LV138FPG676AES -device_version B
+    set_device GW5AST-LV138PG484AC1/I0 -device_version B
     add_file src/boards/console138k.v
     add_file -type cst "src/boards/console.cst"
     add_file -type verilog "src/snes2hdmi.v"
