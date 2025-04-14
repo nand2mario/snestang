@@ -20,7 +20,7 @@ SNESTang is part of [TangCore](https://github.com/nand2mario/tangcore), along wi
 
 ## Setup Instructions
 
-To install SNESTang, follow the [TangCore](https://github.com/nand2mario/tangcore) installation instructions.
+For Tang Console (60K and 138K), follow the [TangCore](https://github.com/nand2mario/tangcore) installation instructions. For Tang Mega, Primer and Nano, please download a standalone [SNESTang release](https://github.com/nand2mario/snestang/releases) and follow instructions inside.
 
 ## Usage
 
