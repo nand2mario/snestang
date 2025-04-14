@@ -16,7 +16,7 @@ SNESTang is an open source project to recreate the Super Nintendo Entertainment 
 * Automatic BSRAM backup and restore.
 * SNES or DS2 controllers.
 
-SNESTang is part of [TangCore](https://github.com/nand2mario/tangcore), along with [NESTang](https://github.com/nand2mario/nestang), [GBATang](https://github.com/nand2mario/gbatang) and [MDTang](https://github.com/nand2mario/mdtang).
+SNESTang is part of [TangCore](https://github.com/nand2mario/tangcore), along with [NESTang](https://github.com/nand2mario/nestang), [GBATang](https://github.com/nand2mario/gbatang), [MDTang](https://github.com/nand2mario/mdtang) and [SMSTang](https://github.com/nand2mario/smstang).
 
 ## Setup Instructions
 
