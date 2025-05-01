@@ -6,7 +6,7 @@
 
 <img src="doc/images/snestang-0.7.jpg" width=300>
 
-SNESTang is an open source project to recreate the Super Nintendo Entertainment System (SNES) with the affordable Sipeed Tang FPGA boards. Currently [Tang Primer 25K](https://wiki.sipeed.com/hardware/en/tang/tang-primer-25k/primer-25k.html), [Tang Mega 60K](https://wiki.sipeed.com/hardware/en/tang/tang-mega-60k/mega-60k.html), [Tang Nano 20K](https://wiki.sipeed.com/hardware/en/tang/tang-nano-20k/nano-20k.html) and [Tang Mega 138K Pro](https://wiki.sipeed.com/hardware/en/tang/tang-mega-138k/mega-138k-pro.html) are supported.
+SNESTang is an open source project to recreate the Super Nintendo Entertainment System (SNES) with the affordable Sipeed Tang FPGA boards. Currently [Tang Console 60K/138K](https://wiki.sipeed.com/hardware/en/tang/tang-console/mega-console.html), [Tang Primer 25K](https://wiki.sipeed.com/hardware/en/tang/tang-primer-25k/primer-25k.html), [Tang Mega 60K](https://wiki.sipeed.com/hardware/en/tang/tang-mega-60k/mega-60k.html), [Tang Nano 20K](https://wiki.sipeed.com/hardware/en/tang/tang-nano-20k/nano-20k.html) and [Tang Mega 138K Pro](https://wiki.sipeed.com/hardware/en/tang/tang-mega-138k/mega-138k-pro.html) are supported.
 
 * 720p HDMI output.
 * Cycle accurate gameplay.
@@ -16,11 +16,11 @@ SNESTang is an open source project to recreate the Super Nintendo Entertainment 
 * Automatic BSRAM backup and restore.
 * SNES or DS2 controllers.
 
-SNESTang is part of [TangCore](https://github.com/nand2mario/tangcore), along with [NESTang](https://github.com/nand2mario/nestang), [GBATang](https://github.com/nand2mario/gbatang) and [MDTang](https://github.com/nand2mario/mdtang).
+SNESTang is part of [TangCore](https://github.com/nand2mario/tangcore), along with [NESTang](https://github.com/nand2mario/nestang), [GBATang](https://github.com/nand2mario/gbatang), [MDTang](https://github.com/nand2mario/mdtang) and [SMSTang](https://github.com/nand2mario/smstang).
 
 ## Setup Instructions
 
-To install SNESTang, follow the [TangCore](https://github.com/nand2mario/tangcore) installation instructions.
+For Tang Console (60K and 138K), follow the [TangCore](https://github.com/nand2mario/tangcore) installation instructions. For Tang Mega, Primer and Nano, please download a standalone [SNESTang release](https://github.com/nand2mario/snestang/releases) and follow instructions inside.
 
 ## Usage
 
