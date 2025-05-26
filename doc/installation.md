@@ -3,7 +3,7 @@
 This is a step-by-step guide to install SNESTang 0.6, NESTang 0.9 and later versions for the following FPGA boards.
 
 * **Sipeed Tang Primer 25K dock**. This setup also requires Sipeed Tang SDRAM module, Sipeed Tang DVI pmod, TF-Card pmod and DS2x2 pmod.
-* **Sipeed Tang Nano 20K**, along with game controllers and adapter boards sold by Sipeed.
+* **Sipeed Tang Nano 20K**, along with game controllers and adapter boards sold by Sipeed or you can build a controller breadboard.
 * **Sipeed Tang Mega 138K Pro dock** (only for SNESTang), along with Tang SDRAM module and DS2x2 pmod.
 
 You also need a Windows or Linux computer, a Dualshock 2 or SNES controller and a MicroSD card.
@@ -25,6 +25,10 @@ NESTang works with both SNES and NES controllers as they are electronically comp
 For Tang Nano 20K, both the DS2 controllers and SNES controllers can be connected at the same time. Connect the DS2 adapters as follows,
 
 <img src="images/nano20k_setup.jpg" width=400>
+
+You can glue some [SNES controller connectors](https://vi.aliexpress.com/item/32828261927.html) onto a breadboard like so:
+
+<img src="images/nano20k-breadboard-SNES-port.jpg" width=400>
 
 Then the SNES controllers can be connected as follows,
 
