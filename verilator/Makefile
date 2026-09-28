@@ -7,7 +7,7 @@ SRCS=$D/verilator/config.v $D/verilator/test_loader.v $D/verilator/sdram_sim.v $
 	 $D/65C816/common.sv $D/65C816/ALU.v $D/65C816/AddSubBCD.v $D/65C816/AddrGen.v $D/65C816/BCDAdder.v \
 	 $D/65C816/adder4.v $D/65C816/bit_adder.v $D/65C816/mcode.sv $D/65C816/P65C816.v \
 	 $D/chip/DSP/DSP_LHRomMap.v $D/chip/DSP/OBC1.v $D/chip/DSP/SRTC.v $D/chip/DSP/DSPn.v \
-	 $D/smc_parser.v $D/SNES.v $D/mega138k/vram.v $D/swram.v
+	 $D/smc_parser.v $D/SNES.v $D/vram.v $D/swram.v
 #	 $D/chip/GSU/GSU_PKG.v $D/chip/GSU/GSUMap.v $D/chip/GSU/GSU.v 
 
 DEPS=$D/ppu_defines.vh

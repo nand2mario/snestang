@@ -1748,6 +1748,7 @@ cycle 1
 COLOR_OUT is available 2 H_CNT later.
 */
 always @* begin : pixel_render_addr_gen
+/* verilator tracing_off */   // tracing these block-locals crashes verilator 5.044 (V3Scope "prodedure in procedure")
     reg [7:0] PAL1, PAL2, PAL3, PAL4, OBJ_PAL;
     reg PRIO1, PRIO2, PRIO3, PRIO4;
     reg [3:0] BGPR0EN, BGPR1EN;
@@ -1759,6 +1760,7 @@ always @* begin : pixel_render_addr_gen
     // reg half; 
 
     integer i;
+/* verilator tracing_on */
 
     if (WINDOW_X >= WH0 && WINDOW_X <= WH1) 
         win1 =  ~({WOBJSEL[4],WOBJSEL[0],W34SEL[4],W34SEL[0],W12SEL[4],W12SEL[0]});   
