@@ -33,10 +33,10 @@ module test_loader (
 
 // 128KB ROMS
  localparam SIZE = 131584;
-//  localparam string FILE = "roms/hello.hex";
+ localparam string FILE = "roms/hello.hex";
 // localparam string FILE = "roms/hello2.hex";
 // localparam string FILE = "roms/textbuffer-hello-world.hex";
-localparam string FILE = "roms/Perspective.hex";
+// localparam string FILE = "roms/Perspective.hex";
 // localparam string FILE = "roms/test_dmavalid.hex";
 // localparam string FILE = "roms/test_irq4200.hex";
 // localparam string FILE = "roms/test_math.hex";

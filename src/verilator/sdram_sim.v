@@ -108,11 +108,12 @@ reg cpu_req_r, bsram_req_r, aram_req_r;
 reg we_latch[2], oe_latch[2];
 reg [15:0] cpu_dout_pre, aram_dout_pre;
 reg cpu_req_new, bsram_req_new, aram_req_new;
+reg cpu_req_new_t, bsram_req_new_t, aram_req_new_t;
 
 always @(posedge mclk) begin
-    reg cpu_req_new_t = cpu_req ^ cpu_req_r;
-    reg bsram_req_new_t = bsram_req ^ bsram_req_r;
-    reg aram_req_new_t = aram_req ^ aram_req_r;
+    cpu_req_new_t <= cpu_req ^ cpu_req_r;
+    bsram_req_new_t <= bsram_req ^ bsram_req_r;
+    aram_req_new_t <= aram_req ^ aram_req_r;
     cpu_req_r <= cpu_req;
     bsram_req_r <= bsram_req;
     aram_req_r <= aram_req;
