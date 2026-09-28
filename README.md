@@ -20,6 +20,8 @@ SNESTang is part of [TangCore](https://github.com/nand2mario/tangcore), along wi
 
 🌟🌟 Try the new [486Tang](https://github.com/nand2mario/486tang).
 
+[m1nl/snestang](https://github.com/m1nl/snestang) is a port of SNESTang to the [MiSTle](https://github.com/MiSTle-Dev) framework, with an IcePi-Zero (Lattice ECP5) build, USB HID controller support and a SERV-based I/O softcore.
+
 ## Setup Instructions
 
 For Tang Console (60K and 138K), follow the [TangCore](https://github.com/nand2mario/tangcore) installation instructions. For Tang Mega, Primer and Nano, please download a standalone [SNESTang release](https://github.com/nand2mario/snestang/releases) and follow instructions inside.
