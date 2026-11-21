@@ -26,7 +26,7 @@ For Tang Nano 20K, both the DS2 controllers and SNES controllers can be connecte
 
 <img src="images/nano20k_setup.jpg" width=400>
 
-You can glue some [SNES controller connectors](https://vi.aliexpress.com/item/32828261927.html) onto a breadboard like so:
+You can glue some [SNES controller connectors](https://www.aliexpress.com/item/32879502446.html) onto a breadboard like so:
 
 <img src="images/nano20k-breadboard-SNES-port.jpg" width=400>
 
